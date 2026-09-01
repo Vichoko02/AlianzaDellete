@@ -1,0 +1,1325 @@
+/* ===================================================
+   WIKI PAGE — estilos de la página de proyecto
+   =================================================== */
+
+.wiki-page {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* --- HEADER DE LA WIKI --- */
+.wiki-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--header-bg);
+  border-bottom: 2px solid var(--accent);
+}
+
+.wiki-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 32px;
+  gap: 1rem;
+}
+
+/* Grupos de links a cada lado */
+.wiki-header-nav {
+  display: flex;
+  gap: 2.5rem;
+  flex: 1;
+}
+
+.wiki-header-nav--left  { justify-content: flex-end; }
+.wiki-header-nav--right { justify-content: flex-start; }
+
+.wiki-header-nav a {
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  font-family: "Oswald", sans-serif;
+  font-size: 15px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.wiki-header-nav a:hover {
+  color: var(--accent);
+  text-shadow: 0 0 8px var(--accent);
+}
+
+/* Logo central — botón home */
+.wiki-home-logo {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 16px;
+}
+
+.wiki-home-logo img {
+  height: 60px;
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 0 15px rgba(0,0,0,0.9)) drop-shadow(0 0 35px rgba(0,0,0,0.7));
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.wiki-home-logo:hover img {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 10px #ffffff) !important;
+}
+
+@media (max-width: 768px) {
+  .wiki-header-nav--left,
+  .wiki-header-nav--right { display: none; }
+  .wiki-hamburger { display: flex !important; margin-left: auto; }
+  .wiki-home-logo img { height: 26px; }
+  .wiki-header-inner { padding: 10px 16px; }
+}
+
+/* --- BANNER --- */
+.wiki-banner {
+  position: relative;
+  width: 100%;
+  height: 60vh;
+  min-height: 320px;
+  overflow: hidden;
+  background: #000;
+}
+
+.wiki-banner-img {
+  width: 100%;
+  height: 120%;
+  object-fit: cover;
+  opacity: 0.65;
+  will-change: transform;
+  transform-origin: center top;
+}
+
+.wiki-banner-parallax {
+  position: absolute;
+  top: -10%;
+  left: 0;
+}
+
+.wiki-banner-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to bottom, transparent 30%, var(--header-bg) 100%);
+}
+
+.wiki-banner-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.wiki-banner-logo {
+  max-width: 40vh;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(0,0,0,0.9)) drop-shadow(0 0 40px rgba(0,0,0,0.6));
+}
+
+.wiki-estado {
+  font-family: "Oswald", sans-serif;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--accent);
+  padding: 4px 14px;
+  border-radius: 2px;
+}
+
+/* Variantes de color por estado */
+.wiki-estado--produccion  { background: #e60000; }
+.wiki-estado--emision     { background: #1A6FD4; }
+.wiki-estado--finalizado  { background: #1a8a3a; }
+.wiki-estado--pausado     { background: #8a7a1a; }
+.wiki-estado--cancelado   { background: #4a4a4a; }
+.wiki-estado--pronto      { background: #6b3fa0; }
+
+/* --- BARRA DE REDES SOCIALES --- */
+.wiki-socials-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 14px 24px;
+  background: var(--header-bg);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.wiki-socials-label {
+  font-family: "Oswald", sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+}
+
+.wiki-socials-icons {
+  display: flex;
+  gap: 10px;
+}
+
+.wiki-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.7);
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.wiki-social-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  transform: scale(1.1) rotate(5deg);
+  filter: drop-shadow(0 0 10px var(--accent));
+}
+
+/* --- CONTENEDOR GENERAL DE SECCIONES --- */
+.wiki-sinopsis-section,
+.wiki-creador-section,
+.wiki-staff-section,
+.wiki-arte-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+
+.wiki-section-title {
+  font-family: "Black Ops One", sans-serif !important;
+  font-size: 28px;
+  letter-spacing: 3px;
+  color: var(--text-h) !important;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+  position: relative;
+  display: inline-block;
+  padding: 6px 0;
+}
+
+.wiki-section-title::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, var(--accent) 0%, transparent 100%);
+  margin-bottom: 6px;
+}
+
+.wiki-section-title::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, var(--accent) 0%, transparent 100%);
+  margin-top: 6px;
+}
+
+/* --- SINOPSIS + VIDEO --- */
+.wiki-sinopsis-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+  border-bottom: 1px solid var(--border);
+}
+
+.wiki-video-box {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.wiki-video-box--short {
+  aspect-ratio: 9 / 16;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.wiki-video-box--tiktok {
+  aspect-ratio: 9 / 16;
+  max-width: 350px;
+  margin: 0 auto;
+}
+
+.wiki-video-box iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.wiki-video-box video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.wiki-tiktok-embed {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.wiki-tiktok-embed iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.wiki-video-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--code-bg);
+  color: var(--text);
+  font-family: "Oswald", sans-serif;
+  font-size: 18px;
+  letter-spacing: 2px;
+  opacity: 0.5;
+}
+
+.wiki-sinopsis-text p {
+  font-family: "Oswald", sans-serif;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--text);
+  text-transform: none;
+}
+
+/* --- CARRUSEL INTERACTIVO WIKI --- */
+.wiki-carrusel-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 0 3rem;
+  background: var(--header-bg);
+  gap: 1.5rem;
+  overflow: hidden;
+}
+
+/* VARIANTE VERTICAL (9:16) */
+.wiki-carrusel-section.wiki-carrusel--vertical {
+  --carrusel-side-width: 18%;
+  --carrusel-center-width: 26%;
+  --carrusel-aspect: 9 / 16;
+}
+
+.wiki-carrusel-section:not(.wiki-carrusel--vertical) {
+  --carrusel-side-width: 22%;
+  --carrusel-center-width: 52%;
+  --carrusel-aspect: 16 / 9;
+}
+
+/* Fondo con brillo sutil detrás del carrusel */
+.wiki-carrusel-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(230,0,0,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.wiki-carrusel-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.wiki-carrusel-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 1400px;
+  padding: 0 2rem;
+}
+
+/* Slides */
+.wiki-carrusel-slide {
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.45s ease,
+              box-shadow 0.35s ease,
+              filter 0.35s ease;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.wiki-carrusel-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.wiki-carrusel-slide--side {
+  width: var(--carrusel-side-width);
+  aspect-ratio: var(--carrusel-aspect);
+  opacity: 0.3;
+  transform: scale(0.82) perspective(800px) rotateY(12deg);
+  filter: brightness(0.55) blur(1px);
+}
+
+.wiki-carrusel-slide--side:last-of-type {
+  transform: scale(0.82) perspective(800px) rotateY(-12deg);
+}
+
+.wiki-carrusel-slide--side:hover {
+  opacity: 0.65;
+  transform: scale(0.88) perspective(800px) rotateY(5deg);
+  filter: brightness(0.85) blur(0px);
+  box-shadow: 0 0 20px rgba(230, 0, 0, 0.2);
+}
+
+.wiki-carrusel-slide--side:last-of-type:hover {
+  transform: scale(0.88) perspective(800px) rotateY(-5deg);
+}
+
+/* Slide central — más grande */
+.wiki-carrusel-slide--center {
+  width: var(--carrusel-center-width);
+  aspect-ratio: var(--carrusel-aspect);
+  opacity: 1;
+  transform: scale(1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8),
+              0 0 0 1px rgba(255,255,255,0.06),
+              0 0 40px rgba(230, 0, 0, 0.12);
+  cursor: default;
+  border-radius: 18px;
+}
+
+/* Hint lateral */
+.wiki-carrusel-side-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.7);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  text-shadow: 0 0 15px rgba(0,0,0,0.9);
+  background: rgba(0,0,0,0.2);
+}
+
+.wiki-carrusel-slide--side:hover .wiki-carrusel-side-hint {
+  opacity: 1;
+}
+
+/* Overlay contador */
+.wiki-carrusel-center-overlay {
+  position: absolute;
+  bottom: 14px;
+  right: 18px;
+  pointer-events: none;
+}
+
+.wiki-carrusel-counter {
+  font-family: "Oswald", sans-serif;
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.65);
+  background: rgba(0,0,0,0.55);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+/* Animaciones */
+@keyframes slideInRight {
+  from { opacity: 0; transform: scale(0.92) translateX(60px); }
+  to   { opacity: 1; transform: scale(1) translateX(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: scale(0.92) translateX(-60px); }
+  to   { opacity: 1; transform: scale(1) translateX(0); }
+}
+@keyframes slideOutLeft {
+  from { opacity: 1; transform: scale(1) translateX(0); }
+  to   { opacity: 0; transform: scale(0.92) translateX(-60px); }
+}
+@keyframes slideOutRight {
+  from { opacity: 1; transform: scale(1) translateX(0); }
+  to   { opacity: 0; transform: scale(0.92) translateX(60px); }
+}
+
+.wiki-carrusel-enter {
+  animation: slideInRight 0.38s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.wiki-carrusel-exit-right {
+  animation: slideOutLeft 0.38s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.wiki-carrusel-exit-left {
+  animation: slideOutRight 0.38s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Dots */
+.wiki-carrusel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.wiki-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.25s, transform 0.25s, box-shadow 0.25s, width 0.3s;
+}
+
+.wiki-dot.activo {
+  background: var(--accent);
+  transform: scale(1.3);
+  width: 24px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(230, 0, 0, 0.6);
+}
+
+@media (max-width: 768px) {
+  .wiki-carrusel-slide--side  { width: 14%; filter: brightness(0.5) blur(1px); }
+  .wiki-carrusel-slide--center { width: 64%; }
+  .wiki-carrusel-track { gap: 10px; padding: 0 1rem; }
+  .wiki-carrusel-btn { width: 40px; height: 40px; font-size: 18px; }
+
+  .wiki-carrusel-section.wiki-carrusel--vertical .wiki-carrusel-slide--center {
+    width: 70%;
+  }
+}
+
+/* --- CREADOR --- */
+.wiki-creador-section {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.wiki-creador-inner {
+  display: flex;
+  gap: 3rem;
+  align-items: flex-start;
+}
+
+.wiki-creador-img-box {
+  flex-shrink: 0;
+  width: 200px;
+  height: 200px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 24px rgba(230, 0, 0, 0.15);
+  transition: box-shadow 0.3s ease;
+}
+
+.wiki-creador-img-box:hover {
+  box-shadow: 0 0 32px rgba(230, 0, 0, 0.35);
+}
+
+.wiki-creador-img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wiki-creador-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--header-bg);
+  color: #fff;
+  font-family: "Black Ops One", sans-serif;
+  font-size: 64px;
+}
+
+.wiki-creador-bio {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.wiki-creador-bio h3 {
+  font-family: "Black Ops One", sans-serif !important;
+  font-size: 26px;
+  color: var(--text-h) !important;
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+.wiki-creador-bio p {
+  font-family: "Oswald", sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--text);
+  text-transform: none;
+  margin: 0;
+}
+
+/* Redes del creador */
+.wiki-creador-redes {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.wiki-creador-red {
+  width: 34px !important;
+  height: 34px !important;
+}
+
+/* Otras obras del creador */
+.wiki-creador-obras {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wiki-creador-obras-label {
+  font-family: "Oswald", sans-serif;
+  font-size: 12px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.wiki-creador-obras-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.wiki-obra-tag {
+  font-family: "Oswald", sans-serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-h);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  padding: 4px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: border-color 0.2s, color 0.2s, filter 0.2s;
+}
+
+a.wiki-obra-tag:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  filter: drop-shadow(0 0 4px var(--accent));
+}
+
+@media (max-width: 768px) {
+  .wiki-creador-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .wiki-creador-redes { justify-content: center; }
+  .wiki-creador-obras-lista { justify-content: center; }
+}
+
+/* --- STAFF --- */
+.wiki-staff-section {
+  border-bottom: 1px solid var(--border);
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.wiki-staff-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: "Black Ops One", sans-serif;
+  font-size: 28px;
+  letter-spacing: 3px;
+  color: var(--text-h);
+  text-transform: uppercase;
+  padding: 0;
+  margin-bottom: 0;
+  width: 100%;
+  justify-content: center;
+}
+
+.wiki-staff-arrow {
+  transition: transform 0.4s ease;
+  color: var(--accent);
+}
+
+.wiki-staff-toggle.abierto .wiki-staff-arrow {
+  transform: rotate(180deg);
+}
+
+.wiki-staff-content {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.6s ease, opacity 0.4s ease;
+}
+
+.wiki-staff-content.visible {
+  max-height: 3000px;
+  opacity: 1;
+  margin-top: 2.5rem;
+}
+
+.wiki-staff-grupo {
+  margin-bottom: 3rem;
+}
+
+.wiki-staff-categoria {
+  font-family: "Oswald", sans-serif !important;
+  font-size: 16px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent) !important;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.wiki-staff-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.wiki-staff-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 90px;
+}
+
+.wiki-avatar-img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  background: var(--header-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s;
+}
+
+.wiki-staff-avatar:hover .wiki-avatar-img {
+  border-color: var(--accent);
+}
+
+.wiki-avatar-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wiki-avatar-img span {
+  font-family: "Black Ops One", sans-serif;
+  font-size: 24px;
+  color: #fff;
+}
+
+.wiki-avatar-name {
+  font-family: "Oswald", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-h);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.wiki-avatar-rol {
+  font-family: "Oswald", sans-serif;
+  font-size: 11px;
+  text-align: center;
+  color: var(--text);
+  text-transform: none;
+}
+
+/* --- GALERÍA DE ARTE --- */
+.wiki-arte-section {
+  text-align: center;
+}
+
+.wiki-arte-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 180px;
+  gap: 12px;
+  margin-top: 1rem;
+}
+
+.wiki-arte-grid .wiki-arte-item:nth-child(3n+1) {
+  grid-row: span 2;
+}
+
+.wiki-arte-item {
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.wiki-arte-item:hover {
+  transform: scale(1.02);
+  border-color: var(--accent);
+}
+
+.wiki-arte-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wiki-arte-empty {
+  opacity: 0.3;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  .wiki-header-nav { display: none; }
+  .wiki-back-btn { font-size: 13px; }
+
+  .wiki-sinopsis-section {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .wiki-creador-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .wiki-arte-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .wiki-arte-grid .wiki-arte-item:nth-child(3n+1) {
+    grid-row: span 1;
+  }
+
+  .wiki-carrusel-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+}
+
+/* --- SECCIONES PERSONALIZADAS --- */
+.wiki-extra-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.wiki-extra-intro {
+  font-family: "Oswald", sans-serif;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--text);
+  text-transform: none;
+  margin-bottom: 2.5rem;
+  max-width: 800px;
+}
+
+.wiki-extra-miembro {
+  margin-bottom: 2.5rem;
+}
+
+.wiki-extra-miembro:last-child {
+  margin-bottom: 0;
+}
+
+.wiki-extra-rol {
+  display: inline-block;
+  font-family: "Oswald", sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+}
+
+/* --- HAMBURGUESA WIKI (oculta en desktop) --- */
+.wiki-hamburger {
+  display: none;
+}
+
+/* --- STAFF DIRECCIÓN — avatares más grandes --- */
+.wiki-staff-grid--directores {
+  gap: 2.5rem;
+}
+
+.wiki-staff-avatar--director {
+  width: 140px;
+}
+
+.wiki-staff-avatar--director .wiki-avatar-img {
+  width: 110px;
+  height: 110px;
+  border-width: 3px;
+  border-color: var(--accent);
+}
+
+.wiki-staff-avatar--director .wiki-avatar-img span {
+  font-size: 42px;
+}
+
+.wiki-staff-avatar--director .wiki-avatar-name {
+  font-size: 15px;
+  color: var(--text-h);
+}
+
+.wiki-staff-avatar--director .wiki-avatar-rol {
+  font-size: 11px;
+  color: var(--accent);
+  opacity: 0.9;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* --- LIGHTBOX --- */
+.wiki-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+  padding: 2rem;
+}
+
+.wiki-lightbox img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  cursor: default;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
+}
+
+.wiki-lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, filter 0.2s;
+}
+
+.wiki-lightbox-close:hover {
+  border-color: var(--accent);
+  filter: drop-shadow(0 0 8px var(--accent));
+}
+
+/* --- CLICKABLE --- */
+.wiki-clickable {
+  cursor: zoom-in;
+}
+
+.wiki-clickable:hover {
+  filter: drop-shadow(0 0 8px var(--accent));
+}
+
+/* --- GALERÍA MOSAICO MASONRY --- */
+.wiki-arte-mosaic {
+  columns: 2;
+  column-gap: 10px;
+  max-width: 1100px;
+  margin: 1.5rem auto 0;
+}
+
+.wiki-arte-mosaic .wiki-arte-item {
+  position: relative;
+  break-inside: avoid;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  display: block;
+}
+
+.wiki-arte-mosaic .wiki-arte-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.wiki-arte-mosaic .wiki-arte-item:hover {
+  transform: scale(1.02);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px rgba(230, 0, 0, 0.3);
+  z-index: 1;
+}
+
+.wiki-arte-hover {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.wiki-arte-hover svg {
+  width: 32px;
+  height: 32px;
+  color: #fff;
+  filter: drop-shadow(0 0 6px var(--accent));
+}
+
+.wiki-arte-item:hover .wiki-arte-hover {
+  opacity: 1;
+}
+
+@media (max-width: 900px) {
+  .wiki-arte-mosaic { columns: 3; }
+}
+@media (max-width: 600px) {
+  .wiki-arte-mosaic { columns: 2; }
+}
+
+@media (max-width: 768px) {
+  .wiki-arte-mosaic .wiki-arte-item {
+    max-width: 45vw;
+    min-width: 120px;
+  }
+}
+
+/* --- BARRA APÓYANOS --- */
+.wiki-bars-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.wiki-apoyanos-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 12px 24px;
+  background: color-mix(in srgb, var(--header-bg) 85%, #000 15%);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.wiki-apoyanos-btn {
+  position: relative;
+  transition: background 0.2s, color 0.2s, transform 0.2s, filter 0.2s !important;
+}
+
+.wiki-apoyanos-btn:hover {
+  background: var(--plat-color) !important;
+  color: #fff !important;
+  filter: drop-shadow(0 0 10px var(--plat-color)) !important;
+  transform: scale(1.1) rotate(5deg) !important;
+}
+
+/* --- PERSONAJES --- */
+
+
+.wiki-personajes-section {
+  background: var(--section-alt, var(--code-bg));
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.wiki-personajes-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  text-align: center;
+
+}
+
+.wiki-personajes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.wiki-personaje-card {
+  background: var(--social-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  font: inherit;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.wiki-personaje-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(230, 0, 0, 0.25);
+}
+
+.wiki-personaje-img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--header-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  object-fit: cover;
+}
+
+.wiki-personaje-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.wiki-personaje-card:hover .wiki-personaje-img img {
+  transform: scale(1.05);
+}
+
+.wiki-personaje-img span {
+  font-family: "Black Ops One", sans-serif;
+  font-size: 48px;
+  color: rgba(255,255,255,0.3);
+}
+
+.wiki-personaje-info {
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.wiki-personaje-rol {
+  font-family: "Oswald", sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.wiki-personaje-nombre {
+  font-family: "Black Ops One", sans-serif !important;
+  font-size: 16px;
+  color: var(--text-h) !important;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.wiki-personaje-va {
+  font-family: "Oswald", sans-serif;
+  font-size: 12px;
+  color: var(--text);
+  text-transform: none;
+  opacity: 0.7;
+}
+
+/* --- MODAL PERSONAJE --- */
+.personaje-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeInOverlay 0.25s ease;
+}
+
+.personaje-modal {
+  position: relative;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUpModal 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+.personaje-modal-main {
+  display: flex;
+  gap: 2rem;
+  padding: 2rem;
+  align-items: flex-start;
+}
+
+.personaje-modal-img {
+  flex-shrink: 0;
+  width: 160px;
+  aspect-ratio: 3 / 4;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid var(--accent);
+  background: var(--header-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.personaje-modal-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.personaje-modal-img span {
+  font-family: "Black Ops One", sans-serif;
+  font-size: 56px;
+  color: rgba(255,255,255,0.3);
+}
+
+.personaje-modal-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.personaje-modal-rol {
+  font-family: "Oswald", sans-serif;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.personaje-modal-nombre {
+  font-family: "Black Ops One", sans-serif !important;
+  font-size: 26px;
+  color: var(--text-h) !important;
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+.personaje-modal-desc {
+  font-family: "Oswald", sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text);
+  text-transform: none;
+  margin: 0.25rem 0 0;
+}
+
+.personaje-modal-va {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.personaje-va-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--accent);
+}
+
+.personaje-modal-va > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.personaje-va-label {
+  font-family: "Oswald", sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.personaje-va-nombre {
+  font-family: "Oswald", sans-serif;
+  font-size: 15px;
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .personaje-modal-main {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.5rem;
+  }
+  .personaje-modal-va { justify-content: center; }
+  .wiki-personajes-grid { grid-template-columns: repeat(2, 1fr); }
+}

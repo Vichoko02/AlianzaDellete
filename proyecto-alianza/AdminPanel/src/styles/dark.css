@@ -1,0 +1,59 @@
+/* --- VARIABLES MODO OSCURO --- */
+body.dark-theme {
+  --text: #ffffff;
+  --text-h: #ffffff;
+  --bg: #0D0D1A;
+  --border: #2e303a;
+  --code-bg: #1A1A2E;
+  --accent: #f80000;
+  --accent-bg: rgba(248, 0, 0, 0.15);
+  --accent-border: rgba(248, 0, 0, 0.5);
+  --social-bg: rgba(47, 48, 58, 0.5);
+  --card-highlight: #ffffff;
+  --section-alt: #0D0D1A;
+  --header-bg: #0D0D1A;
+  --header-text: #ffffff;
+}
+
+/* --- TOGGLE BUTTON --- */
+.theme-toggle-fab {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--header-bg);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.theme-toggle-fab:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+body.dark-theme .theme-toggle-fab.dark {
+  background: #1a1a2e;
+  color: #ffd700;
+  border-color: rgba(255, 215, 0, 0.2);
+}
+
+body.dark-theme .theme-toggle-fab.dark:hover {
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+}
+
+body.dark-theme .theme-toggle-fab.light {
+  background: #1A1A4B;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .theme-toggle-fab.light:hover {
+  box-shadow: 0 0 12px rgba(230, 0, 0, 0.4);
+}

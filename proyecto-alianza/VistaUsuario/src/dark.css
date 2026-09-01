@@ -1,0 +1,22 @@
+/* --- VARIABLES MODO OSCURO --- */
+body.dark-theme {
+  --text: #ffffff;
+  --text-h: #ffffff;
+  --bg: #0D0D1A;
+  --border: #2e303a;
+  --code-bg: #1A1A2E;
+  --accent: #f80000;
+  --accent-bg: rgba(248, 0, 0, 0.15);
+  --accent-border: rgba(248, 0, 0, 0.5);
+  --social-bg: rgba(47, 48, 58, 0.5);
+  --card-highlight: #ffffff;
+  --section-alt: #0D0D1A;
+
+  --header-bg: #0D0D1A;
+  --header-text: #ffffff;
+}
+
+/* --- TÍTULOS DE SECCIÓN --- */
+body.dark-theme .about-us-title {
+  color: #ffffff !important;
+}

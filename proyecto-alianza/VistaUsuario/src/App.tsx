@@ -13,7 +13,6 @@ import HomePageV2 from "./components/HomePageV2";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import SolicitarAccesoPage from "./pages/auth/SolicitarAccesoPage";
-import StorePage from "./pages/StorePage";
 import NewsPage from "./pages/NewsPage";
 import NewsEditorPage from "./pages/NewsEditorPage";
 import NewsAdminPage from "./pages/NewsAdminPage";
@@ -207,7 +206,6 @@ export default function App() {
         <Route path="/login"          element={<LoginPage />} />
         <Route path="/register"        element={<RegisterPage />} />
         <Route path="/solicitar-acceso" element={<SolicitarAccesoPage />} />
-        <Route path="/store"           element={<StorePage />} />
         <Route path="/news"             element={<NewsPage />} />
         <Route path="/news/admin"       element={<NewsAdminPage />} />
         <Route path="/news/admin/new"   element={<NewsEditorPage />} />

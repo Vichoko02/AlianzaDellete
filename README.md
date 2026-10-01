@@ -70,9 +70,60 @@ Los permisos se **reflejan como grupos** LDAP (`alianza-wikis`, `alianza-wiki-<s
 
 YishAdmin es siempre **local**: si el LDAP cae, igual puede entrar.
 
+## Panel de administración
+
+Está en `panel/` y se escribe en **TypeScript estricto**, sin frameworks ni dependencias en tiempo de ejecución: todo el panel pesa unos 70 KB de JS. Sigue el look and feel del sitio público:
+- tipografías Oswald y Black Ops One (alojadas en el propio panel);
+- azul marino `#1A1A4B` y rojo `#E60000`;
+- modo claro y oscuro.
+
+| Comando | Qué hace |
+|---|---|
+| `npm run build` | Compila `panel/*.ts` → `src/Alianza.Api/wwwroot/admin/*.js` (no se versiona) |
+| `npm run watch` | Recompila al guardar |
+| `npm run check` | Solo revisa tipos |
+
+`dotnet build` ejecuta `npm run build` automáticamente (necesita Node 20+). En Docker se compila en una etapa de Node aparte.
+
+Funciones del panel:
+- **Resumen**:
+  - accesos rápidos;
+  - wikis por estado;
+  - permisos del usuario;
+  - actividad reciente (superadmin).
+- **Wikis**:
+  - búsqueda y filtro por estado;
+  - cambio de estado y de visibilidad en la misma lista;
+  - enlace "Ver en el sitio".
+- **Editor por pestañas**:
+  - General, Imágenes, Creador, Redes, Personajes, Equipo, Carrusel y Galería;
+  - etiqueta de estado en vivo;
+  - vista previa del video (acepta cualquier enlace de YouTube);
+  - contadores en las pestañas;
+  - aviso de cambios sin guardar y guardado con **Ctrl+S**.
+- **Socios**:
+  - búsqueda;
+  - redes;
+  - wikis vinculadas.
+- **Estados**:
+  - catálogo con color y vista previa.
+- **Medios**:
+  - subida por arrastre;
+  - ficha de cada archivo con texto alternativo, dónde se usa, copiar dirección y eliminar.
+- **Usuarios y permisos** (solo YishAdmin):
+  - crear usuarios Local o LDAP;
+  - activar «puede crear wikis»;
+  - permisos por wiki y por área;
+  - desactivar cuentas;
+  - restablecer contraseñas.
+- **Auditoría** y **Mi cuenta**.
+
+Para que funcione "Ver en el sitio", define `CORS_ORIGEN_SITIO` (o `Publico__UrlSitio`) con la URL del sitio público.
+
 ## Desarrollo local (sin Docker)
 
 ```bash
+npm ci                 # dependencias del panel (solo TypeScript)
 # PostgreSQL local con usuario postgres/postgres (ver appsettings.Development.json)
 export Jwt__Clave=$(openssl rand -hex 32) Admin__Password='TuClaveSegura123'
 # opcional: export Seed__ImportarContenido=true Seed__CarpetaAssets=/ruta/a/VistaUsuario/src/assets
@@ -135,7 +186,7 @@ La documentación interactiva está en `/swagger` (en desarrollo, o con `SWAGGER
 - **Permisos leídos de la BD en cada petición**: quitar un permiso vale de inmediato.
 - **Validaciones**: los enlaces solo aceptan `http(s)`, lo que bloquea `javascript:`. Los archivos subidos se validan por **firma binaria**, no solo por extensión. Los SVG se sirven en sandbox con CSP.
 - **Concurrencia**: si dos personas editan la misma wiki, la segunda recibe un aviso en vez de pisar los cambios.
-- **Panel sin dependencias externas** y con CSP estricta. Todo el texto se inserta como texto, nunca como HTML.
+- **Panel sin dependencias externas** y con CSP estricta: fuentes alojadas en el propio panel, sin CDNs. Todo el texto se inserta como texto, nunca como HTML.
 - **Auditoría**: queda registro de cada creación, edición, eliminación y cambio de permisos.
 
 ## Estructura
@@ -147,7 +198,8 @@ src/Alianza.Api/
   Auth/          JWT, BCrypt, usuario actual con permisos, integración LDAP
   Services/      Lógica de series, socios, medios, usuarios y auditoría
   Controllers/   API pública y Admin/*
-  wwwroot/admin/ Panel de administración (HTML + CSS + JS sin build)
+  wwwroot/admin/ Panel: HTML, CSS, fuentes, logos y el JS compilado
+panel/           Código del panel en TypeScript
 seed/            Datos extraídos del frontend
 tests/           Pruebas de integración (xUnit + PostgreSQL)
 ```

@@ -4,3 +4,5 @@
 .env
 tests/
 *.md
+node_modules/
+src/Alianza.Api/wwwroot/admin/*.js

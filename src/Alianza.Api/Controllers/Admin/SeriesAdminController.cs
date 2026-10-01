@@ -96,6 +96,20 @@ public class SeriesAdminController(
         return NoContent();
     }
 
+    /// <summary>Publica u oculta la wiki en el sitio sin enviar la wiki completa.</summary>
+    [HttpPatch("{id:int}/publicada")]
+    public async Task<IActionResult> CambiarPublicada(int id, CambiarPublicadaDto dto)
+    {
+        if (!await actual.PuedeEditarSerieAsync(id)) return Forbid();
+        var s = await db.Series.FindAsync(id);
+        if (s is null) return NotFound();
+        s.Publicada = dto.Publicada;
+        s.ActualizadoEn = DateTime.UtcNow;
+        await auditoria.RegistrarAsync(dto.Publicada ? "publicar" : "ocultar", "serie", s.Id, s.Nombre);
+        await db.SaveChangesAsync();
+        return NoContent();
+    }
+
     [HttpDelete("{id:int}")]
     [Authorize(Policy = Politicas.SuperAdmin)]
     public async Task<IActionResult> Eliminar(int id)

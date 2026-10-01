@@ -20,6 +20,12 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Panel (TypeScript estricto)
+        run: npm ci && npm run check
       - run: dotnet build -c Release
       - name: Pruebas de integración (PostgreSQL real)
         run: dotnet test -c Release --no-build

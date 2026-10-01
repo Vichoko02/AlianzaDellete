@@ -45,6 +45,8 @@ public class OpcionesPublicas
     public const string Seccion = "Publico";
     /// <summary>URL base de la API para construir URLs absolutas de medios (ej: https://api.alianza.cl). Vacío = rutas relativas.</summary>
     public string UrlBase { get; set; } = "";
+    /// <summary>URL del sitio público (React), para los enlaces "Ver en el sitio" del panel. Ej: https://alianza.cl</summary>
+    public string UrlSitio { get; set; } = "";
 }
 
 public class UrlsMedios(Microsoft.Extensions.Options.IOptions<OpcionesPublicas> op)

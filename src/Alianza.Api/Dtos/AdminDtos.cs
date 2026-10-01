@@ -92,6 +92,8 @@ public record GuardarEstadoDto(
 
 // ─── Medios ───────────────────────────────────────────────────────────────────
 
+public record ActualizarMedioDto([MaxLength(300)] string? Alt);
+
 public record MedioDto(Guid Id, string Url, string NombreArchivo, string TipoContenido, long Tamano, string Alt, DateTime CreadoEn);
 
 // ─── Series / wikis ───────────────────────────────────────────────────────────
@@ -144,6 +146,8 @@ public record SerieEdicionDto(
     DateTime? ActualizadoEn = null);
 
 public record CambiarEstadoDto(int EstadoId);
+
+public record CambiarPublicadaDto(bool Publicada);
 
 public record SerieListaDto(int Id, string Slug, string Nombre, EstadoDto Estado, string? Portada, bool Publicada, int Orden, DateTime ActualizadoEn);
 

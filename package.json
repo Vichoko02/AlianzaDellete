@@ -1,0 +1,13 @@
+{
+  "name": "alianza-panel",
+  "private": true,
+  "description": "Panel de administración (TypeScript sin dependencias en tiempo de ejecución). Se compila a src/Alianza.Api/wwwroot/admin.",
+  "scripts": {
+    "build": "tsc -p panel",
+    "watch": "tsc -p panel --watch",
+    "check": "tsc -p panel --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3"
+  }
+}

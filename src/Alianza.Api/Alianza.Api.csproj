@@ -20,4 +20,13 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <!-- Compila el panel (panel/*.ts → wwwroot/admin/*.js). Se omite con -p:CompilarPanel=false (lo hace Docker en su propia etapa). -->
+  <PropertyGroup>
+    <CompilarPanel Condition="'$(CompilarPanel)' == ''">true</CompilarPanel>
+    <RaizRepo>$(MSBuildProjectDirectory)/../..</RaizRepo>
+  </PropertyGroup>
+  <Target Name="CompilarPanelTs" BeforeTargets="BeforeBuild" Condition="'$(CompilarPanel)' == 'true'">
+    <Exec Command="npm ci --no-audit --no-fund" WorkingDirectory="$(RaizRepo)" Condition="!Exists('$(RaizRepo)/node_modules')" />
+    <Exec Command="npm run build --silent" WorkingDirectory="$(RaizRepo)" />
+  </Target>
 </Project>

@@ -1,0 +1,45 @@
+# Árbol base del directorio de La Alianza.
+
+dn: ${LDAP_BASE_DN}
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: ${LDAP_ORGANIZACION}
+dc: ${LDAP_DC}
+
+dn: ou=people,${LDAP_BASE_DN}
+objectClass: organizationalUnit
+ou: people
+description: Cuentas administrativas del panel (los visitantes del sitio no tienen cuenta)
+
+dn: ou=groups,${LDAP_BASE_DN}
+objectClass: organizationalUnit
+ou: groups
+description: Grupos de permisos; los alianza-* los sincroniza el backend
+
+dn: ou=services,${LDAP_BASE_DN}
+objectClass: organizationalUnit
+ou: services
+description: Cuentas de servicio (aplicaciones)
+
+dn: ou=policies,${LDAP_BASE_DN}
+objectClass: organizationalUnit
+ou: policies
+
+# Política de contraseñas: mínimo 10 caracteres, bloqueo de 15 minutos tras 5 intentos fallidos.
+dn: cn=default,ou=policies,${LDAP_BASE_DN}
+objectClass: top
+objectClass: device
+objectClass: pwdPolicy
+cn: default
+pwdAttribute: userPassword
+pwdMinLength: 10
+pwdCheckQuality: 1
+pwdMaxFailure: 5
+pwdLockout: TRUE
+pwdLockoutDuration: 900
+pwdFailureCountInterval: 900
+pwdInHistory: 3
+pwdAllowUserChange: TRUE
+pwdMustChange: FALSE
+pwdSafeModify: FALSE

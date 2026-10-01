@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9062142D-A6E4-4911-B571-70B27C876F70}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alianza.Api", "src\Alianza.Api\Alianza.Api.csproj", "{1CE2AE95-69CF-4B44-8C17-748DF6A18997}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{C41855E8-B383-4E6D-9126-FE28228C60C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alianza.Api.Tests", "tests\Alianza.Api.Tests\Alianza.Api.Tests.csproj", "{8B1304E7-8248-41D1-AC14-05A0ACAF97F1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1CE2AE95-69CF-4B44-8C17-748DF6A18997}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CE2AE95-69CF-4B44-8C17-748DF6A18997}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CE2AE95-69CF-4B44-8C17-748DF6A18997}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CE2AE95-69CF-4B44-8C17-748DF6A18997}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B1304E7-8248-41D1-AC14-05A0ACAF97F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B1304E7-8248-41D1-AC14-05A0ACAF97F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B1304E7-8248-41D1-AC14-05A0ACAF97F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B1304E7-8248-41D1-AC14-05A0ACAF97F1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1CE2AE95-69CF-4B44-8C17-748DF6A18997} = {9062142D-A6E4-4911-B571-70B27C876F70}
+		{8B1304E7-8248-41D1-AC14-05A0ACAF97F1} = {C41855E8-B383-4E6D-9126-FE28228C60C8}
+	EndGlobalSection
+EndGlobal

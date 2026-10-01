@@ -1,0 +1,14 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  prueba:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar ldap-utils
+        run: sudo apt-get update && sudo apt-get install -y ldap-utils
+      - name: Prueba de punta a punta
+        run: tests/prueba.sh

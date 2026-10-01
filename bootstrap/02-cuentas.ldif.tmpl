@@ -1,0 +1,74 @@
+# Cuentas iniciales: el superadministrador, la cuenta de servicio del backend y los grupos base.
+# Las contraseñas llegan ya convertidas a hash {SSHA} por entrypoint.sh.
+
+dn: uid=yishadmin,ou=people,${LDAP_BASE_DN}
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: yishadmin
+cn: YishAdmin
+sn: Admin
+displayName: Yish (Administrador)
+description: Superadministrador de La Alianza
+userPassword: ${LDAP_YISHADMIN_PASSWORD_HASH}
+
+dn: cn=alianza-backend,ou=services,${LDAP_BASE_DN}
+objectClass: top
+objectClass: applicationProcess
+objectClass: simpleSecurityObject
+cn: alianza-backend
+description: API de La Alianza (crea usuarios y sincroniza grupos)
+userPassword: ${LDAP_BACKEND_PASSWORD_HASH}
+
+# groupOfNames exige al menos un miembro: el superadmin pertenece a todos los grupos
+# (de hecho tiene todos los permisos), lo que también evita grupos vacíos.
+
+dn: cn=alianza-superadmin,ou=groups,${LDAP_BASE_DN}
+objectClass: groupOfNames
+cn: alianza-superadmin
+description: Superadministradores (gestionan usuarios y permisos)
+member: uid=yishadmin,ou=people,${LDAP_BASE_DN}
+
+dn: cn=alianza-administradores,ou=groups,${LDAP_BASE_DN}
+objectClass: groupOfNames
+cn: alianza-administradores
+description: Todas las cuentas administrativas activas
+member: uid=yishadmin,ou=people,${LDAP_BASE_DN}
+
+dn: cn=alianza-creadores-wikis,ou=groups,${LDAP_BASE_DN}
+objectClass: groupOfNames
+cn: alianza-creadores-wikis
+description: Pueden crear wikis nuevas (bool que activa el superadmin)
+member: uid=yishadmin,ou=people,${LDAP_BASE_DN}
+
+dn: cn=alianza-wikis,ou=groups,${LDAP_BASE_DN}
+objectClass: groupOfNames
+cn: alianza-wikis
+description: Pueden editar todas las wikis
+member: uid=yishadmin,ou=people,${LDAP_BASE_DN}
+
+dn: cn=alianza-socios,ou=groups,${LDAP_BASE_DN}
+objectClass: groupOfNames
+cn: alianza-socios
+description: Administran socios / asociados
+member: uid=yishadmin,ou=people,${LDAP_BASE_DN}
+
+dn: cn=alianza-estados,ou=groups,${LDAP_BASE_DN}
+objectClass: groupOfNames
+cn: alianza-estados
+description: Administran el catálogo de estados de serie
+member: uid=yishadmin,ou=people,${LDAP_BASE_DN}
+
+dn: cn=alianza-medios,ou=groups,${LDAP_BASE_DN}
+objectClass: groupOfNames
+cn: alianza-medios
+description: Administran la biblioteca de medios
+member: uid=yishadmin,ou=people,${LDAP_BASE_DN}
+
+# Cuentas que pueden leer el directorio completo (otras aplicaciones: wiki interna, Nextcloud...).
+dn: cn=alianza-lectores,ou=groups,${LDAP_BASE_DN}
+objectClass: groupOfNames
+cn: alianza-lectores
+description: Cuentas de servicio con lectura del directorio
+member: cn=alianza-backend,ou=services,${LDAP_BASE_DN}

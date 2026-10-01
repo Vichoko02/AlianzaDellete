@@ -116,8 +116,8 @@ export default function HomePageV2() {
             <h1>Bienvenido a la Alianza</h1>
             <p>Un colectivo de creadores independientes unidos por la pasión</p>
             <div className="hero-v2-buttons">
-              <Link to="/store" className="btn-primary">Ver Tienda</Link>
-              <Link to="/#proyectos" className="btn-secondary">Explorar Proyectos</Link>
+              <Link to="/#proyectos" className="btn-primary">Explorar Proyectos</Link>
+              <Link to="/#asociados" className="btn-secondary">Conoce a los Asociados</Link>
             </div>
           </div>
         </section>

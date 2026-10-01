@@ -24,7 +24,6 @@ export default function Navbar() {
   }, [isOpen]);
 
   const links = [
-    //{ label: "Tienda",         href: "/store",                            external: false, modal: false },
     { label: "Sobre Nosotros", href: "#about",                            external: false, modal: false },
     //{ label: "Noticias",       href: "/news",                             external: false, modal: false },
     { label: "Miembros",       href: "#proyectos",                        external: false, modal: false },

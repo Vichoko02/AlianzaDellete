@@ -107,51 +107,6 @@ export const usersApi = {
     api.post<any>('/users/enroll', { email, role }),
 };
 
-export const productsApi = {
-  getAll: (filters?: Record<string, string>) => {
-    const query = filters ? '?' + new URLSearchParams(filters).toString() : '';
-    return api.get<any[]>(`/products${query}`);
-  },
-
-  getById: (id: string) =>
-    api.get<any>(`/products/${id}`),
-
-  create: (data: any) =>
-    api.post<any>('/products', data),
-
-  update: (id: string, data: any) =>
-    api.put<any>(`/products/${id}`, data),
-
-  delete: (id: string) =>
-    api.delete<any>(`/products/${id}`),
-
-  updateStock: (id: string, variantId: string, country: string, quantity: number) =>
-    api.put<any>(`/products/${id}/stock`, { variantId, country, quantity }),
-};
-
-export const ordersApi = {
-  getAll: (status?: string, page = 1) => {
-    const params = new URLSearchParams({ page: String(page) });
-    if (status) params.append('status', status);
-    return api.get<any>(`/orders?${params.toString()}`);
-  },
-
-  getById: (id: string) =>
-    api.get<any>(`/orders/${id}`),
-
-  getMyOrders: () =>
-    api.get<any[]>('/orders/my-orders'),
-
-  updateStatus: (id: string, status: string, trackingNumber?: string) =>
-    api.put<any>(`/orders/${id}/status`, { status, trackingNumber }),
-
-  getStats: () =>
-    api.get<any>('/orders/stats'),
-
-  getRevenue: (period: string) =>
-    api.get<any>(`/orders/revenue?period=${period}`),
-};
-
 export const newsApi = {
   getAll: (projectId?: string) => {
     const params = projectId ? `?projectId=${projectId}` : '';
@@ -213,10 +168,3 @@ export const projectsApi = {
     api.delete<any>(`/projects/${id}`),
 };
 
-export const paymentsApi = {
-  createCheckout: (items: any[], currency: string) =>
-    api.post<{ sessionId: string; url: string }>('/payments/create-checkout', { items, currency }),
-
-  getSessionStatus: (sessionId: string) =>
-    api.get<any>(`/payments/session/${sessionId}`),
-};

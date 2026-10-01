@@ -7,12 +7,10 @@ export default function NewsHeader() {
 
   const leftLinks = [
     { label: "Novedades", href: "#" },
-    { label: "Ofertas", href: "#ofertas" },
   ];
 
   const rightLinks = [
     { label: "Populares", href: "#populares" },
-    { label: "Tienda", href: "/store" },
   ];
 
   return (

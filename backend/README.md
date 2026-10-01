@@ -1,12 +1,11 @@
-# Backend - Alianza E-commerce
+# Backend - Alianza
 
-Backend API construido con NestJS, Firebase y Stripe.
+Backend API construido con NestJS y Firebase.
 
 ## Requisitos
 
 - Node.js 18+
 - Firebase Project con Authentication y Firestore habilitados
-- Cuenta de Stripe (para pagos)
 
 ## Configuración
 
@@ -25,10 +24,6 @@ FIREBASE_CLIENT_EMAIL=tu-client-email
 # JWT
 JWT_SECRET=tu-secret-muy-largo-y-seguro
 JWT_EXPIRES_IN=7d
-
-# Stripe
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
 
 # URLs
 FRONTEND_URL=http://localhost:5173
@@ -69,21 +64,6 @@ npm run start:prod
 - `GET /users` - Listar usuarios (Admin)
 - `POST /users/enroll` - Enrolar usuario (Admin)
 
-### Productos
-- `GET /products` - Listar productos
-- `POST /products` - Crear producto (Admin)
-- `PUT /products/:id` - Actualizar producto
-- `DELETE /products/:id` - Eliminar producto
-
-### Órdenes
-- `GET /orders/my-orders` - Mis órdenes
-- `GET /orders` - Listar órdenes (Admin)
-- `PUT /orders/:id/status` - Actualizar estado
-
-### Pagos (Stripe)
-- `POST /payments/create-checkout` - Crear sesión de checkout
-- `POST /payments/webhook` - Webhook de Stripe
-
 ### Noticias/Wikis
 - `GET /news` - Listar noticias
 - `POST /news` - Crear noticia (Admin/Jefe)
@@ -94,14 +74,8 @@ npm run start:prod
 
 | Rol | Permisos |
 |-----|----------|
-| `user` | Ver contenido, comprar |
+| `user` | Ver contenido |
 | `staff` | Editar wikis asignadas |
 | `jefe_proyecto` | Gestionar proyectos, noticias, ver métricas |
 | `alianza` | Control total |
 
-## Zonas de Envío
-
-El backend incluye初始化 de zonas de envío para Latinoamérica, España y USA. Para inicializar:
-```
-POST /logistics/init-zones
-```

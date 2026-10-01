@@ -5,3 +5,6 @@ obj/
 *.user
 .env
 TestResults/
+node_modules/
+# El panel se compila desde panel/*.ts (npm run build)
+src/Alianza.Api/wwwroot/admin/*.js

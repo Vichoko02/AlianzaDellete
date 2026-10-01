@@ -31,6 +31,7 @@ services:
       Admin__Username: ${ADMIN_USERNAME:-YishAdmin}
       Admin__Password: ${ADMIN_PASSWORD:-}
       Publico__UrlBase: ${URL_PUBLICA_API:-}
+      Publico__UrlSitio: ${CORS_ORIGEN_SITIO:-}
       Cors__Origenes__0: ${CORS_ORIGEN_SITIO:-http://localhost:5173}
       Seed__ImportarContenido: ${IMPORTAR_CONTENIDO:-false}
       Seed__CarpetaAssets: /seed-assets

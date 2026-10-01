@@ -169,6 +169,23 @@ public class MediosAdminController(AlianzaDbContext db, ServicioMedios servicio,
         return resultado.Select(ADto).ToList();
     }
 
+    /// <summary>Texto alternativo por defecto del archivo (accesibilidad).</summary>
+    [HttpPatch("{id:guid}")]
+    public async Task<ActionResult<MedioDto>> Actualizar(Guid id, ActualizarMedioDto dto)
+    {
+        var m = await db.Medios.FindAsync(id);
+        if (m is null) return NotFound();
+        m.Alt = dto.Alt?.Trim() ?? "";
+        await auditoria.RegistrarAsync("editar", "medio", id, m.NombreArchivo);
+        await db.SaveChangesAsync();
+        return ADto(m);
+    }
+
+    /// <summary>Dónde se usa el archivo (series, personajes, equipo, socios).</summary>
+    [HttpGet("{id:guid}/usos")]
+    public async Task<ActionResult<List<string>>> Usos(Guid id) =>
+        await db.Medios.AnyAsync(m => m.Id == id) ? await servicio.UsosAsync(id) : NotFound();
+
     [HttpDelete("{id:guid}")]
     [RequierePermiso(AmbitoPermiso.Medios)]
     public async Task<IActionResult> Eliminar(Guid id)

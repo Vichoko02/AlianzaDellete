@@ -172,8 +172,11 @@ public class UsuariosController(
 [ApiController]
 [Authorize]
 [Route("api/admin")]
-public class PanelController(AlianzaDbContext db) : ControllerBase
+public class PanelController(AlianzaDbContext db, Microsoft.Extensions.Options.IOptions<OpcionesPublicas> publico) : ControllerBase
 {
+    [HttpGet("config")]
+    public object Config() => new { urlSitio = publico.Value.UrlSitio.TrimEnd('/') };
+
     [HttpGet("resumen")]
     public async Task<ResumenDto> Resumen()
     {

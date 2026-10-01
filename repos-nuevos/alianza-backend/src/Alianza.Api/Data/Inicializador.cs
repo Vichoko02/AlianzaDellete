@@ -28,12 +28,12 @@ public class Inicializador(
 {
     public static readonly EstadoSerie[] EstadosIniciales =
     [
-        new() { Codigo = "en-produccion", Nombre = "En Producción", Color = "#F39C12", Orden = 1 },
-        new() { Codigo = "en-emision", Nombre = "En Emisión", Color = "#2ECC71", Orden = 2 },
-        new() { Codigo = "pausado", Nombre = "Pausado", Color = "#95A5A6", Orden = 3 },
-        new() { Codigo = "finalizado", Nombre = "Finalizado", Color = "#3498DB", Orden = 4 },
-        new() { Codigo = "cancelado", Nombre = "Cancelado", Color = "#E74C3C", Orden = 5 },
-        new() { Codigo = "pronto", Nombre = "Muy Pronto", Color = "#9B59B6", Orden = 6 },
+        new() { Codigo = "en-produccion", Nombre = "En Producción", Color = "#E60000", Orden = 1 },
+        new() { Codigo = "en-emision", Nombre = "En Emisión", Color = "#1A6FD4", Orden = 2 },
+        new() { Codigo = "pausado", Nombre = "Pausado", Color = "#8A7A1A", Orden = 3 },
+        new() { Codigo = "finalizado", Nombre = "Finalizado", Color = "#1A8A3A", Orden = 4 },
+        new() { Codigo = "cancelado", Nombre = "Cancelado", Color = "#4A4A4A", Orden = 5 },
+        new() { Codigo = "pronto", Nombre = "Muy Pronto", Color = "#6B3FA0", Orden = 6 },
     ];
 
     public async Task EjecutarAsync()

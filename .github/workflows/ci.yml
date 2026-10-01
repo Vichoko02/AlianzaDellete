@@ -1,0 +1,29 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet build -c Release
+      - name: Pruebas de integración (PostgreSQL real)
+        run: dotnet test -c Release --no-build
+        env:
+          ALIANZA_TEST_PG: Host=localhost;Port=5432;Username=postgres;Password=postgres
+      - name: Imagen Docker
+        run: docker build -t alianza-backend:ci .

@@ -1,22 +1,14 @@
 import { useEffect } from "react";
+import { useTextos } from "../textos";
 
 export interface Socio {
   nombre: string;
-  imagen: string;
+  imagen?: string | null;
   descripcion: string;
-  redes: {
-    instagram?: string;
-    twitter?: string;
-    youtube?: string;
-    tiktok?: string;
-    twitch?: string;
-    kick?: string;
-    doblaje?: string;
-    facebook?: string;
-  };
+  redes: Record<string, string | undefined>;
   proyectos?: {
     nombre: string;
-    imagen: string;
+    imagen?: string | null;
     enlace?: string;
   }[];
 }
@@ -70,6 +62,7 @@ interface SocioModalProps {
 }
 
 export default function SocioModal({ socio, onClose }: SocioModalProps) {
+  const t = useTextos();
   // Cerrar con Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -81,7 +74,7 @@ export default function SocioModal({ socio, onClose }: SocioModalProps) {
     };
   }, [onClose]);
 
-  const redesActivas = Object.entries(socio.redes).filter(([, url]) => url);
+  const redesActivas = Object.entries(socio.redes).filter((e): e is [string, string] => !!e[1]);
 
   return (
     <div className="socio-modal-overlay" onClick={onClose}>
@@ -95,7 +88,7 @@ export default function SocioModal({ socio, onClose }: SocioModalProps) {
 
           {/* Imagen */}
           <div className="socio-modal-img-box">
-            <img src={socio.imagen} alt={socio.nombre} />
+            {socio.imagen && <img src={socio.imagen} alt={socio.nombre} />}
           </div>
 
           {/* Info */}
@@ -134,7 +127,7 @@ export default function SocioModal({ socio, onClose }: SocioModalProps) {
         {/* Proyectos relacionados */}
         {socio.proyectos && socio.proyectos.length > 0 && (
           <div className="socio-modal-proyectos">
-            <h3 className="socio-modal-proyectos-titulo">Proyectos</h3>
+            <h3 className="socio-modal-proyectos-titulo">{t("socio.proyectos")}</h3>
             <div className="socio-modal-proyectos-grid">
               {socio.proyectos.map((p, i) => (
                 <a
@@ -143,7 +136,7 @@ export default function SocioModal({ socio, onClose }: SocioModalProps) {
                   className="socio-modal-proyecto-card"
                   onClick={onClose}
                 >
-                  <img src={p.imagen} alt={p.nombre} />
+                  {p.imagen && <img src={p.imagen} alt={p.nombre} />}
                   <span>{p.nombre}</span>
                 </a>
               ))}

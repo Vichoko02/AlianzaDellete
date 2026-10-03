@@ -1,28 +1,20 @@
 import { useState } from "react";
-
-const pasos = [
-  {
-    numero: "01",
-    titulo: "Revisa nuestros proyectos",
-    texto: "Tener un proyecto claro y definido es fundamental para poder formar parte de la Alianza, así que te recomendamos revisar nuestros proyectos actuales para entender mejor el tipo de contenido que apoyamos.",
-  },
-  {
-    numero: "02",
-    titulo: "Prepara tu propuesta",
-    texto: "Reúne ejemplos de tu trabajo: animaciones, voces, música, arte... y elabora una propuesta clara de tu proyecto.",
-  },
-  {
-    numero: "03",
-    titulo: "Envíanos tu propuesta",
-    texto: "Mándanos tu propuesta de proyecto a nuestro correo oficial con tu portafolio y área de interés.",
-  },
-];
+import { useTextos } from "../textos";
+import QuizModal from "./QuizModal";
 
 export default function Join() {
   const [abierto, setAbierto] = useState(false);
+  const [quizAbierto, setQuizAbierto] = useState(false);
+  const t = useTextos();
+
+  const pasos = [1, 2, 3].map((n) => ({
+    numero: String(n).padStart(2, "0"),
+    titulo: t(`unete.paso${n}.titulo`),
+    texto: t(`unete.paso${n}.texto`),
+  })).filter((p) => p.titulo || p.texto);
 
   return (
-    <section className="join-section">
+    <section className="join-section" id="unete">
       <div className="join-topline" />
 
       <div className="join-inner">
@@ -32,8 +24,8 @@ export default function Join() {
           aria-expanded={abierto}
         >
           <div className="join-header-left">
-            <span className="join-eyebrow">Programa de Patrocinios</span>
-            <h2 className="join-title">¿Cómo unirte?</h2>
+            <span className="join-eyebrow">{t("unete.antetitulo")}</span>
+            <h2 className="join-title">{t("unete.titulo")}</h2>
           </div>
           <div className="join-header-right">
             <span className="join-cta">{abierto ? "Cerrar" : "Ver más"}</span>
@@ -49,15 +41,8 @@ export default function Join() {
         </button>
 
         <div className={`join-body ${abierto ? "visible" : ""}`}>
-          <p className="join-intro">
-            En la Alianza estamos bastante conscientes del esfuerzo titánico que se requiere para poder sacar adelante un proyecto, 
-            añadido a los marcados prejuicios que acarrean los proyectos independientes en Latinoamérica, hacen casi imposible poder 
-            sacar un proyecto adelante.
-          </p>
-          <p className="join-intro">
-            Así que si tu proyecto necesita apoyo y quieres más información para poder formar parte de este movimiento, 
-            envíanos tu propuesta a nuestro correo oficial.
-          </p>
+          {t("unete.intro1") && <p className="join-intro">{t("unete.intro1")}</p>}
+          {t("unete.intro2") && <p className="join-intro">{t("unete.intro2")}</p>}
 
           <div className="join-pasos">
             {pasos.map((paso) => (
@@ -71,21 +56,17 @@ export default function Join() {
             ))}
           </div>
 
-          <div className="join-email-icon-wrapper">
-            <a 
-              href="mailto:postulantesalianza@gmail.com" 
-              className="join-email-icon"
-              aria-label="Enviar correo"
-            >
-              <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
-                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-              </svg>
-            </a>
+          <div className="join-postular-wrapper">
+            <button className="btn-primary join-postular" onClick={() => setQuizAbierto(true)}>
+              {t("unete.boton")}
+            </button>
           </div>
         </div>
       </div>
 
       <div className="join-topline" />
+
+      {quizAbierto && <QuizModal onClose={() => setQuizAbierto(false)} />}
     </section>
   );
 }

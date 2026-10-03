@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 interface CardItem {
   nombre: string;
-  imagen: string;
+  imagen?: string | null;
   enlace?: string;
   onCardClick?: () => void;
 }
@@ -32,7 +32,7 @@ export default function GridSection({ titulo, idSeccion, items }: GridSectionPro
                 className="project-card project-card--btn"
                 onClick={item.onCardClick}
               >
-                <img src={item.imagen} alt={`Imagen de ${item.nombre}`} />
+                {item.imagen && <img src={item.imagen} alt={`Imagen de ${item.nombre}`} />}
                 <h3>{item.nombre}</h3>
               </button>
             );
@@ -42,7 +42,7 @@ export default function GridSection({ titulo, idSeccion, items }: GridSectionPro
           if (isInternal(item.enlace)) {
             return (
               <Link to={item.enlace!} className="project-card" key={index}>
-                <img src={item.imagen} alt={`Imagen de ${item.nombre}`} />
+                {item.imagen && <img src={item.imagen} alt={`Imagen de ${item.nombre}`} />}
                 <h3>{item.nombre}</h3>
               </Link>
             );
@@ -57,7 +57,7 @@ export default function GridSection({ titulo, idSeccion, items }: GridSectionPro
               target={item.enlace && item.enlace !== "#" ? "_blank" : undefined}
               rel="noopener noreferrer"
             >
-              <img src={item.imagen} alt={`Imagen de ${item.nombre}`} />
+              {item.imagen && <img src={item.imagen} alt={`Imagen de ${item.nombre}`} />}
               <h3>{item.nombre}</h3>
             </a>
           );

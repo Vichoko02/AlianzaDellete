@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import logoAlianza from "../assets/ALIANZA_VECTORIZADO.svg";
 import Footer from "./Footer";
+import { useTextos } from "../textos";
 
 // ─── INTERFACES ───────────────────────────────────────────────────────────────
 
 export interface StaffMember {
   nombre: string;
   rol: string;
-  imagen?: string;
+  imagen?: string | null;
 }
 
 export interface StaffGroup {
@@ -22,11 +23,11 @@ export interface GalleryImage {
 
 export interface Personaje {
   nombre: string;
-  imagen?: string;
+  imagen?: string | null;
   rol: string;
   descripcion: string;
-  actorVoz?: string;
-  imagenActorVoz?: string;
+  actorVoz?: string | null;
+  imagenActorVoz?: string | null;
 }
 
 export interface SeccionPersonalizada {
@@ -41,51 +42,29 @@ export interface SeccionPersonalizada {
   }[];
 }
 
+type Redes = Record<string, string | undefined>;
+
+/** Forma de GET /api/series/{slug} del backend. */
 export interface ProjectWikiData {
   id: string;
   nombre: string;
-  banner: string;
-  logo?: string;
+  banner?: string | null;
+  logo?: string | null;
+  /** Nombre del estado ("En Emisión"); estadoInfo trae su código y color configurados en el panel. */
   estado: string;
-  videoUrl?: string;
-  videoLocal?: string;
+  estadoInfo?: { codigo: string; nombre: string; color: string };
+  videoUrl?: string | null;
+  videoLocal?: string | null;
   sinopsis: string;
   creador: {
     nombre: string;
-    imagen?: string;
+    imagen?: string | null;
     descripcion: string;
-    redes?: {
-      instagram?: string;
-      twitter?: string;
-      youtube?: string;
-      tiktok?: string;
-      discord?: string;
-      patreon?: string;
-      kofi?: string;
-      buymeacoffee?: string;
-      vaquite?: string;
-      facebook?: string;
-    };
-    obras?: { titulo: string; url?: string }[];
+    redes?: Redes;
+    obras?: { titulo: string; url?: string | null }[];
   };
-  redes: {
-    instagram?: string;
-    twitter?: string;
-    youtube?: string;
-    tiktok?: string;
-    discord?: string;
-    patreon?: string;
-    kofi?: string;
-    buymeacoffee?: string;
-    vaquite?: string;
-    facebook?: string;
-  };
-  apoyanos?: {
-    patreon?: string;
-    kofi?: string;
-    buymeacoffee?: string;
-    vaquite?: string;
-  };
+  redes: Redes;
+  apoyanos?: Redes;
   carrusel: string[];
   personajes?: Personaje[];
   staff: StaffGroup[];
@@ -128,6 +107,7 @@ function SocialIcon({ red, url }: { red: string; url: string }) {
 }
 
 function PersonajeModal({ personaje, onClose }: { personaje: Personaje; onClose: () => void }) {
+  const t = useTextos();
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", h);
@@ -156,7 +136,7 @@ function PersonajeModal({ personaje, onClose }: { personaje: Personaje; onClose:
                   <img src={personaje.imagenActorVoz} alt={personaje.actorVoz} className="personaje-va-img" />
                 )}
                 <div>
-                  <span className="personaje-va-label">Actor de Voz</span>
+                  <span className="personaje-va-label">{t("wiki.actorVoz")}</span>
                   <span className="personaje-va-nombre">{personaje.actorVoz}</span>
                 </div>
               </div>
@@ -171,6 +151,7 @@ function PersonajeModal({ personaje, onClose }: { personaje: Personaje; onClose:
 // ─── TEMPLATE PRINCIPAL ───────────────────────────────────────────────────────
 
 export default function ProjectWikiTemplate({ data }: { data: ProjectWikiData }) {
+  const t = useTextos();
   const [carruselIdx, setCarruselIdx] = useState(0);
   const [carruselDir, setCarruselDir] = useState<"left"|"right">("right");
   const [animating, setAnimating] = useState(false);
@@ -248,20 +229,20 @@ export default function ProjectWikiTemplate({ data }: { data: ProjectWikiData })
   const redesActivas  = Object.entries(data.redes).filter(([, url]) => url);
   const apoyanosList  = data.apoyanos ? Object.entries(data.apoyanos).filter(([, url]) => url) : [];
 
-  const estadoClass =
-    data.estado.toLowerCase().includes("producción") ? "wiki-estado--produccion" :
-    data.estado.toLowerCase().includes("emisión")    ? "wiki-estado--emision"    :
-    data.estado.toLowerCase().includes("finalizado") ? "wiki-estado--finalizado" :
-    data.estado.toLowerCase().includes("pausado")    ? "wiki-estado--pausado"    :
-    data.estado.toLowerCase().includes("cancelado")  ? "wiki-estado--cancelado"  :
-    data.estado.toLowerCase().includes("pronto")     ? "wiki-estado--pronto"     : "";
+  // El color del estado se define en el panel (Estados); las clases quedan para los estados de siempre.
+  const clasesEstado: Record<string, string> = {
+    "en-produccion": "wiki-estado--produccion", "en-emision": "wiki-estado--emision", finalizado: "wiki-estado--finalizado",
+    pausado: "wiki-estado--pausado", cancelado: "wiki-estado--cancelado", pronto: "wiki-estado--pronto",
+  };
+  const estadoClass = clasesEstado[data.estadoInfo?.codigo ?? ""] ?? "";
+  const estadoEstilo = data.estadoInfo ? { background: data.estadoInfo.color } : undefined;
 
   const navLinks = [
-    { label: "Sinopsis",    href: "#sinopsis" },
-    { label: "Galería",     href: "#galeria-visual" },
-    { label: "Creador",     href: "#creador" },
-    { label: "Staff",       href: "#staff" },
-    { label: "Arte",        href: "#arte" },
+    { label: t("wiki.sinopsis"), href: "#sinopsis" },
+    { label: t("wiki.galeria"),  href: "#galeria-visual" },
+    { label: t("wiki.creador"),  href: "#creador" },
+    { label: t("wiki.staff"),    href: "#staff" },
+    { label: t("wiki.arte"),     href: "#arte" },
   ];
 
   return (
@@ -284,16 +265,16 @@ export default function ProjectWikiTemplate({ data }: { data: ProjectWikiData })
       <header className="wiki-header">
         <div className="wiki-header-inner">
           <nav className="wiki-header-nav wiki-header-nav--left">
-            <a href="#sinopsis">Sinopsis</a>
-            <a href="#galeria-visual">Galería</a>
+            <a href="#sinopsis">{t("wiki.sinopsis")}</a>
+            <a href="#galeria-visual">{t("wiki.galeria")}</a>
           </nav>
           <a href="/" className="wiki-home-logo" aria-label="Volver al inicio">
             <img src={logoAlianza} alt="Alianza" />
           </a>
           <nav className="wiki-header-nav wiki-header-nav--right">
-            <a href="#creador">Creador</a>
-            <a href="#staff">Staff</a>
-            <a href="#arte">Arte</a>
+            <a href="#creador">{t("wiki.creador")}</a>
+            <a href="#staff">{t("wiki.staff")}</a>
+            <a href="#arte">{t("wiki.arte")}</a>
           </nav>
           <button
             className={`hamburger wiki-hamburger ${menuAbierto ? "open" : ""}`}
@@ -319,11 +300,11 @@ export default function ProjectWikiTemplate({ data }: { data: ProjectWikiData })
 
       {/* BANNER */}
       <section className="wiki-banner">
-        <img ref={bannerRef} src={data.banner} alt={`Banner de ${data.nombre}`} className="wiki-banner-img wiki-banner-parallax" />
+        {data.banner && <img ref={bannerRef} src={data.banner} alt={`Banner de ${data.nombre}`} className="wiki-banner-img wiki-banner-parallax" />}
         <div className="wiki-banner-overlay">
           <div className="wiki-banner-content">
             {data.logo && <img src={data.logo} alt={data.nombre} className="wiki-banner-logo" />}
-            <span className={`wiki-estado ${estadoClass}`}>{data.estado}</span>
+            <span className={`wiki-estado ${estadoClass}`} style={estadoEstilo}>{data.estado}</span>
           </div>
         </div>
       </section>
@@ -332,7 +313,7 @@ export default function ProjectWikiTemplate({ data }: { data: ProjectWikiData })
       <div className="wiki-bars-wrapper">
         {redesActivas.length > 0 && (
           <div className="wiki-socials-bar">
-            <span className="wiki-socials-label">apoya este proyecto</span>
+            <span className="wiki-socials-label">{t("wiki.apoyaProyecto")}</span>
             <div className="wiki-socials-icons">
               {redesActivas.map(([red, url]) => <SocialIcon key={red} red={red} url={url!} />)}
             </div>
@@ -340,7 +321,7 @@ export default function ProjectWikiTemplate({ data }: { data: ProjectWikiData })
         )}
         {apoyanosList.length > 0 && (
           <div className="wiki-apoyanos-bar">
-            <span className="wiki-socials-label">Apóyanos</span>
+            <span className="wiki-socials-label">{t("wiki.apoyanos")}</span>
             <div className="wiki-socials-icons">
               {apoyanosList.map(([plat, url]) => {
                 const meta = apoyanosMeta[plat];
@@ -403,18 +384,18 @@ export default function ProjectWikiTemplate({ data }: { data: ProjectWikiData })
               />
             )
           ) : (
-            <div className="wiki-video-placeholder"><span>▶ Trailer / Avance</span></div>
+            <div className="wiki-video-placeholder"><span>▶ {t("wiki.trailer")}</span></div>
           )}
         </div>
         <div className="wiki-sinopsis-text">
-          <h2 className="wiki-section-title">Sinopsis</h2>
+          <h2 className="wiki-section-title">{t("wiki.sinopsis")}</h2>
           <p>{data.sinopsis}</p>
         </div>
       </section>
 
       {/* CREADOR */}
       <section className="wiki-creador-section" id="creador">
-        <h2 className="wiki-section-title">Creador</h2>
+        <h2 className="wiki-section-title">{t("wiki.creador")}</h2>
         <div className="wiki-creador-inner">
           <div
             className={`wiki-creador-img-box ${data.creador.imagen ? "wiki-clickable" : ""}`}
@@ -442,7 +423,7 @@ export default function ProjectWikiTemplate({ data }: { data: ProjectWikiData })
             <p>{data.creador.descripcion}</p>
             {data.creador.obras && data.creador.obras.length > 0 && (
               <div className="wiki-creador-obras">
-                <span className="wiki-creador-obras-label">Otras obras</span>
+                <span className="wiki-creador-obras-label">{t("wiki.otrasObras")}</span>
                 <div className="wiki-creador-obras-lista">
                   {data.creador.obras.map((obra, i) =>
                     obra.url
@@ -496,7 +477,7 @@ export default function ProjectWikiTemplate({ data }: { data: ProjectWikiData })
       {data.personajes && data.personajes.length > 0 && (
         <section className="wiki-personajes-section" id="personajes">
           <div className="wiki-personajes-inner">
-            <h2 className="wiki-section-title">Personajes</h2>
+            <h2 className="wiki-section-title">{t("wiki.personajes")}</h2>
             <div className="wiki-personajes-grid">
               {data.personajes.map((p, i) => (
                 <button key={i} className="wiki-personaje-card" onClick={() => setPersonajeActivo(p)}>
@@ -523,7 +504,7 @@ export default function ProjectWikiTemplate({ data }: { data: ProjectWikiData })
       {/* STAFF */}
       <section className="wiki-staff-section" id="staff">
         <button className={`wiki-staff-toggle ${staffAbierto?"abierto":""}`} onClick={() => setStaffAbierto(!staffAbierto)}>
-          <span>STAFF</span>
+          <span>{t("wiki.staff").toUpperCase()}</span>
           <svg viewBox="0 0 24 24" width="22" height="22" className="wiki-staff-arrow">
             <path fill="currentColor" d="M7 10l5 5 5-5z" />
           </svg>
@@ -574,7 +555,7 @@ export default function ProjectWikiTemplate({ data }: { data: ProjectWikiData })
       {/* GALERÍA */}
       <section className="wiki-arte-section" id="arte">
         <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "4rem 2rem" }}>
-          <h2 className="wiki-section-title">Arte del Proyecto</h2>
+          <h2 className="wiki-section-title">{t("wiki.arteTitulo")}</h2>
           {data.galeria.length > 0 ? (
             <div className="wiki-arte-mosaic">
               {data.galeria.map((img, i) => (

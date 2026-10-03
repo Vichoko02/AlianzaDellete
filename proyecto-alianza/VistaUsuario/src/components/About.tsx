@@ -1,8 +1,10 @@
 import { useState } from "react";
 import titleSobreNosotros from "../assets/SOBRE_NOSOTROS.svg";
+import { useTextos } from "../textos";
 
 export default function About() {
   const [abierto, setAbierto] = useState(false);
+  const t = useTextos();
 
   return (
     <section id="about" className="about-section">
@@ -15,7 +17,7 @@ export default function About() {
           aria-expanded={abierto}
         >
           <div className="about-us-title-container">
-            <img src={titleSobreNosotros} alt="Sobre Nosotros" className="about-us-image" />
+            <img src={titleSobreNosotros} alt={t("inicio.sobre.titulo")} className="about-us-image" />
           </div>
           <svg
             className="about-arrow"
@@ -30,10 +32,8 @@ export default function About() {
         {/* Contenido desplegable */}
         <div className={`about-content ${abierto ? "visible" : ""}`}>
           <p>
-            Somos una alianza de creadores independientes unidos por la pasión de contar
-            historias y llevar sus proyectos al siguiente nivel a través de la
-            colaboración.{" "}
-            <strong>Conoce a nuestros talentos/asociados.</strong>
+            {t("inicio.sobre.texto")}{" "}
+            <strong>{t("inicio.sobre.destacado")}</strong>
           </p>
         </div>
 

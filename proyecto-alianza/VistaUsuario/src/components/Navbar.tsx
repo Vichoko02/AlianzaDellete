@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTextos } from "../textos";
 import ApoyanosModal from "./ApoyanosModal";
 
 export default function Navbar() {
@@ -23,11 +24,12 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
+  const t = useTextos();
   const links = [
-    { label: "Sobre Nosotros", href: "#about",                            external: false, modal: false },
-    //{ label: "Noticias",       href: "/news",                             external: false, modal: false },
-    { label: "Miembros",       href: "#proyectos",                        external: false, modal: false },
-    { label: "Apóyanos",       href: "#",                                 external: false, modal: true },
+    { label: t("nav.sobre"),    href: "#about",     external: false, modal: false },
+    { label: t("nav.miembros"), href: "#proyectos", external: false, modal: false },
+    { label: t("nav.unete"),    href: "#unete",     external: false, modal: false },
+    { label: t("nav.apoyanos"), href: "#",          external: false, modal: true },
   ];
 
   const handleClick = (link: typeof links[0], e: React.MouseEvent) => {

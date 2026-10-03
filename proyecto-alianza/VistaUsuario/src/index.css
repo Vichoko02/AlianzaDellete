@@ -750,61 +750,240 @@ footer p {
   margin-bottom: 20px;
 }
 
-.join-email {
-  display: inline-block;
-  font-family: "Black Ops One", sans-serif;
-  font-size: 18px;
-  letter-spacing: 1px;
-  color: var(--accent);
-  text-decoration: none;
-  padding: 12px 24px;
-  border: 2px solid var(--accent);
-  border-radius: 4px;
-  margin: 20px 0 30px;
-  transition: all 0.3s ease;
-}
-
-.join-email:hover {
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 0 20px rgba(230, 0, 0, 0.4);
-}
-
-.join-email-icon-wrapper {
+.join-postular-wrapper {
   display: flex;
   justify-content: center;
   margin-top: 30px;
 }
 
-.join-email-icon {
+.join-postular {
+  display: inline-block;
+  padding: 14px 40px;
+  font-family: "Oswald", sans-serif;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* ─── QUIZ «POSTULA TU PROYECTO» ─────────────────────────── */
+.quiz-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
+  padding: 1.5rem;
+  animation: fadeInOverlay 0.25s ease;
+}
+
+.quiz-modal {
+  position: relative;
+  background: var(--header-bg);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 3px solid var(--accent);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  padding: 2rem 2rem 1.75rem;
+  animation: slideUpModal 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quiz-modal .socio-modal-close {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.quiz-titulo {
+  font-family: "Black Ops One", sans-serif !important;
+  font-size: 26px;
+  letter-spacing: 3px;
+  color: #fff !important;
+  margin: 0 2rem 0.5rem 0;
+}
+
+.quiz-intro {
+  font-family: "Oswald", sans-serif;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 1.25rem;
+  line-height: 1.6;
+}
+
+.quiz-progreso {
+  display: flex;
+  gap: 6px;
+  margin: 1rem 0 0.5rem;
+}
+
+.quiz-progreso span {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  transition: background 0.3s ease;
+}
+
+.quiz-progreso span.hecho { background: var(--accent); }
+
+.quiz-paso-num {
+  font-family: "Oswald", sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 1.25rem;
+}
+
+.quiz-pregunta { animation: slideUpModal 0.3s ease; }
+
+.quiz-pregunta-texto {
+  display: block;
+  font-family: "Oswald", sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: 0.5px;
+  color: #fff;
+  margin-bottom: 0.35rem;
+}
+
+.quiz-opcional { font-weight: 400; font-size: 14px; color: rgba(255, 255, 255, 0.5); }
+
+.quiz-ayuda {
+  font-family: "Oswald", sans-serif;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 1rem;
+}
+
+.quiz-input {
+  width: 100%;
+  font-family: "Oswald", sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.3px;
+  padding: 12px 14px;
+  margin-top: 0.5rem;
   border-radius: 8px;
-  background: transparent;
-  border: 2px solid var(--accent);
-  color: var(--accent);
-  text-decoration: none;
-  transition: all 0.25s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  resize: vertical;
 }
 
-.join-email-icon svg {
-  transition: transform 0.25s ease;
+.quiz-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(230, 0, 0, 0.25);
 }
 
-.join-email-icon:hover {
+.quiz-opciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 0.5rem;
+}
+
+.quiz-opcion {
+  font-family: "Oswald", sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quiz-opcion:hover { border-color: var(--accent); background: rgba(230, 0, 0, 0.12); }
+.quiz-opcion:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.quiz-opcion.activa {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 6px 20px rgba(230, 0, 0, 0.35);
+}
+
+.quiz-error {
+  font-family: "Oswald", sans-serif;
+  font-size: 14px;
+  color: #ff6b6b;
+  margin: 1rem 0 0;
+}
+
+.quiz-acciones {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 1.75rem;
+}
+
+.quiz-acciones button {
+  cursor: pointer;
+  padding: 12px 28px;
+}
+
+.quiz-acciones .btn-secondary { color: #fff; border-color: rgba(255, 255, 255, 0.6); }
+.quiz-acciones .btn-secondary:hover:not(:disabled) { background: #fff; color: var(--header-bg); }
+.quiz-acciones button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* Campo trampa para bots: fuera de la vista, sin usar display:none (algunos bots lo detectan). */
+.quiz-trampa {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.quiz-exito { text-align: center; padding: 1rem 0 0.5rem; }
+
+.quiz-exito-icono {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
   background: var(--accent);
   color: #fff;
-  box-shadow: 0 0 18px rgba(230, 0, 0, 0.4);
-  filter: drop-shadow(0 0 8px var(--accent));
-  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(230, 0, 0, 0.4);
 }
 
-.join-email-icon:hover svg {
-  transform: scale(1.15);
+.quiz-exito .quiz-titulo { margin-right: 0; }
+
+@media (max-width: 600px) {
+  .quiz-modal { padding: 1.5rem 1.25rem; }
+  .quiz-titulo { font-size: 21px; }
+  .quiz-acciones button { padding: 12px 18px; }
 }
+
+/* ─── ESTADOS DE CARGA ───────────────────────────────────── */
+.estado-carga {
+  min-height: 50vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-family: "Oswald", sans-serif;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text);
+  padding: 2rem;
+}
+
+.estado-carga a { color: var(--accent); }
 
 @media (max-width: 768px) {
   .join-title { font-size: 24px; }

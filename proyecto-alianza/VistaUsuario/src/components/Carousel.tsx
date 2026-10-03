@@ -1,18 +1,8 @@
-import bannerCrunch from "../assets/Banner/CrunchBanner.webp";
-import bannerMetrecalia from "../assets/Banner/MetrecaliaBanner.webp";
-import bannerPclub from "../assets/Banner/pclubBanner.webp";
-import bannerTBTF from "../assets/Banner/TBTFBanner.webp";
-import bannerArmados from "../assets/Banner/ArmadosBanner.webp";
+import { useListaImagenes } from "../textos";
 
+/** Banners de la portada: se administran en el panel (Textos del sitio → Portada). */
 export default function Carousel() {
-  const imagenes = [
-    bannerTBTF,
-    bannerPclub,
-    bannerMetrecalia,
-    bannerCrunch,
-    bannerArmados
-  ];
-
+  const imagenes = useListaImagenes("inicio.carrusel");
   const imagenesDobles = [...imagenes, ...imagenes];
 
   return (
@@ -22,7 +12,8 @@ export default function Carousel() {
           <img
             key={index}
             src={src}
-            alt={`Banner alianza ${index}`}
+            alt=""
+            aria-hidden={index >= imagenes.length}
           />
         ))}
       </div>

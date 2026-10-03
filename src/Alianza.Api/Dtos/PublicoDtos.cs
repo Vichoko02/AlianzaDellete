@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Alianza.Api.Dtos;
 
 // Formas pensadas para reemplazar 1:1 los datos hardcodeados del frontend
@@ -42,3 +44,21 @@ public record WikiPublicaDto(
     List<ProyectoSocioDto> Socios);
 
 public record SocioPublicoDto(string Id, string Nombre, string? Imagen, string Descripcion, Dictionary<string, string> Redes, List<ProyectoSocioDto> Proyectos);
+
+// ─── Contenido general del sitio y quiz de postulación ────────────────────────
+
+public record EnlaceSitioDto(
+    [Required, Plataforma] string Plataforma,
+    [Required, UrlHttp, MaxLength(500)] string Url,
+    [MaxLength(100)] string? Etiqueta,
+    [MaxLength(200)] string? Descripcion);
+
+/// <summary>Textos planos e imágenes sueltas (como URL), listas de imágenes y enlaces agrupados.</summary>
+public record SitioPublicoDto(Dictionary<string, string> Textos, Dictionary<string, List<string>> Listas, Dictionary<string, List<EnlaceSitioDto>> Enlaces);
+
+public record PreguntaPublicaDto(int Id, string Texto, string Ayuda, Alianza.Api.Domain.TipoPregunta Tipo, List<string> Opciones, bool Requerida);
+
+public record RespuestaQuizDto(int PreguntaId, List<string>? Valores);
+
+/// <summary>Sitio: campo trampa para bots; las personas lo dejan vacío porque no se ve.</summary>
+public record EnviarSolicitudDto(List<RespuestaQuizDto>? Respuestas, string? Sitio);

@@ -5,7 +5,7 @@
 
 // ─── Tipos de la API ──────────────────────────────────────────────────────────
 
-type Ambito = "Wikis" | "Socios" | "Estados" | "Medios";
+type Ambito = "Wikis" | "Socios" | "Estados" | "Medios" | "Sitio";
 type Origen = "Local" | "Ldap";
 
 interface Permiso { ambito: Ambito; serieId?: number | null; serieNombre?: string | null }
@@ -43,6 +43,15 @@ interface UsuarioLista {
 interface Resumen { series: number; seriesPublicadas: number; socios: number; medios: number; bytesMedios: number; usuarios: number; seriesPorEstado: Record<string, number> }
 interface RegistroAuditoria { id: number; fecha: string; username: string; accion: string; entidad: string; entidadId: string | null; detalle: string | null }
 interface ConfigPanel { urlSitio: string }
+type TipoTexto = "Texto" | "TextoLargo" | "Url" | "Imagen" | "ListaImagenes";
+interface CampoSitio { clave: string; grupo: string; etiqueta: string; tipo: TipoTexto; valor: string }
+interface EnlaceSitio { plataforma: string; url: string; etiqueta: string | null; descripcion: string | null }
+type TipoPregunta = "Nombre" | "Email" | "Texto" | "TextoLargo" | "Opcion" | "VariasOpciones";
+interface Pregunta { id: number | null; texto: string; ayuda: string | null; tipo: TipoPregunta; opciones: string[]; requerida: boolean; activa: boolean }
+type EstadoSolicitud = "Nueva" | "Leida" | "Archivada";
+interface SolicitudLista { id: number; fecha: string; nombre: string; email: string; estado: EstadoSolicitud; resumen: string }
+interface Solicitud { id: number; fecha: string; nombre: string; email: string; estado: EstadoSolicitud; leidaEn: string | null; respuestas: { pregunta: string; respuesta: string }[] }
+interface Pendientes { nuevas: number; ultimaId: number | null; ultimoNombre: string | null; ultimaFecha: string | null }
 
 // ─── Utilidades de DOM ────────────────────────────────────────────────────────
 
@@ -185,6 +194,7 @@ const NOMBRES_AMBITO: Record<Ambito, string> = {
   Socios: "Socios / asociados",
   Estados: "Estados de serie",
   Medios: "Biblioteca de medios (eliminar)",
+  Sitio: "Textos e imágenes del sitio",
 };
 const PLATAFORMAS = ["instagram", "twitter", "youtube", "tiktok", "discord", "facebook", "twitch", "kick",
   "patreon", "kofi", "buymeacoffee", "vaquite", "doblaje", "web"];
@@ -202,7 +212,7 @@ function vistaLogin(): HTMLElement {
       boton.disabled = true;
       const s = await intentar(() => api<Sesion>("POST", "/api/auth/login", { username: usuario.value.trim(), password: clave.value }));
       boton.disabled = false;
-      if (s) { sesion = s; almacen.guardar(s); await cargarConfig(); render(); }
+      if (s) { sesion = s; almacen.guardar(s); await cargarConfig(); render(); iniciarNotificaciones(); }
       else { clave.value = ""; clave.focus(); }
     },
   },
@@ -256,6 +266,9 @@ const RUTAS: Ruta[] = [
   { patron: /^\/socios\/(\d+)$/, vista: (m) => vistaEditorSocio(Number(m[1])), menu: "socios", permiso: () => puede("Socios") },
   { patron: /^\/estados$/, vista: () => vistaEstados(), menu: "estados" },
   { patron: /^\/medios$/, vista: () => vistaMedios(), menu: "medios" },
+  { patron: /^\/sitio$/, vista: () => vistaSitio(), menu: "sitio", permiso: () => puede("Sitio") },
+  { patron: /^\/solicitudes$/, vista: () => vistaSolicitudes(), menu: "solicitudes", permiso: esSA },
+  { patron: /^\/quiz$/, vista: () => vistaQuiz(), menu: "quiz", permiso: esSA },
   { patron: /^\/usuarios$/, vista: () => vistaUsuarios(), menu: "usuarios", permiso: esSA },
   { patron: /^\/auditoria$/, vista: () => vistaAuditoria(), menu: "auditoria", permiso: esSA },
   { patron: /^\/cuenta$/, vista: () => vistaCuenta(), menu: "cuenta" },
@@ -325,6 +338,10 @@ function menuLateral(activo: string): HTMLElement {
     puede("Socios") && enlace("socios", "#/socios", "Socios"),
     enlace("estados", "#/estados", "Estados"),
     enlace("medios", "#/medios", "Medios"),
+    puede("Sitio") && enlace("sitio", "#/sitio", "Textos del sitio"),
+    esSA() && h("div", { class: "grupo" }, "Postulaciones"),
+    esSA() && h("a", { href: "#/solicitudes", class: `nav${activo === "solicitudes" ? " activo" : ""}` }, "Solicitudes", insigniaSolicitudes),
+    esSA() && enlace("quiz", "#/quiz", "Formulario"),
     esSA() && h("div", { class: "grupo" }, "Administración"),
     esSA() && enlace("usuarios", "#/usuarios", "Usuarios y permisos"),
     esSA() && enlace("auditoria", "#/auditoria", "Auditoría"),
@@ -409,13 +426,15 @@ async function vistaResumen(): Promise<HTMLElement> {
       puedeCrearWikis() && h("a", { class: "boton primario", href: "#/wikis/nueva" }, "+ Nueva wiki"),
       puede("Socios") && h("a", { class: "boton", href: "#/socios/nuevo" }, "+ Nuevo asociado"),
       h("a", { class: "boton", href: "#/medios" }, "Subir archivos"),
-      esSA() && h("a", { class: "boton", href: "#/usuarios" }, "Gestionar usuarios")),
+      esSA() && h("a", { class: "boton", href: "#/usuarios" }, "Gestionar usuarios"),
+      puede("Sitio") && h("a", { class: "boton", href: "#/sitio" }, "Editar textos del sitio")),
     h("div", { class: "estadisticas" },
       est(r.series, "Wikis", "#/wikis"),
       est(r.seriesPublicadas, "Publicadas", "#/wikis"),
       est(r.socios, "Socios", puede("Socios") ? "#/socios" : undefined),
       est(r.medios, `Archivos · ${formatoBytes(r.bytesMedios)}`, "#/medios"),
-      esSA() && est(r.usuarios, "Usuarios activos", "#/usuarios")),
+      esSA() && est(r.usuarios, "Usuarios activos", "#/usuarios"),
+      esSA() && est(ultimasPendientes.nuevas, "Solicitudes nuevas", "#/solicitudes")),
     h("div", { class: "rejilla" },
       h("div", { class: "tarjeta" }, h("h2", {}, "Wikis por estado"),
         barras.length ? h("div", { class: "barras" }, barras) : h("p", { class: "vacio" }, "Aún no hay wikis.")),
@@ -1140,7 +1159,7 @@ function editorPermisos(estado: EstadoPermisos, series: SerieLista[]): HTMLEleme
     onchange: (e) => { poner("Wikis", null, e.target.checked); listaWikis.classList.toggle("oculto", e.target.checked); },
   });
   listaWikis.classList.toggle("oculto", tiene("Wikis"));
-  const otras: Ambito[] = ["Socios", "Estados", "Medios"];
+  const otras: Ambito[] = ["Socios", "Estados", "Medios", "Sitio"];
 
   return h("div", {},
     h("h3", {}, "Crear wikis"),
@@ -1288,6 +1307,257 @@ function vistaCuenta(): HTMLElement {
       h("button", { class: "primario", type: "submit" }, "Cambiar contraseña")));
 }
 
+// ─── Notificaciones de postulaciones (solo superadmin) ─────────────────────────
+
+const insigniaSolicitudes = h("span", { class: "insignia oculto", "aria-label": "Solicitudes nuevas" });
+let ultimasPendientes: Pendientes = { nuevas: 0, ultimaId: null, ultimoNombre: null, ultimaFecha: null };
+let temporizadorNotificaciones: number | undefined;
+const tituloBase = document.title;
+
+/** Consulta cada 30 s si llegaron postulaciones nuevas y avisa en el panel. */
+function iniciarNotificaciones(): void {
+  clearInterval(temporizadorNotificaciones);
+  if (!esSA()) return;
+  let ultimaVista: number | null = null;
+  const revisar = async (): Promise<void> => {
+    if (!sesion?.usuario.esSuperAdmin) { clearInterval(temporizadorNotificaciones); return; }
+    let p: Pendientes;
+    try { p = await api<Pendientes>("GET", "/api/admin/solicitudes/pendientes"); } catch { return; }
+    if (ultimaVista !== null && p.ultimaId !== null && p.ultimaId > ultimaVista) {
+      aviso(`Nueva postulación de ${p.ultimoNombre ?? "alguien"}. Revísala en Solicitudes.`, "ok");
+      if (location.hash === "#/solicitudes" && !hayCambiosSinGuardar) render();
+    }
+    ultimaVista = Math.max(ultimaVista ?? 0, p.ultimaId ?? 0);
+    actualizarInsignia(p);
+  };
+  void revisar();
+  temporizadorNotificaciones = window.setInterval(() => void revisar(), 30_000);
+}
+
+function actualizarInsignia(p: Pendientes): void {
+  ultimasPendientes = p;
+  insigniaSolicitudes.textContent = p.nuevas > 99 ? "99+" : String(p.nuevas);
+  insigniaSolicitudes.classList.toggle("oculto", p.nuevas === 0);
+  document.title = p.nuevas > 0 ? `(${p.nuevas}) ${tituloBase}` : tituloBase;
+}
+
+async function refrescarPendientes(): Promise<void> {
+  try { actualizarInsignia(await api<Pendientes>("GET", "/api/admin/solicitudes/pendientes")); } catch { /* se reintenta en el próximo ciclo */ }
+}
+
+// ─── Textos del sitio ─────────────────────────────────────────────────────────
+
+const GRUPOS_ENLACES: [grupo: string, titulo: string, ayuda: string][] = [
+  ["footer", "Redes del pie de página", "Íconos de redes al final de la portada."],
+  ["apoyanos", "Opciones del modal «Apóyanos»", "Cada opción muestra su nombre, una descripción corta y abre el enlace."],
+];
+
+function editorEnlacesSitio(lista: EnlaceSitio[]): HTMLElement {
+  return editorLista<EnlaceSitio>({
+    lista, textoAgregar: "Agregar enlace",
+    nuevo: () => ({ plataforma: "instagram", url: "", etiqueta: "", descripcion: "" }),
+    titulo: (e) => e.etiqueta || e.plataforma,
+    renderItem: (e) => h("div", { class: "rejilla" },
+      h("div", { class: "campo" }, h("label", {}, "Plataforma"),
+        h("select", { onchange: (ev) => { e.plataforma = ev.target.value; marcarCambio(); } },
+          PLATAFORMAS.map((p) => h("option", { value: p, selected: p === e.plataforma }, p)))),
+      campo("URL", e, "url", { tipo: "url", requerido: true }),
+      campo("Nombre visible", e, "etiqueta"),
+      campo("Descripción", e, "descripcion")),
+  });
+}
+
+function controlCampoSitio(c: CampoSitio): HTMLElement {
+  switch (c.tipo) {
+    case "TextoLargo": return campo(c.etiqueta, c, "valor", { multilinea: true });
+    case "Url": return campo(c.etiqueta, c, "valor", { tipo: "url" });
+    case "Imagen": {
+      const holder = { id: c.valor || null as string | null };
+      const el = selectorImagen(c.etiqueta, holder, "id");
+      el.addEventListener("click", () => queueMicrotask(() => { c.valor = holder.id ?? ""; }));
+      return Object.assign(el, { sincronizar: () => { c.valor = holder.id ?? ""; } });
+    }
+    case "ListaImagenes": {
+      const imagenes: Imagen[] = c.valor.split(",").filter(Boolean).map((id) => ({ medioId: id, alt: "" }));
+      const el = h("div", { class: "campo" }, h("label", {}, c.etiqueta), editorGaleria(imagenes));
+      return Object.assign(el, { sincronizar: () => { c.valor = imagenes.map((i) => i.medioId).join(","); } });
+    }
+    default: return campo(c.etiqueta, c, "valor");
+  }
+}
+
+async function vistaSitio(): Promise<HTMLElement> {
+  const campos = await api<CampoSitio[]>("GET", "/api/admin/sitio");
+  const enlaces = Object.fromEntries(await Promise.all(GRUPOS_ENLACES.map(async ([g]) =>
+    [g, await api<EnlaceSitio[]>("GET", `/api/admin/sitio/enlaces/${g}`)] as const)));
+  const controles: (HTMLElement & { sincronizar?: () => void })[] = [];
+  const grupos = [...new Set(campos.map((c) => c.grupo))];
+
+  const secciones: Seccion[] = grupos.map((g) => [g, h("div", { class: "tarjeta" },
+    campos.filter((c) => c.grupo === g).map((c) => { const el = controlCampoSitio(c); controles.push(el); return el; }))]);
+  secciones.push(["Redes y enlaces", GRUPOS_ENLACES.map(([g, titulo, ayuda]) =>
+    h("div", { class: "tarjeta" }, h("h2", {}, titulo), h("p", { class: "ayuda" }, ayuda), editorEnlacesSitio(enlaces[g] ?? [])))]);
+
+  const guardar = h("button", { class: "primario", type: "submit" }, "Guardar cambios");
+  return h("div", {},
+    cabecera("Textos del sitio", [config.urlSitio && h("a", { class: "boton", href: config.urlSitio, target: "_blank", rel: "noopener" }, "Ver el sitio ↗")]),
+    h("p", { class: "ayuda" }, "Todo lo que el sitio público muestra fuera de las wikis y los socios: portada, menú, sección Únete, formulario, Apóyanos y pie. Solo el logo, los colores y las tipografías son fijos."),
+    h("form", {
+      onsubmit: async (e) => {
+        e.preventDefault();
+        controles.forEach((c) => c.sincronizar?.());
+        guardar.disabled = true;
+        const ok = await intentar(async () => {
+          await api("PUT", "/api/admin/sitio", campos.map((c) => ({ clave: c.clave, valor: c.valor })));
+          for (const [g] of GRUPOS_ENLACES) await api("PUT", `/api/admin/sitio/enlaces/${g}`, (enlaces[g] ?? []).filter((x) => x.url.trim()));
+          return true;
+        }, "Sitio actualizado. Los cambios ya se ven al recargar el sitio.");
+        guardar.disabled = false;
+        if (ok) hayCambiosSinGuardar = false;
+      },
+    },
+      pestanas(secciones),
+      h("div", { class: "barra-guardar" }, indicadorGuardado(), guardar)));
+}
+
+// ─── Formulario de postulación (quiz) ─────────────────────────────────────────
+
+const TIPOS_PREGUNTA: Record<TipoPregunta, string> = {
+  Nombre: "Nombre de quien postula",
+  Email: "Correo de contacto",
+  Texto: "Texto corto",
+  TextoLargo: "Texto largo",
+  Opcion: "Elegir una opción",
+  VariasOpciones: "Elegir varias opciones",
+};
+
+async function vistaQuiz(): Promise<HTMLElement> {
+  const preguntas = await api<Pregunta[]>("GET", "/api/admin/quiz");
+  const contador = h("p", { class: "ayuda" });
+  const contar = (): void => {
+    const n = preguntas.filter((p) => p.activa).length;
+    contador.textContent = `${n} paso(s) activo(s) · el formulario debe tener entre 3 y 5.`;
+    contador.classList.toggle("error-texto", n < 3 || n > 5);
+  };
+  contar();
+
+  const lista = editorLista<Pregunta>({
+    lista: preguntas, textoAgregar: "Agregar paso",
+    nuevo: () => ({ id: null, texto: "", ayuda: "", tipo: "Texto", opciones: [], requerida: true, activa: true }),
+    titulo: (p, i) => `Paso ${i + 1} · ${p.texto || "Nueva pregunta"}${p.activa ? "" : " (inactivo)"}`,
+    renderItem: (p) => {
+      const opciones = { texto: p.opciones.join("\n") };
+      const bloqueOpciones = h("div", {}, campo("Opciones (una por línea)", opciones, "texto", {
+        multilinea: true, alCambiar: (v) => { p.opciones = v.split("\n").map((o) => o.trim()).filter(Boolean); },
+      }));
+      const pintarOpciones = (): void => { bloqueOpciones.classList.toggle("oculto", p.tipo !== "Opcion" && p.tipo !== "VariasOpciones"); };
+      pintarOpciones();
+      return h("div", {},
+        campo("Pregunta", p, "texto", { requerido: true }),
+        campo("Ayuda (opcional)", p, "ayuda"),
+        h("div", { class: "campo" }, h("label", {}, "Tipo de respuesta"),
+          h("select", { onchange: (e) => { p.tipo = e.target.value as TipoPregunta; marcarCambio(); pintarOpciones(); } },
+            (Object.keys(TIPOS_PREGUNTA) as TipoPregunta[]).map((t) => h("option", { value: t, selected: t === p.tipo }, TIPOS_PREGUNTA[t])))),
+        bloqueOpciones,
+        h("div", { class: "acciones" },
+          interruptor("Obligatoria", p.requerida, (v) => { p.requerida = v; marcarCambio(); }),
+          interruptor("Activa", p.activa, (v) => { p.activa = v; marcarCambio(); contar(); })));
+    },
+  });
+  lista.addEventListener("click", () => queueMicrotask(contar));
+
+  const guardar = h("button", { class: "primario", type: "submit" }, "Guardar formulario");
+  return h("div", {},
+    cabecera("Formulario de postulación", [config.urlSitio && h("a", { class: "boton", href: `${config.urlSitio}/#unete`, target: "_blank", rel: "noopener" }, "Ver en el sitio ↗")]),
+    h("form", {
+      onsubmit: async (e) => {
+        e.preventDefault();
+        guardar.disabled = true;
+        const r = await intentar(() => api<Pregunta[]>("PUT", "/api/admin/quiz", preguntas), "Formulario guardado");
+        guardar.disabled = false;
+        if (r) { hayCambiosSinGuardar = false; render(); }
+      },
+    },
+      h("div", { class: "tarjeta" },
+        h("p", { class: "ayuda" }, "Cada pregunta es un paso del formulario «Postula tu proyecto» del sitio. Las respuestas llegan a Solicitudes. Debe haber una pregunta de tipo Correo obligatoria para poder responder."),
+        contador, lista),
+      h("div", { class: "barra-guardar" }, indicadorGuardado(), guardar)));
+}
+
+// ─── Solicitudes ──────────────────────────────────────────────────────────────
+
+const NOMBRES_ESTADO: Record<EstadoSolicitud, string> = { Nueva: "Nueva", Leida: "Leída", Archivada: "Archivada" };
+
+async function vistaSolicitudes(): Promise<HTMLElement> {
+  const cuerpo = h("tbody");
+  const paginador = h("div", { class: "paginador" });
+  let filtro: EstadoSolicitud | "" = "";
+  let pagina = 1;
+
+  const filtros: [EstadoSolicitud | "", string][] = [["", "Bandeja"], ["Nueva", "Nuevas"], ["Leida", "Leídas"], ["Archivada", "Archivadas"]];
+  const botonesFiltro = filtros.map(([valor, texto]) => h("button", {
+    type: "button", class: "mini", onclick: () => { filtro = valor; pagina = 1; void cargar(); },
+  }, texto));
+
+  async function cargar(): Promise<void> {
+    botonesFiltro.forEach((b, i) => b.classList.toggle("primario", filtros[i]?.[0] === filtro));
+    const q = new URLSearchParams({ pagina: String(pagina), tamano: "30" });
+    if (filtro) q.set("estado", filtro);
+    const r = await intentar(() => api<Pagina<SolicitudLista>>("GET", `/api/admin/solicitudes?${q}`));
+    if (!r) return;
+    vaciar(cuerpo, r.items.length ? r.items.map((s) => h("tr", { class: s.estado === "Nueva" ? "fila-nueva" : null, onclick: () => void abrir(s.id) },
+      h("td", { class: "ayuda" }, fecha(s.fecha)),
+      h("td", {}, h("span", { class: "titulo-fila" }, s.nombre), h("div", { class: "ayuda" }, s.email)),
+      h("td", { class: "resumen-solicitud" }, s.resumen),
+      h("td", {}, h("span", { class: `chip ${s.estado === "Nueva" ? "sa" : s.estado === "Leida" ? "ok" : "off"}` }, NOMBRES_ESTADO[s.estado]))))
+      : h("tr", {}, h("td", { colspan: 4, class: "vacio" }, filtro === "" ? "No hay postulaciones pendientes." : "No hay solicitudes con este estado.")));
+    const paginas = Math.max(1, Math.ceil(r.total / r.tamanoPagina));
+    vaciar(paginador,
+      h("button", { class: "mini", disabled: pagina <= 1, onclick: () => { pagina--; void cargar(); } }, "‹ Anterior"),
+      `Página ${pagina} de ${paginas}`,
+      h("button", { class: "mini", disabled: pagina >= paginas, onclick: () => { pagina++; void cargar(); } }, "Siguiente ›"));
+    void refrescarPendientes();
+  }
+
+  async function cambiarEstado(id: number, estado: EstadoSolicitud, mensaje: string): Promise<boolean> {
+    return (await intentar(() => api("PATCH", `/api/admin/solicitudes/${id}/estado`, { estado }), mensaje)) !== undefined;
+  }
+
+  async function abrir(id: number): Promise<void> {
+    const s = await intentar(() => api<Solicitud>("GET", `/api/admin/solicitudes/${id}`));
+    if (!s) return;
+    void cargar();
+    const asunto = encodeURIComponent("Tu postulación a La Alianza");
+    const dlg = modal(`Postulación de ${s.nombre}`, h("div", {},
+      h("p", { class: "ayuda" }, `Recibida el ${fecha(s.fecha)} · ${s.email}`),
+      h("dl", { class: "respuestas" }, s.respuestas.map((r) => [h("dt", {}, r.pregunta), h("dd", {}, r.respuesta)]))),
+      [
+        h("button", {
+          class: "peligro",
+          onclick: async () => {
+            if (!(await confirmar(`¿Eliminar la postulación de ${s.nombre}? No se puede deshacer.`, { boton: "Eliminar" }))) return;
+            if ((await intentar(() => api("DELETE", `/api/admin/solicitudes/${s.id}`), "Solicitud eliminada")) !== undefined) { dlg.close(); void cargar(); }
+          },
+        }, "Eliminar"),
+        h("button", { onclick: async () => { if (await cambiarEstado(s.id, "Nueva", "Marcada como no leída")) { dlg.close(); void cargar(); } } }, "Marcar no leída"),
+        s.estado === "Archivada"
+          ? h("button", { onclick: async () => { if (await cambiarEstado(s.id, "Leida", "Devuelta a la bandeja")) { dlg.close(); void cargar(); } } }, "Desarchivar")
+          : h("button", { onclick: async () => { if (await cambiarEstado(s.id, "Archivada", "Solicitud archivada")) { dlg.close(); void cargar(); } } }, "Archivar"),
+        h("a", { class: "boton primario", href: `mailto:${s.email}?subject=${asunto}` }, "Responder por correo"),
+      ]);
+  }
+
+  await cargar();
+  return h("div", {},
+    cabecera("Solicitudes", [h("a", { class: "boton", href: "#/quiz" }, "Editar formulario")]),
+    h("div", { class: "tarjeta" },
+      h("p", { class: "ayuda" }, "Postulaciones enviadas desde el formulario «Postula tu proyecto» del sitio. Solo tú las ves. Abrir una solicitud la marca como leída."),
+      h("div", { class: "accesos" }, botonesFiltro),
+      h("div", { class: "tabla-envoltura" }, h("table", { class: "tabla-solicitudes" },
+        h("thead", {}, h("tr", {}, h("th", {}, "Fecha"), h("th", {}, "Quién"), h("th", {}, "Resumen"), h("th", {}, "Estado"))), cuerpo)),
+      paginador));
+}
+
 // ─── Arranque ─────────────────────────────────────────────────────────────────
 
 void (async () => {
@@ -1296,4 +1566,5 @@ void (async () => {
     try { sesion.usuario = await api<Perfil>("GET", "/api/auth/yo"); almacen.guardar(sesion); await cargarConfig(); } catch { /* api() ya cierra la sesión si expiró */ }
   }
   render();
+  iniciarNotificaciones();
 })();

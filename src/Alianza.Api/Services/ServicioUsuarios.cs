@@ -50,6 +50,7 @@ public class ServicioUsuarios(AlianzaDbContext db, IDirectorioLdap ldap, ILogger
                 AmbitoPermiso.Socios => GruposLdap.Socios,
                 AmbitoPermiso.Estados => GruposLdap.Estados,
                 AmbitoPermiso.Medios => GruposLdap.Medios,
+                AmbitoPermiso.Sitio => GruposLdap.Sitio,
                 _ => throw new ArgumentOutOfRangeException(),
             });
         }

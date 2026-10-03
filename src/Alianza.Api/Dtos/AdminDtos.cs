@@ -173,3 +173,28 @@ public record ResumenDto(int Series, int SeriesPublicadas, int Socios, int Medio
 public record AuditoriaDto(long Id, DateTime Fecha, string Username, string Accion, string Entidad, string? EntidadId, string? Detalle);
 
 public record PaginaDto<T>(List<T> Items, int Total, int Pagina, int TamanoPagina);
+
+// ─── Sitio, quiz y solicitudes ────────────────────────────────────────────────
+
+public record CampoSitioDto(string Clave, string Grupo, string Etiqueta, TipoTexto Tipo, string Valor);
+
+public record ValorSitioDto([Required, MaxLength(100)] string Clave, [MaxLength(8000)] string? Valor);
+
+public record PreguntaEdicionDto(
+    int? Id,
+    [Required, MaxLength(300)] string Texto,
+    [MaxLength(500)] string? Ayuda,
+    TipoPregunta Tipo,
+    List<string>? Opciones,
+    bool Requerida,
+    bool Activa);
+
+public record SolicitudListaDto(long Id, DateTime Fecha, string Nombre, string Email, EstadoSolicitud Estado, string Resumen);
+
+public record RespuestaDto(string Pregunta, string Respuesta);
+
+public record SolicitudDto(long Id, DateTime Fecha, string Nombre, string Email, EstadoSolicitud Estado, DateTime? LeidaEn, List<RespuestaDto> Respuestas);
+
+public record CambiarEstadoSolicitudDto(EstadoSolicitud Estado);
+
+public record PendientesDto(int Nuevas, long? UltimaId, string? UltimoNombre, DateTime? UltimaFecha);

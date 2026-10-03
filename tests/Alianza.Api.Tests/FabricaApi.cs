@@ -35,6 +35,7 @@ public class FabricaApi : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Admin:Username", AdminUser);
         builder.UseSetting("Admin:Password", AdminPass);
         builder.UseSetting("LimiteLoginPorMinuto", "1000");
+        builder.UseSetting("LimiteSolicitudesPor10Minutos", "1000");
     }
 
     public Task InitializeAsync() => Task.CompletedTask;

@@ -23,6 +23,8 @@ Los **visitantes del sitio no inician sesión**: la API pública es de solo lect
 | Subir archivos | Cualquier cuenta administrativa |
 | Eliminar archivos | Permiso «Medios» |
 | Ver la auditoría | Solo YishAdmin |
+| Editar los textos, imágenes y enlaces generales del sitio | Permiso «Sitio» |
+| Ver y gestionar las postulaciones; editar el formulario | Solo YishAdmin |
 
 Garantías:
 - **Un solo superadmin**: la API nunca permite otorgar ese rol, y un índice único de PostgreSQL impide que exista otro.
@@ -110,6 +112,8 @@ Funciones del panel:
 - **Medios**:
   - subida por arrastre;
   - ficha de cada archivo con texto alternativo, dónde se usa, copiar dirección y eliminar.
+- **Textos del sitio**: portada, menú, Únete, formulario, Apóyanos, pie y etiquetas de las wikis.
+- **Solicitudes** y **Formulario** (solo YishAdmin): postulaciones del sitio con aviso en vivo, y edición de los pasos del formulario.
 - **Usuarios y permisos** (solo YishAdmin):
   - crear usuarios Local o LDAP;
   - activar «puede crear wikis»;
@@ -153,6 +157,27 @@ dotnet ef migrations add NombreDelCambio -p src/Alianza.Api -o Data/Migraciones
 | `GET /api/series/{slug}` | Wiki completa, con **la misma forma que `ProjectWikiData`** del frontend, más `estadoInfo` y `socios` |
 | `GET /api/socios`, `GET /api/socios/{slug}` | Socios, con **la misma forma que `Socio`** de `SocioModal.tsx` |
 | `GET /api/medios/{id}` | Imagen o video desde PostgreSQL. Usa caché inmutable y ETag |
+| `GET /api/sitio` | Textos, imágenes y enlaces generales del sitio: `{ textos, listas, enlaces }` |
+| `GET /api/quiz` | Pasos del formulario «Postula tu proyecto» (3 a 5) |
+| `POST /api/quiz/solicitudes` | Envía una postulación. Límite: 5 cada 10 minutos por IP, con campo trampa anti-bots |
+
+### Textos del sitio
+
+Todo lo que el sitio muestra fuera de las wikis y los socios sale de `/api/sitio` y se edita en **Panel → Textos del sitio**:
+- portada (carrusel de banners, eslogan, «Sobre nosotros», títulos de sección);
+- menú, sección «Únete» y textos del formulario;
+- modal «Apóyanos» (opciones y enlaces) y pie de página;
+- etiquetas de las wikis.
+
+Solo el logo, los colores, las tipografías y los íconos son fijos. El catálogo de claves está en `Services/ServicioSitio.cs`; una clave nueva aparece sola en el panel al desplegar.
+
+### Postulaciones
+
+El botón «Postular mi proyecto» del sitio abre un formulario de 3 a 5 pasos, que se editan en **Panel → Formulario**. Cada envío:
+- se valida en el servidor (obligatorios, opciones válidas, correo) y se guarda en PostgreSQL con el texto de cada pregunta tal como estaba;
+- aparece en **Panel → Solicitudes**, visible solo para YishAdmin.
+
+El panel consulta cada 30 segundos. Muestra el número de solicitudes nuevas en el menú y en el título de la pestaña, y avisa en pantalla cuando llega una. Abrir una solicitud la marca como leída; desde ahí se puede responder por correo, archivar o eliminar.
 
 ### Conectar el frontend
 

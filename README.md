@@ -40,6 +40,7 @@ dc=alianza,dc=local
 | `alianza-socios` | Administran socios / asociados |
 | `alianza-estados` | Administran el catálogo de estados de serie |
 | `alianza-medios` | Administran la biblioteca de medios |
+| `alianza-sitio` | Editan los textos, imágenes y enlaces generales del sitio |
 | `alianza-lectores` | Cuentas de servicio con lectura del directorio |
 
 `groupOfNames` exige al menos un miembro. Por eso YishAdmin pertenece a todos los grupos, lo que además refleja que tiene todos los permisos.

@@ -66,6 +66,12 @@ cn: alianza-medios
 description: Administran la biblioteca de medios
 member: uid=yishadmin,ou=people,${LDAP_BASE_DN}
 
+dn: cn=alianza-sitio,ou=groups,${LDAP_BASE_DN}
+objectClass: groupOfNames
+cn: alianza-sitio
+description: Editan los textos, imágenes y enlaces generales del sitio
+member: uid=yishadmin,ou=people,${LDAP_BASE_DN}
+
 # Cuentas que pueden leer el directorio completo (otras aplicaciones: wiki interna, Nextcloud...).
 dn: cn=alianza-lectores,ou=groups,${LDAP_BASE_DN}
 objectClass: groupOfNames

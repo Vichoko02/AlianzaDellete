@@ -35,6 +35,8 @@ builder.Services.AddScoped<ServicioMedios>();
 builder.Services.AddScoped<ServicioSeries>();
 builder.Services.AddScoped<ServicioSocios>();
 builder.Services.AddScoped<ServicioUsuarios>();
+builder.Services.AddScoped<ServicioSitio>();
+builder.Services.AddScoped<ServicioQuiz>();
 builder.Services.AddScoped<Inicializador>();
 builder.Services.AddSingleton<UrlsMedios>();
 builder.Services.AddSingleton<ServicioTokens>();
@@ -81,6 +83,10 @@ builder.Services.AddRateLimiter(o =>
     o.AddPolicy("login", ctx => RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "desconocida",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = config.GetValue("LimiteLoginPorMinuto", 10), Window = TimeSpan.FromMinutes(1) }));
+    // Formulario público de postulación: pocas solicitudes por IP para frenar el spam.
+    o.AddPolicy("quiz", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "desconocida",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = config.GetValue("LimiteSolicitudesPor10Minutos", 5), Window = TimeSpan.FromMinutes(10) }));
 });
 
 // ─── API ─────────────────────────────────────────────────────────────────────

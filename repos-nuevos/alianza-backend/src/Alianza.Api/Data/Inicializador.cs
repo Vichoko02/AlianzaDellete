@@ -24,6 +24,7 @@ public class SeedOpciones
 /// <summary>Prepara la BD al arrancar: migraciones, catálogo de estados, superadmin y (opcional) contenido inicial.</summary>
 public class Inicializador(
     AlianzaDbContext db, ServicioMedios medios, ServicioSeries series, ServicioSocios socios,
+    ServicioSitio sitio, ServicioQuiz quiz,
     IOptions<SeedOpciones> seed, IOptions<AdminOpciones> admin, ILogger<Inicializador> log)
 {
     public static readonly EstadoSerie[] EstadosIniciales =
@@ -41,6 +42,9 @@ public class Inicializador(
         if (seed.Value.Migrar) await db.Database.MigrateAsync();
         await EstadosAsync();
         await SuperAdminAsync();
+        await sitio.SembrarAsync();
+        await quiz.SembrarAsync();
+        await CarruselInicialAsync();
         if (seed.Value.ImportarContenido && !await db.Series.AnyAsync())
         {
             // Todo o nada: si algo falla no queda una importación a medias.
@@ -79,6 +83,28 @@ public class Inicializador(
         });
         await db.SaveChangesAsync();
         log.LogInformation("Superadministrador '{Username}' creado.", op.Username);
+    }
+
+    /// <summary>La primera vez carga en el carrusel de la portada los banners que tenía el frontend.</summary>
+    private async Task CarruselInicialAsync()
+    {
+        var carrusel = await db.TextosSitio.FindAsync("inicio.carrusel");
+        var carpeta = seed.Value.CarpetaAssets;
+        if (carrusel is null || carrusel.Valor != "" || string.IsNullOrWhiteSpace(carpeta)) return;
+        string[] banners = ["TBTFBanner.webp", "pclubBanner.webp", "MetrecaliaBanner.webp", "CrunchBanner.webp", "ArmadosBanner.webp"];
+        var ids = new List<Guid>();
+        foreach (var b in banners)
+        {
+            var ruta = Path.Combine(carpeta, "Banner", b);
+            if (!File.Exists(ruta)) continue;
+            var m = await medios.GuardarAsync(await File.ReadAllBytesAsync(ruta), b, "Banner", null);
+            await db.SaveChangesAsync();
+            ids.Add(m.Id);
+        }
+        if (ids.Count == 0) return;
+        carrusel.Valor = string.Join(",", ids);
+        await db.SaveChangesAsync();
+        log.LogInformation("Carrusel de la portada importado ({N} banners).", ids.Count);
     }
 
     // ─── Importación del contenido que hoy está hardcodeado en el frontend ──────

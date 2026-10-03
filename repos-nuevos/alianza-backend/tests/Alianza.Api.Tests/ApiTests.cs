@@ -240,4 +240,114 @@ public class ApiTests(FabricaApi api) : IClassFixture<FabricaApi>
         copiaB!["nombre"] = "Cambio B";
         Assert.Equal(HttpStatusCode.Conflict, (await admin.PutAsJsonAsync($"/api/admin/series/{id}", copiaB)).StatusCode);
     }
+
+    // ─── Contenido del sitio ──────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Sitio_TextosVienenDeLaBdYSoloLosEditaQuienTienePermiso()
+    {
+        var publico = api.CreateClient();
+        var sitio = await publico.GetFromJsonAsync<JsonObject>("/api/sitio");
+        Assert.Equal("Apoyando talentos con inspiración por medio de la colaboración.", sitio!["textos"]!["inicio.hero.eslogan"]!.GetValue<string>());
+        Assert.Equal(3, sitio["enlaces"]!["footer"]!.AsArray().Count);
+
+        var admin = await api.AdminAsync();
+        await CrearUsuarioAsync(admin, "sin-sitio", permisos: [new { ambito = "Socios" }]);
+        var sinPermiso = await api.ClienteAsync("sin-sitio", "ClaveSegura123");
+        var cambio = new[] { new { clave = "inicio.hero.eslogan", valor = "Nuevo eslogan" } };
+        Assert.Equal(HttpStatusCode.Forbidden, (await sinPermiso.PutAsJsonAsync("/api/admin/sitio", cambio)).StatusCode);
+
+        Assert.Equal(HttpStatusCode.OK, (await admin.PutAsJsonAsync("/api/admin/sitio", cambio)).StatusCode);
+        sitio = await publico.GetFromJsonAsync<JsonObject>("/api/sitio");
+        Assert.Equal("Nuevo eslogan", sitio!["textos"]!["inicio.hero.eslogan"]!.GetValue<string>());
+
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PutAsJsonAsync("/api/admin/sitio",
+            new[] { new { clave = "no.existe", valor = "x" } })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PutAsJsonAsync("/api/admin/sitio/enlaces/footer",
+            new[] { new { plataforma = "instagram", url = "javascript:alert(1)" } })).StatusCode);
+    }
+
+    // ─── Quiz y solicitudes ───────────────────────────────────────────────────
+
+    private async Task<List<object>> RespuestasValidasAsync(HttpClient c, string nombre, string email)
+    {
+        var preguntas = await c.GetFromJsonAsync<JsonArray>("/api/quiz");
+        return preguntas!.Select(p =>
+        {
+            var tipo = p!["tipo"]!.GetValue<string>();
+            var valor = tipo switch
+            {
+                "Nombre" => nombre,
+                "Email" => email,
+                "Opcion" or "VariasOpciones" => p["opciones"]![0]!.GetValue<string>(),
+                _ => "Una serie animada sobre la Alianza. Portafolio: https://ejemplo.cl",
+            };
+            return (object)new { preguntaId = p["id"]!.GetValue<int>(), valores = new[] { valor } };
+        }).ToList();
+    }
+
+    [Fact]
+    public async Task Quiz_LaSolicitudLlegaALaBdYSoloLaVeElSuperAdmin()
+    {
+        var publico = api.CreateClient();
+        var preguntas = await publico.GetFromJsonAsync<JsonArray>("/api/quiz");
+        Assert.InRange(preguntas!.Count, 3, 5);
+
+        var admin = await api.AdminAsync();
+        var antes = (await admin.GetFromJsonAsync<JsonObject>("/api/admin/solicitudes/pendientes"))!["nuevas"]!.GetValue<int>();
+
+        var r = await publico.PostAsJsonAsync("/api/quiz/solicitudes", new { respuestas = await RespuestasValidasAsync(publico, "Ana Postulante", "ana@ejemplo.cl") });
+        Assert.Equal(HttpStatusCode.Created, r.StatusCode);
+
+        var pendientes = await admin.GetFromJsonAsync<JsonObject>("/api/admin/solicitudes/pendientes");
+        Assert.Equal(antes + 1, pendientes!["nuevas"]!.GetValue<int>());
+        Assert.Equal("Ana Postulante", pendientes["ultimoNombre"]!.GetValue<string>());
+
+        var id = pendientes["ultimaId"]!.GetValue<long>();
+        var detalle = await admin.GetFromJsonAsync<JsonObject>($"/api/admin/solicitudes/{id}");
+        Assert.Equal("ana@ejemplo.cl", detalle!["email"]!.GetValue<string>());
+        Assert.Equal(preguntas.Count, detalle["respuestas"]!.AsArray().Count);
+        // Abrirla la marca como leída.
+        Assert.Equal(antes, (await admin.GetFromJsonAsync<JsonObject>("/api/admin/solicitudes/pendientes"))!["nuevas"]!.GetValue<int>());
+
+        await CrearUsuarioAsync(admin, "editor-curioso", permisos: [new { ambito = "Sitio" }]);
+        var editor = await api.ClienteAsync("editor-curioso", "ClaveSegura123");
+        Assert.Equal(HttpStatusCode.Forbidden, (await editor.GetAsync("/api/admin/solicitudes")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Quiz_ValidaRespuestasEIgnoraBots()
+    {
+        var publico = api.CreateClient();
+        var admin = await api.AdminAsync();
+        var preguntas = await publico.GetFromJsonAsync<JsonArray>("/api/quiz");
+        var idEmail = preguntas!.First(p => p!["tipo"]!.GetValue<string>() == "Email")!["id"]!.GetValue<int>();
+
+        var conCorreoMalo = (await RespuestasValidasAsync(publico, "X", "no-es-correo"));
+        Assert.Equal(HttpStatusCode.BadRequest, (await publico.PostAsJsonAsync("/api/quiz/solicitudes", new { respuestas = conCorreoMalo })).StatusCode);
+
+        var incompleta = (await RespuestasValidasAsync(publico, "X", "x@ejemplo.cl")).Take(1).ToList();
+        Assert.Equal(HttpStatusCode.BadRequest, (await publico.PostAsJsonAsync("/api/quiz/solicitudes", new { respuestas = incompleta })).StatusCode);
+
+        var antes = (await admin.GetFromJsonAsync<JsonObject>("/api/admin/solicitudes/pendientes"))!["nuevas"]!.GetValue<int>();
+        var bot = new { respuestas = await RespuestasValidasAsync(publico, "Bot", "bot@ejemplo.cl"), sitio = "https://spam.example" };
+        Assert.Equal(HttpStatusCode.Created, (await publico.PostAsJsonAsync("/api/quiz/solicitudes", bot)).StatusCode);
+        Assert.Equal(antes, (await admin.GetFromJsonAsync<JsonObject>("/api/admin/solicitudes/pendientes"))!["nuevas"]!.GetValue<int>());
+        Assert.True(idEmail > 0);
+    }
+
+    [Fact]
+    public async Task Quiz_DebeTenerEntre3Y5PasosYUnCorreo()
+    {
+        var admin = await api.AdminAsync();
+        var actuales = await admin.GetFromJsonAsync<JsonArray>("/api/admin/quiz");
+
+        var dos = actuales!.Take(2).ToList();
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PutAsJsonAsync("/api/admin/quiz", dos)).StatusCode);
+
+        var sinCorreo = actuales.Where(p => p!["tipo"]!.GetValue<string>() != "Email").ToList();
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PutAsJsonAsync("/api/admin/quiz", sinCorreo)).StatusCode);
+
+        Assert.Equal(HttpStatusCode.OK, (await admin.PutAsJsonAsync("/api/admin/quiz", actuales)).StatusCode);
+    }
 }

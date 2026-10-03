@@ -29,6 +29,7 @@ public static class GruposLdap
     public const string Socios = "alianza-socios";
     public const string Estados = "alianza-estados";
     public const string Medios = "alianza-medios";
+    public const string Sitio = "alianza-sitio";
     public const string PrefijoWiki = "alianza-wiki-";
     public const string PrefijoGestionado = "alianza-";
 }

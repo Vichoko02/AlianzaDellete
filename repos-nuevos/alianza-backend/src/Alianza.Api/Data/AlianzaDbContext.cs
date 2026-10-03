@@ -20,6 +20,11 @@ public class AlianzaDbContext(DbContextOptions<AlianzaDbContext> options) : DbCo
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<PermisoUsuario> Permisos => Set<PermisoUsuario>();
     public DbSet<RegistroAuditoria> Auditoria => Set<RegistroAuditoria>();
+    public DbSet<TextoSitio> TextosSitio => Set<TextoSitio>();
+    public DbSet<EnlaceSitio> EnlacesSitio => Set<EnlaceSitio>();
+    public DbSet<PreguntaQuiz> PreguntasQuiz => Set<PreguntaQuiz>();
+    public DbSet<Solicitud> Solicitudes => Set<Solicitud>();
+    public DbSet<RespuestaSolicitud> RespuestasSolicitud => Set<RespuestaSolicitud>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -115,6 +120,41 @@ public class AlianzaDbContext(DbContextOptions<AlianzaDbContext> options) : DbCo
         {
             e.HasOne(x => x.Serie).WithMany().HasForeignKey(x => x.SerieId).OnDelete(DeleteBehavior.Cascade);
             e.HasIndex(x => new { x.UsuarioId, x.Ambito, x.SerieId }).IsUnique().AreNullsDistinct(false);
+        });
+
+        b.Entity<TextoSitio>(e =>
+        {
+            e.HasKey(x => x.Clave);
+            e.Property(x => x.Clave).HasMaxLength(100);
+            e.Property(x => x.Grupo).HasMaxLength(60);
+            e.Property(x => x.Etiqueta).HasMaxLength(150);
+            e.Property(x => x.Valor).HasMaxLength(8000);
+        });
+        b.Entity<EnlaceSitio>(e =>
+        {
+            e.HasIndex(x => new { x.Grupo, x.Orden });
+            e.Property(x => x.Grupo).HasMaxLength(40);
+            e.Property(x => x.Plataforma).HasMaxLength(40);
+            e.Property(x => x.Url).HasMaxLength(500);
+            e.Property(x => x.Etiqueta).HasMaxLength(100);
+            e.Property(x => x.Descripcion).HasMaxLength(200);
+        });
+        b.Entity<PreguntaQuiz>(e =>
+        {
+            e.Property(x => x.Texto).HasMaxLength(300);
+            e.Property(x => x.Ayuda).HasMaxLength(500);
+        });
+        b.Entity<Solicitud>(e =>
+        {
+            e.HasIndex(x => new { x.Estado, x.Fecha });
+            e.Property(x => x.Nombre).HasMaxLength(150);
+            e.Property(x => x.Email).HasMaxLength(255);
+            e.HasMany(x => x.Respuestas).WithOne().HasForeignKey(x => x.SolicitudId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<RespuestaSolicitud>(e =>
+        {
+            e.Property(x => x.Pregunta).HasMaxLength(300);
+            e.Property(x => x.Respuesta).HasMaxLength(4000);
         });
 
         b.Entity<RegistroAuditoria>(e =>

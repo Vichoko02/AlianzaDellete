@@ -44,6 +44,8 @@ public enum AmbitoPermiso
     Estados = 2,
     /// <summary>Administrar la biblioteca de medios (eliminar archivos).</summary>
     Medios = 3,
+    /// <summary>Editar los textos, imágenes y enlaces generales del sitio (portada, footer, Apóyanos...).</summary>
+    Sitio = 4,
 }
 
 public class PermisoUsuario

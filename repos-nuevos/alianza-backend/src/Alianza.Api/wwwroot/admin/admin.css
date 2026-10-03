@@ -273,3 +273,15 @@ dialog::backdrop { background: rgba(13, 13, 26, .7); backdrop-filter: blur(3px);
 .actividad li:last-child { border-bottom: none; }
 .actividad time { color: var(--suave); font-size: .8rem; }
 .actividad b { color: var(--titulo); font-weight: 600; }
+
+/* ─── Solicitudes y notificaciones ─── */
+.insignia { display: inline-block; min-width: 1.5em; padding: 0 .4em; margin-left: .5rem; border-radius: 999px; background: var(--acento); color: #fff;
+  font-size: .72rem; font-weight: 600; line-height: 1.5; text-align: center; letter-spacing: 0; vertical-align: middle; animation: entrar .25s ease-out; }
+.tabla-solicitudes tbody tr { cursor: pointer; }
+.fila-nueva td { font-weight: 600; }
+.fila-nueva td:first-child { box-shadow: inset 3px 0 0 var(--acento); }
+.resumen-solicitud { color: var(--suave); font-size: .88rem; max-width: 420px; }
+dl.respuestas { margin: 0; }
+dl.respuestas dt { font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: var(--suave); margin-top: 1rem; }
+dl.respuestas dd { margin: .25rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--titulo); }
+.error-texto { color: var(--acento); font-weight: 600; }

@@ -31,5 +31,5 @@ jobs:
         run: dotnet test -c Release --no-build
         env:
           PRUEBAS_POSTGRES: Host=localhost;Port=5432;Username=postgres;Password=postgres
-      - name: Imagen Docker
-        run: docker build -t alianza-servidor:ci .
+      - name: Paquete de instalación
+        run: ./empaquetar.sh

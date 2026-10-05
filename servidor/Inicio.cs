@@ -43,6 +43,7 @@ servicios.AddScoped<CargaInicial>();
 servicios.AddSingleton<DireccionesMedios>();
 servicios.AddSingleton<Sesiones>();
 servicios.AddSingleton<DirectorioLdap>();
+servicios.AddSingleton<CachePublica>();
 
 // ─── 3. Sesiones del panel (solo cuentas administrativas; el sitio público no tiene inicio de sesión) ───
 
@@ -133,6 +134,13 @@ app.UseCors();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+// Tras un cambio exitoso hecho desde el panel, se vacía la caché pública para que el sitio lo muestre de inmediato.
+app.Use(async (contexto, siguiente) =>
+{
+    await siguiente();
+    if (contexto.Request.Path.StartsWithSegments("/api/panel") && !HttpMethods.IsGet(contexto.Request.Method) && contexto.Response.StatusCode < 400)
+        contexto.RequestServices.GetRequiredService<CachePublica>().Vaciar();
+});
 app.MapControllers();
 app.MapGet("/salud", async (BaseDeDatos bd) => await bd.Database.CanConnectAsync() ? Results.Text("Bien") : Results.StatusCode(503));
 app.MapGet("/", () => Results.Redirect("/panel/"));

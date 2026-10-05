@@ -29,36 +29,57 @@ Los **visitantes no inician sesión**: solo leen. Las únicas cuentas son **admi
 
 Solo existe un superadministrador: un índice único de PostgreSQL impide otro, y su cuenta no se puede desactivar ni eliminar.
 
-## Puesta en marcha con Docker
+## Puesta en marcha (sin contenedores)
+
+Pensado para un servidor pequeño (Ubuntu o Debian, ~1 GB de RAM). Todo corre directo en el sistema:
+
+| Pieza | Qué es | Memoria aprox. |
+|---|---|---|
+| `alianza-servidor` (systemd) | Este servidor, autocontenido: trae su propio .NET | 150–200 MB |
+| PostgreSQL | Del sistema, configurado para poca memoria (`sistema/postgresql-pequeno.conf`) | 40–80 MB |
+| nginx | Entrega el sitio (archivos ya comprimidos) y pasa `/api` y `/panel` al servidor | ~5 MB |
+| `alianza-ldap` (opcional) | Rama `programa/ldap` | ~25 MB |
+
+### 1. Armar el paquete (en tu computador, no en el servidor)
+
+Necesita .NET 8 SDK y Node 20+. Descarga todo una sola vez y deja **un archivo con todo incluido**: el servidor no descarga nada al instalarse, salvo PostgreSQL y nginx de los repositorios del sistema.
 
 ```bash
-cp .env.example .env
-# Completa CONTRASENA_POSTGRES, CLAVE_SESIONES (openssl rand -hex 32) y SUPERADMIN_CONTRASENA
-docker compose up -d --build
+./empaquetar.sh /ruta/a/la/rama/programa/sitio        # ARQUITECTURA=linux-arm64 para servidores ARM
+# → paquete/alianza-AAAAMMDD-HHMM-linux-x64.tar.gz (~55 MB)
 ```
 
-- Panel: http://127.0.0.1:8080/panel. Entra con `YishAdmin` y la contraseña de `SUPERADMIN_CONTRASENA`.
-- `SUPERADMIN_CONTRASENA` **solo se usa la primera vez**, para crear la cuenta. Después se cambia desde **Mi cuenta**. Nunca la escribas en el repositorio.
-- Salud: http://127.0.0.1:8080/salud
+### 2. Instalar o actualizar en el servidor
+
+```bash
+scp paquete/alianza-*.tar.gz servidor:
+ssh servidor
+tar xzf alianza-*.tar.gz && cd alianza-*/
+sudo ./instalar.sh     # la primera vez pide definir Superadmin__Contrasena en /etc/alianza/servidor.env
+sudo ./instalar.sh     # la segunda vez deja todo funcionando
+```
+
+- Panel: `http://<servidor>/panel`. Entra con `YishAdmin` y la contraseña de `Superadmin__Contrasena`.
+- Esa contraseña **solo se usa la primera vez**: después bórrala de `/etc/alianza/servidor.env` y cámbiala desde **Mi cuenta**.
+- HTTPS: `sudo apt install certbot python3-certbot-nginx && sudo certbot --nginx -d tu-dominio`.
+- Para actualizar, se arma un paquete nuevo y se vuelve a ejecutar `instalar.sh`: los datos y la configuración se conservan.
+
+`instalar.sh` crea el usuario de sistema `alianza` y la base `alianza`. Se conecta por socket local, sin contraseña de base de datos. La clave de sesiones se genera al azar.
 
 ### Importar el contenido que tenía el sitio
 
-`carga-inicial/contenido.json` trae las 10 wikis, los 4 socios y los banners de la portada. Para cargarlos con sus imágenes en una base vacía, define en `.env`:
+`carga-inicial/contenido.json` trae las 10 wikis, los 4 socios y los banners de la portada. Para cargarlos con sus imágenes en una base vacía, copia la carpeta `src/assets` del sitio al servidor y define en `/etc/alianza/servidor.env`:
 
 ```bash
-IMPORTAR_CONTENIDO=true
-CARPETA_IMAGENES_SITIO=/ruta/al/sitio/src/assets
+CargaInicial__ImportarContenido=true
+CargaInicial__CarpetaImagenes=/ruta/a/assets
 ```
 
 La importación es de todo o nada y solo ocurre si la base no tiene series. Las imágenes repetidas se guardan una vez.
 
 ### Con LDAP
 
-Levanta antes el LDAP (rama `programa/ldap`) y luego:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.ldap.yml up -d --build
-```
+Instala antes el LDAP (rama `programa/ldap`, `sudo ./instalar.sh`). Luego activa `Ldap__Habilitado=true` en `/etc/alianza/servidor.env`, con la misma contraseña de la cuenta de servicio, y reinicia con `sudo systemctl restart alianza-servidor`.
 
 Cada cuenta nueva tiene un **origen**:
 - **Local**: contraseña con hash BCrypt en PostgreSQL;
@@ -79,7 +100,19 @@ servidor/
 panel/             Código del panel en TypeScript estricto, sin dependencias
 carga-inicial/     Contenido que tenía el sitio escrito a mano
 pruebas/           Pruebas de integración (xUnit + PostgreSQL real)
+sistema/           Servicio systemd, nginx, PostgreSQL para poca memoria y ejemplo de configuración
+empaquetar.sh      Arma el paquete con todo incluido
+instalar.sh        Instala o actualiza en el servidor
 ```
+
+### Para gastar pocos recursos
+
+- **Caché pública en memoria**: el sitio, las wikis, los socios y el formulario se calculan una vez. Cualquier cambio hecho desde el panel la vacía, así que los visitantes casi no consultan la base de datos.
+- **Una sola petición para la portada**: `/api/sitio` trae textos, enlaces, series y socios juntos.
+- **Recolector de basura de estación de trabajo**, sin datos de culturas (ICU) y con un tope de memoria en el servicio.
+- **Servidor precompilado (ReadyToRun)**: arranca rápido y usa menos CPU al inicio.
+- **Sitio servido por nginx con archivos ya comprimidos**: no se comprime en cada visita. Lo que tiene nombre por versión se guarda un año en el navegador. Las imágenes de `/api/medios` también.
+- **Sin dependencias externas en tiempo de ejecución**: tipografías alojadas en el sitio y en el panel, sin CDNs. Las versiones de los paquetes quedan fijas en `packages.lock.json` y `package-lock.json`.
 
 Cada método declara sus variables al inicio y marca sus pasos con comentarios numerados (`// 1.`, `// 2.`), en el orden en que ocurren.
 
@@ -107,7 +140,7 @@ cd servidor && dotnet run                # → http://localhost:5126/panel
 
 | Ruta | Devuelve |
 |---|---|
-| `GET /api/sitio` | Textos, imágenes y enlaces generales: `{ textos, listas, enlaces }` |
+| `GET /api/sitio` | Todo lo de la portada: `{ textos, listas, enlaces, series, socios }` |
 | `GET /api/estados` | Estados `{codigo, nombre, color}` |
 | `GET /api/series[?estado=en-emision]` | Tarjetas de la portada `{identificador, nombre, imagen, enlace, estado}` |
 | `GET /api/series/{identificador}` | Wiki completa |

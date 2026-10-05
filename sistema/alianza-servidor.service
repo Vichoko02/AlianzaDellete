@@ -1,0 +1,29 @@
+[Unit]
+Description=Servidor de La Alianza (API y panel)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=exec
+User=alianza
+Group=alianza
+WorkingDirectory=/opt/alianza/servidor
+ExecStart=/opt/alianza/servidor/Alianza.Servidor
+EnvironmentFile=/etc/alianza/servidor.env
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5000
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_CLI_TELEMETRY_OPTOUT=1
+# Memoria: el recolector intenta mantenerse bajo este límite y devuelve memoria al sistema.
+Environment=DOTNET_GCHeapHardLimit=0xC000000
+Environment=DOTNET_GCConserveMemory=7
+Restart=on-failure
+RestartSec=5
+MemoryMax=320M
+TasksMax=64
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

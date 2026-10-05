@@ -985,7 +985,7 @@
       "estado": "En Emisión",
       "orden": 8,
       "portada": "TripleBoca/TripleBoca.webp",
-      "cabecera": "Banner/TripleBocaBanner.gif",
+      "cabecera": "Banner/TripleBocaBanner.webp",
       "logo": "TripleBoca/TripleBocaLogo.webp",
       "urlVideo": "https://www.youtube.com/embed/AbQxHp3ttbU?si=toA-PjT1FIDZGOP7",
       "sinopsis": "Las nuevas aventuras de Micu y sus amigas Vocaloid Techo y Newu quienes, tras ser despedidas de su antigua agencia de idols en Japón, terminan viajando a Latinoamérica para conseguir una nueva oportunidad de brillar. Sin embargo, terminan estancadas debido a la austera y precaria situación de la región. Aun así, lejos de resignarse, resuelven que continuarán dandolo todo para poder levantar sus carreras desde abajo y sobrevivir al día a día en las zonas más precarias de toda Latam.",
@@ -1008,7 +1008,7 @@
       "apoyo": {},
       "carrusel": [
         "TripleBoca/ArteTripleBoca.webp",
-        "TripleBoca/ajolote.gif",
+        "TripleBoca/ajolote.webp",
         "TripleBoca/ArteTripleBoca1.webp",
         "TripleBoca/ArteTripleBoca2.webp",
         "TripleBoca/ArteTripleBoca3.webp"
@@ -1143,7 +1143,7 @@
           "textoAlternativo": "Bocas Frieren Meme"
         },
         {
-          "imagen": "TripleBoca/ajolote.gif",
+          "imagen": "TripleBoca/ajolote.webp",
           "textoAlternativo": "Ajolote"
         },
         {

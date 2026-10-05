@@ -43,6 +43,12 @@ public class ServicioSocios(BaseDeDatos bd, ServicioMedios medios, DireccionesMe
         s.Series.Where(x => x.Serie.Publicada).OrderBy(x => x.Orden)
             .Select(x => new ProyectoDeSocio(x.Serie.Nombre, direcciones.De(x.Serie.PortadaId), $"/wiki/{x.Serie.Identificador}")).ToList());
 
+    public async Task<List<SocioPublico>> PublicosAsync()
+    {
+        var lista = await ConTodo().AsNoTracking().Where(s => s.Publicado).OrderBy(s => s.Orden).ThenBy(s => s.Nombre).ToListAsync();
+        return lista.Select(APublico).ToList();
+    }
+
     public async Task GuardarAsync(Socio socio, SocioEditable datos)
     {
         var serieIds = (datos.SerieIds ?? []).Distinct().ToList();
@@ -74,14 +80,10 @@ public class ServicioSocios(BaseDeDatos bd, ServicioMedios medios, DireccionesMe
 
 [ApiController]
 [Route("api/socios")]
-public class RutasSocios(ServicioSocios socios) : ControllerBase
+public class RutasSocios(ServicioSocios socios, CachePublica cache) : ControllerBase
 {
     [HttpGet]
-    public async Task<List<SocioPublico>> Listar()
-    {
-        var lista = await socios.ConTodo().AsNoTracking().Where(s => s.Publicado).OrderBy(s => s.Orden).ThenBy(s => s.Nombre).ToListAsync();
-        return lista.Select(socios.APublico).ToList();
-    }
+    public Task<List<SocioPublico>> Listar() => cache.ObtenerAsync("socios", socios.PublicosAsync);
 
     [HttpGet("{identificador}")]
     public async Task<ActionResult<SocioPublico>> Obtener(string identificador)

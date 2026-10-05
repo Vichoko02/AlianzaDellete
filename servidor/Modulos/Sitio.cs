@@ -18,7 +18,9 @@ public record EnlaceSitioDatos(
     [MaxLength(200)] string? Descripcion);
 
 /// <summary>Textos (las imágenes sueltas ya como URL), listas de imágenes y enlaces agrupados.</summary>
-public record SitioPublico(Dictionary<string, string> Textos, Dictionary<string, List<string>> Listas, Dictionary<string, List<EnlaceSitioDatos>> Enlaces);
+/// <summary>Todo lo que necesita la portada en una sola respuesta: textos, listas de imágenes, enlaces, series y socios.</summary>
+public record SitioPublico(Dictionary<string, string> Textos, Dictionary<string, List<string>> Listas, Dictionary<string, List<EnlaceSitioDatos>> Enlaces,
+    List<TarjetaSerie> Series, List<SocioPublico> Socios);
 
 public record CampoSitio(string Clave, string Grupo, string Etiqueta, TipoTexto Tipo, string Valor);
 
@@ -125,7 +127,7 @@ public class ServicioSitio(BaseDeDatos bd, ServicioMedios medios, DireccionesMed
         await bd.SaveChangesAsync();
     }
 
-    public async Task<SitioPublico> PublicoAsync()
+    public async Task<SitioPublico> PublicoAsync(ServicioSeries series, ServicioSocios socios)
     {
         var textos = await bd.TextosSitio.AsNoTracking().ToListAsync();
         var enlaces = await bd.EnlacesSitio.AsNoTracking().OrderBy(e => e.Orden).ToListAsync();
@@ -142,7 +144,8 @@ public class ServicioSitio(BaseDeDatos bd, ServicioMedios medios, DireccionesMed
             }
         }
         return new SitioPublico(planos, listas, GruposDeEnlaces.ToDictionary(g => g, g => enlaces.Where(e => e.Grupo == g)
-            .Select(e => new EnlaceSitioDatos(e.Plataforma, e.Url, e.Etiqueta, e.Descripcion)).ToList()));
+            .Select(e => new EnlaceSitioDatos(e.Plataforma, e.Url, e.Etiqueta, e.Descripcion)).ToList()),
+            await series.TarjetasAsync(), await socios.PublicosAsync());
     }
 
     public async Task<List<CampoSitio>> CamposAsync() =>
@@ -199,14 +202,14 @@ public class ServicioSitio(BaseDeDatos bd, ServicioMedios medios, DireccionesMed
 }
 
 [ApiController]
-public class RutasSitio(ServicioSitio sitio) : ControllerBase
+public class RutasSitio(ServicioSitio sitio, ServicioSeries series, ServicioSocios socios, CachePublica cache) : ControllerBase
 {
     [HttpGet("api/sitio")]
-    public async Task<SitioPublico> Obtener()
+    public Task<SitioPublico> Obtener()
     {
-        // Pesa pocos KB: sin caché, para que lo editado en el panel se vea al recargar.
+        // El navegador no lo guarda (lo editado en el panel se ve al recargar); el servidor sí, en CachePublica.
         Response.Headers.CacheControl = "no-cache";
-        return await sitio.PublicoAsync();
+        return cache.ObtenerAsync("sitio", () => sitio.PublicoAsync(series, socios));
     }
 }
 

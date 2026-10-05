@@ -27,11 +27,11 @@ public static class FormatoEstado
 }
 
 [ApiController]
-public class RutasEstados(BaseDeDatos bd) : ControllerBase
+public class RutasEstados(BaseDeDatos bd, CachePublica cache) : ControllerBase
 {
     [HttpGet("api/estados")]
-    public async Task<List<EstadoPublico>> Listar() =>
-        (await bd.Estados.AsNoTracking().OrderBy(e => e.Orden).ToListAsync()).Select(FormatoEstado.Publico).ToList();
+    public Task<List<EstadoPublico>> Listar() => cache.ObtenerAsync("estados", async () =>
+        (await bd.Estados.AsNoTracking().OrderBy(e => e.Orden).ToListAsync()).Select(FormatoEstado.Publico).ToList());
 }
 
 [ApiController]

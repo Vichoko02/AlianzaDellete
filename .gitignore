@@ -8,3 +8,4 @@ TestResults/
 node_modules/
 # El panel se compila desde panel/*.ts (npm run build)
 servidor/publico/panel/*.js
+paquete/

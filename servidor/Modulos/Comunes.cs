@@ -105,3 +105,23 @@ public class Auditoria(BaseDeDatos bd, UsuarioActual actual)
         });
     }
 }
+
+/// <summary>
+/// Respuestas públicas guardadas en memoria (sitio, wikis, socios, formulario): los visitantes no consultan la base de datos
+/// en cada visita. Cualquier cambio hecho desde el panel la vacía (ver Inicio.cs), así que nunca muestra datos viejos.
+/// </summary>
+public class CachePublica
+{
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, object> respuestas = new();
+
+    /// <summary>Devuelve la respuesta guardada o la calcula. Un resultado nulo (no encontrado) no se guarda.</summary>
+    public async Task<T> ObtenerAsync<T>(string clave, Func<Task<T>> calcular) where T : class?
+    {
+        if (respuestas.TryGetValue(clave, out var guardada)) return (T)guardada;
+        var nueva = await calcular();
+        if (nueva is not null) respuestas[clave] = nueva;
+        return nueva;
+    }
+
+    public void Vaciar() => respuestas.Clear();
+}

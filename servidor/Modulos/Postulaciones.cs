@@ -172,11 +172,11 @@ public class ServicioPostulaciones(BaseDeDatos bd)
 
 [ApiController]
 [Route("api/formulario")]
-public class RutasFormulario(ServicioPostulaciones postulaciones, ILogger<RutasFormulario> registro) : ControllerBase
+public class RutasFormulario(ServicioPostulaciones postulaciones, CachePublica cache, ILogger<RutasFormulario> registro) : ControllerBase
 {
     [HttpGet]
-    public async Task<List<PreguntaPublica>> Preguntas() =>
-        (await postulaciones.ActivasAsync()).Select(p => new PreguntaPublica(p.Id, p.Texto, p.Ayuda, p.Tipo, p.Opciones, p.Obligatoria)).ToList();
+    public Task<List<PreguntaPublica>> Preguntas() => cache.ObtenerAsync("formulario", async () =>
+        (await postulaciones.ActivasAsync()).Select(p => new PreguntaPublica(p.Id, p.Texto, p.Ayuda, p.Tipo, p.Opciones, p.Obligatoria)).ToList());
 
     [HttpPost("postulaciones")]
     [EnableRateLimiting("postulaciones")]

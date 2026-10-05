@@ -5,6 +5,14 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Alianza.Servidor</RootNamespace>
+    <!-- Pensado para un servidor con poca memoria: recolector de basura de estación de trabajo (un solo montón, sin hilo
+         concurrente), que devuelve memoria al sistema; y sin datos de culturas (ICU), que ahorra ~30 MB. -->
+    <ServerGarbageCollector>false</ServerGarbageCollector>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>es</SatelliteResourceLanguages>
+    <!-- Versiones exactas de cada paquete en packages.lock.json: la misma compilación hoy y en un año. -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,7 +33,7 @@
     <None Include="publico/**" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <!-- Compila el panel (panel/*.ts → publico/panel/*.js). Se omite con -p:CompilarPanel=false (Docker lo compila aparte). -->
+  <!-- Compila el panel (panel/*.ts → publico/panel/*.js). Se omite con -p:CompilarPanel=false (empaquetar.sh lo compila antes). -->
   <PropertyGroup>
     <CompilarPanel Condition="'$(CompilarPanel)' == ''">true</CompilarPanel>
     <RaizRepositorio>$(MSBuildProjectDirectory)/..</RaizRepositorio>

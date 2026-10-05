@@ -1,7 +1,7 @@
 namespace Alianza.Servidor.Seguridad;
 
 // Secciones de appsettings.json. Cada clase corresponde a una sección con el mismo nombre;
-// en Docker se definen como variables de entorno, ej: Sesiones__Clave, Superadmin__Contrasena.
+// en producción se definen en /etc/alianza/servidor.env, ej: Sesiones__Clave, Superadmin__Contrasena.
 
 public class ConfiguracionSesiones
 {

@@ -103,6 +103,14 @@ public record ImagenPublica(string Url, string TextoAlternativo);
 
 public class ServicioSeries(BaseDeDatos bd, ServicioMedios medios, DireccionesMedios direcciones)
 {
+    public async Task<List<TarjetaSerie>> TarjetasAsync(string? estado = null)
+    {
+        var consulta = bd.Series.Where(s => s.Publicada);
+        if (!string.IsNullOrEmpty(estado)) consulta = consulta.Where(s => s.Estado.Codigo == estado);
+        var lista = await consulta.OrderBy(s => s.Orden).ThenBy(s => s.Nombre).Select(s => new { s.Identificador, s.Nombre, s.PortadaId, s.Estado }).ToListAsync();
+        return lista.Select(s => new TarjetaSerie(s.Identificador, s.Nombre, direcciones.De(s.PortadaId), $"/wiki/{s.Identificador}", FormatoEstado.Publico(s.Estado))).ToList();
+    }
+
     public IQueryable<Serie> ConTodo() => bd.Series
         .Include(s => s.Estado)
         .Include(s => s.Enlaces)
@@ -226,23 +234,23 @@ public class ServicioSeries(BaseDeDatos bd, ServicioMedios medios, DireccionesMe
 
 [ApiController]
 [Route("api/series")]
-public class RutasSeries(BaseDeDatos bd, ServicioSeries series, DireccionesMedios direcciones) : ControllerBase
+public class RutasSeries(ServicioSeries series, CachePublica cache) : ControllerBase
 {
     /// <summary>Tarjetas de la portada, solo series publicadas. Filtro opcional por código de estado.</summary>
     [HttpGet]
-    public async Task<List<TarjetaSerie>> Listar([FromQuery] string? estado = null)
-    {
-        var consulta = bd.Series.Where(s => s.Publicada);
-        if (!string.IsNullOrEmpty(estado)) consulta = consulta.Where(s => s.Estado.Codigo == estado);
-        var lista = await consulta.OrderBy(s => s.Orden).ThenBy(s => s.Nombre).Select(s => new { s.Identificador, s.Nombre, s.PortadaId, s.Estado }).ToListAsync();
-        return lista.Select(s => new TarjetaSerie(s.Identificador, s.Nombre, direcciones.De(s.PortadaId), $"/wiki/{s.Identificador}", FormatoEstado.Publico(s.Estado))).ToList();
-    }
+    public Task<List<TarjetaSerie>> Listar([FromQuery] string? estado = null) =>
+        // Solo la lista completa se guarda en memoria; con filtro se consulta directo.
+        string.IsNullOrEmpty(estado) ? cache.ObtenerAsync("series", () => series.TarjetasAsync()) : series.TarjetasAsync(estado);
 
     [HttpGet("{identificador}")]
     public async Task<ActionResult<WikiPublica>> Wiki(string identificador)
     {
-        var serie = await series.ConTodo().AsNoTracking().FirstOrDefaultAsync(x => x.Identificador == identificador && x.Publicada);
-        return serie is null ? NotFound() : await series.APublicaAsync(serie);
+        var wiki = await cache.ObtenerAsync<WikiPublica?>($"wiki:{identificador}", async () =>
+        {
+            var serie = await series.ConTodo().AsNoTracking().FirstOrDefaultAsync(x => x.Identificador == identificador && x.Publicada);
+            return serie is null ? null : await series.APublicaAsync(serie);
+        });
+        return wiki is null ? NotFound() : wiki;
     }
 }
 

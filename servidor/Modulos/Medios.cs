@@ -18,7 +18,7 @@ public record DatosMedio([MaxLength(300)] string? TextoAlternativo);
 
 public class ServicioMedios(BaseDeDatos bd)
 {
-    public const long TamanoMaximo = 60 * 1024 * 1024;
+    public const long TamanoMaximo = 25 * 1024 * 1024; // pensado para un servidor con poca memoria: cada archivo se procesa completo en memoria
 
     private static readonly Dictionary<string, string> TiposPorExtension = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -165,9 +165,10 @@ public class RutasMediosPanel(BaseDeDatos bd, ServicioMedios medios, Auditoria a
 
         foreach (var archivo in archivos)
         {
-            using var memoria = new MemoryStream();
-            await archivo.CopyToAsync(memoria);
-            guardados.Add(await medios.GuardarAsync(memoria.ToArray(), archivo.FileName, textoAlternativo));
+            // Se lee directo a un arreglo de su tamaño exacto: una sola copia en memoria.
+            var bytes = new byte[archivo.Length];
+            await using (var lectura = archivo.OpenReadStream()) await lectura.ReadExactlyAsync(bytes);
+            guardados.Add(await medios.GuardarAsync(bytes, archivo.FileName, textoAlternativo));
         }
         await auditoria.RegistrarAsync("subir", "medio", string.Join(", ", archivos.Select(a => a.FileName)));
         await bd.SaveChangesAsync();

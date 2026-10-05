@@ -2,6 +2,7 @@
 // Los valores de TEXTOS_POR_DEFECTO solo se usan mientras carga la API o si no responde.
 import { createContext, useContext } from "react";
 import { urlMedio, type EnlaceSitio, type Sitio } from "./api";
+
 export const TEXTOS_POR_DEFECTO: Record<string, string> = {
   "inicio.hero.antetitulo": "— Proyecto Alianza —",
   "inicio.hero.eslogan": "Apoyando talentos con inspiración por medio de la colaboración.",
@@ -25,17 +26,17 @@ export const TEXTOS_POR_DEFECTO: Record<string, string> = {
   "unete.paso3.titulo": "Postula tu proyecto",
   "unete.paso3.texto": "",
   "unete.boton": "Postular mi proyecto",
-  "quiz.titulo": "Postula tu proyecto",
-  "quiz.intro": "",
-  "quiz.exito.titulo": "¡Recibimos tu postulación!",
-  "quiz.exito.texto": "Revisaremos tu propuesta y te escribiremos al correo que nos dejaste.",
+  "formulario.titulo": "Postula tu proyecto",
+  "formulario.intro": "",
+  "formulario.exito.titulo": "¡Recibimos tu postulación!",
+  "formulario.exito.texto": "Revisaremos tu propuesta y te escribiremos al correo que nos dejaste.",
   "apoyanos.titulo": "Apóyanos",
   "apoyanos.subtitulo": "Tu apoyo hace posible que sigamos creando",
-  "footer.texto": "Alianza",
+  "pie.texto": "Alianza",
   "wiki.sinopsis": "Sinopsis",
   "wiki.galeria": "Galería",
   "wiki.creador": "Creador",
-  "wiki.staff": "Staff",
+  "wiki.equipo": "Staff",
   "wiki.arte": "Arte",
   "wiki.arteTitulo": "Arte del Proyecto",
   "wiki.personajes": "Personajes",
@@ -66,7 +67,3 @@ export function useEnlaces(grupo: string): EnlaceSitio[] {
   return useContext(SitioContexto)?.enlaces[grupo] ?? [];
 }
 
-/** true cuando ya llegó el contenido de la API. */
-export function useSitioCargado(): boolean {
-  return useContext(SitioContexto) !== null;
-}

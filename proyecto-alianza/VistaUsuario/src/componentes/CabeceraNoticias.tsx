@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import logoAlianza from "../../assets/ALIANZA_VECTORIZADO.svg";
+import logoAlianza from "../assets/ALIANZA_VECTORIZADO.svg";
 
-export default function NewsHeader() {
+export default function CabeceraNoticias() {
   const [menuAbierto, setMenuAbierto] = useState(false);
 
   const leftLinks = [

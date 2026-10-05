@@ -1,40 +1,29 @@
 import { useState } from "react";
 import { useTextos } from "../textos";
-import QuizModal from "./QuizModal";
+import VentanaPostulacion from "./VentanaPostulacion";
 
-export default function Join() {
-  const [abierto, setAbierto] = useState(false);
-  const [quizAbierto, setQuizAbierto] = useState(false);
+/** Sección «Únete»: explica los pasos y abre el formulario de postulación. */
+export default function Unete() {
   const t = useTextos();
-
-  const pasos = [1, 2, 3].map((n) => ({
-    numero: String(n).padStart(2, "0"),
-    titulo: t(`unete.paso${n}.titulo`),
-    texto: t(`unete.paso${n}.texto`),
-  })).filter((p) => p.titulo || p.texto);
+  const [abierto, setAbierto] = useState(false);
+  const [postulacionAbierta, setPostulacionAbierta] = useState(false);
+  const pasos = [1, 2, 3]
+    .map((n) => ({ numero: String(n).padStart(2, "0"), titulo: t(`unete.paso${n}.titulo`), texto: t(`unete.paso${n}.texto`) }))
+    .filter((paso) => paso.titulo || paso.texto);
 
   return (
     <section className="join-section" id="unete">
       <div className="join-topline" />
 
       <div className="join-inner">
-        <button
-          className={`join-header ${abierto ? "activo" : ""}`}
-          onClick={() => setAbierto(!abierto)}
-          aria-expanded={abierto}
-        >
+        <button className={`join-header ${abierto ? "activo" : ""}`} onClick={() => setAbierto(!abierto)} aria-expanded={abierto}>
           <div className="join-header-left">
             <span className="join-eyebrow">{t("unete.antetitulo")}</span>
             <h2 className="join-title">{t("unete.titulo")}</h2>
           </div>
           <div className="join-header-right">
             <span className="join-cta">{abierto ? "Cerrar" : "Ver más"}</span>
-            <svg
-              className="join-chevron"
-              viewBox="0 0 24 24"
-              width="28"
-              height="28"
-            >
+            <svg className="join-chevron" viewBox="0 0 24 24" width="28" height="28">
               <path fill="currentColor" d="M7 10l5 5 5-5z" />
             </svg>
           </div>
@@ -57,16 +46,14 @@ export default function Join() {
           </div>
 
           <div className="join-postular-wrapper">
-            <button className="btn-primary join-postular" onClick={() => setQuizAbierto(true)}>
-              {t("unete.boton")}
-            </button>
+            <button className="btn-primary join-postular" onClick={() => setPostulacionAbierta(true)}>{t("unete.boton")}</button>
           </div>
         </div>
       </div>
 
       <div className="join-topline" />
 
-      {quizAbierto && <QuizModal onClose={() => setQuizAbierto(false)} />}
+      {postulacionAbierta && <VentanaPostulacion alCerrar={() => setPostulacionAbierta(false)} />}
     </section>
   );
 }

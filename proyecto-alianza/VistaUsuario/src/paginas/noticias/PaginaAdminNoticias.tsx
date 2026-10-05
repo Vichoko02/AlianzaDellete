@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import type { Noticia } from "./NewsPage";
-import logoAlianza from "../assets/ALIANZA_VECTORIZADO.svg";
+import type { Noticia } from "./PaginaNoticias";
+import logoAlianza from "../../assets/ALIANZA_VECTORIZADO.svg";
 
 const NOTICIAS_KEY = "alianza_noticias";
 
@@ -14,13 +14,9 @@ function saveNoticias(noticias: Noticia[]) {
   localStorage.setItem(NOTICIAS_KEY, JSON.stringify(noticias));
 }
 
-export default function NewsAdminPage() {
+export default function PaginaAdminNoticias() {
   const navigate = useNavigate();
-  const [noticias, setNoticias] = useState<Noticia[]>([]);
-
-  useEffect(() => {
-    setNoticias(getNoticias());
-  }, []);
+  const [noticias, setNoticias] = useState<Noticia[]>(getNoticias);
 
   const handleDelete = (id: string) => {
     if (confirm("¿Eliminar esta noticia?")) {

@@ -1,6 +1,6 @@
 import { useTextos } from "../textos";
 
-export default function Hero() {
+export default function Eslogan() {
   const t = useTextos();
   return (
     <section className="hero">

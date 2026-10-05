@@ -1,13 +1,13 @@
 import { useState } from "react";
-import NewsHeader from "../components/news/NewsHeader";
-import Footer from "../components/Footer";
-import imgCrunch from "../assets/Crunch/Crunch.webp";
-import imgMetrecalia from "../assets/Metrecalia/Metrecalia.webp";
-import imgTripleBoca from "../assets/TripleBoca/TripleBoca.webp";
-import bannerCrunch from "../assets/Banner/CrunchBanner.webp";
-import bannerMetrecalia from "../assets/Banner/MetrecaliaBanner.webp";
-import bannerArmados from "../assets/Banner/ArmadosBanner.webp";
-import bannerTBTF from "../assets/Banner/TBTFBanner.webp";
+import CabeceraNoticias from "../../componentes/CabeceraNoticias";
+import Pie from "../../componentes/Pie";
+import imgCrunch from "../../assets/Crunch/Crunch.webp";
+import imgMetrecalia from "../../assets/Metrecalia/Metrecalia.webp";
+import imgTripleBoca from "../../assets/TripleBoca/TripleBoca.webp";
+import bannerCrunch from "../../assets/Banner/CrunchBanner.webp";
+import bannerMetrecalia from "../../assets/Banner/MetrecaliaBanner.webp";
+import bannerArmados from "../../assets/Banner/ArmadosBanner.webp";
+import bannerTBTF from "../../assets/Banner/TBTFBanner.webp";
 
 export interface Noticia {
   id: string;
@@ -64,7 +64,7 @@ function getNoticias(): Noticia[] {
   return JSON.parse(stored);
 }
 
-export default function NewsPage() {
+export default function PaginaNoticias() {
   const [noticiaExpandida, setNoticiaExpandida] = useState<string | null>(null);
 
   const [noticias] = useState<Noticia[]>(() => getNoticias());
@@ -77,7 +77,7 @@ export default function NewsPage() {
 
   return (
     <div className="news-page">
-      <NewsHeader />
+      <CabeceraNoticias />
 
       <div className="news-hero">
         <div className="header-carousel-container">
@@ -161,7 +161,7 @@ export default function NewsPage() {
         </div>
       )}
 
-      <Footer />
+      <Pie />
     </div>
   );
 }

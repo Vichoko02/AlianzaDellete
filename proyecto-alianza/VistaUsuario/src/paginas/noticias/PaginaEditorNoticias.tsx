@@ -1,16 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import type { Noticia } from "./NewsPage";
-import imgCrunch from "../assets/Crunch/Crunch.webp";
-import imgMetrecalia from "../assets/Metrecalia/Metrecalia.webp";
-import imgTripleBoca from "../assets/TripleBoca/TripleBoca.webp";
-import imgGarabato from "../assets/Garabato/Garabato-studio.webp";
-import imgArmados from "../assets/Armados/Armados.webp";
-import imgCrunchFizz from "../assets/CrunchFizz/CrunchFizz.webp";
-import imgTecnosis from "../assets/Tecnosis/Tecnosis.webp";
-import imgEmesis from "../assets/Emesis/emesisblue.webp";
-import imgTBTF from "../assets/TheBraveAndTheFuriousAndTheJackass/TBTF.webp";
-import logoAlianza from "../assets/ALIANZA_VECTORIZADO.svg";
+import type { Noticia } from "./PaginaNoticias";
+import imgCrunch from "../../assets/Crunch/Crunch.webp";
+import imgMetrecalia from "../../assets/Metrecalia/Metrecalia.webp";
+import imgTripleBoca from "../../assets/TripleBoca/TripleBoca.webp";
+import imgGarabato from "../../assets/Garabato/Garabato-studio.webp";
+import imgArmados from "../../assets/Armados/Armados.webp";
+import imgCrunchFizz from "../../assets/CrunchFizz/CrunchFizz.webp";
+import imgTecnosis from "../../assets/Tecnosis/Tecnosis.webp";
+import imgEmesis from "../../assets/Emesis/emesisblue.webp";
+import imgTBTF from "../../assets/TheBraveAndTheFuriousAndTheJackass/TBTF.webp";
+import logoAlianza from "../../assets/ALIANZA_VECTORIZADO.svg";
 
 const NOTICIAS_KEY = "alianza_noticias";
 
@@ -44,31 +44,19 @@ function formatearFecha(date: Date): string {
   return `${date.getDate()} ${meses[date.getMonth()]} ${date.getFullYear()}`;
 }
 
-export default function NewsEditorPage() {
+export default function PaginaEditorNoticias() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
 
-  const [titulo, setTitulo] = useState("");
-  const [contenido, setContenido] = useState("");
-  const [proyecto, setProyecto] = useState(proyectosDisponibles[0].nombre);
-  const [proyectoImagen, setProyectoImagen] = useState(proyectosDisponibles[0].imagen);
-  const [destacada, setDestacada] = useState(false);
+  // Al editar, el formulario parte con los datos de la noticia guardada.
+  const [existente] = useState(() => (isEditing ? getNoticias().find((n) => n.id === id) : undefined));
+  const [titulo, setTitulo] = useState(existente?.titulo ?? "");
+  const [contenido, setContenido] = useState(existente?.contenido ?? "");
+  const [proyecto, setProyecto] = useState(existente?.proyecto ?? proyectosDisponibles[0].nombre);
+  const [proyectoImagen, setProyectoImagen] = useState(existente?.proyectoImagen ?? proyectosDisponibles[0].imagen);
+  const [destacada, setDestacada] = useState(existente?.destacada ?? false);
   const [guardado, setGuardado] = useState(false);
-
-  useEffect(() => {
-    if (isEditing) {
-      const noticias = getNoticias();
-      const noticia = noticias.find((n) => n.id === id);
-      if (noticia) {
-        setTitulo(noticia.titulo);
-        setContenido(noticia.contenido);
-        setProyecto(noticia.proyecto);
-        setProyectoImagen(noticia.proyectoImagen);
-        setDestacada(noticia.destacada);
-      }
-    }
-  }, [id, isEditing]);
 
   const handleProyectoChange = (nombre: string) => {
     setProyecto(nombre);

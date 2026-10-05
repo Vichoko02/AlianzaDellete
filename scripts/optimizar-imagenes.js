@@ -1,38 +1,73 @@
-// Reduce el peso de las imágenes de src/assets, en el mismo lugar. Se ejecuta a mano: node scripts/optimizar-imagenes.js
-// 1) busca imágenes de más de 300 KB  2) las achica a 1920 px de ancho como máximo  3) las guarda en WebP
-//    (los GIF animados pasan a WebP animado)  4) solo reemplaza el archivo si el resultado pesa menos.
-// Si un archivo cambia de extensión (.gif → .webp), avisa para actualizar carga-inicial/contenido.json del servidor.
-import sharp from "sharp";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import sharp from 'sharp';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const CARPETA = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "src", "assets");
-const PESO_MINIMO = 300 * 1024;
-const ANCHO_MAXIMO = 1920;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.join(__dirname, '..');
+const assetsDir = path.join(rootDir, 'src', 'assets');
 
-function imagenes(carpeta) {
-  return fs.readdirSync(carpeta, { withFileTypes: true }).flatMap((e) => {
-    const ruta = path.join(carpeta, e.name);
-    if (e.isDirectory()) return e.name === "fuentes" ? [] : imagenes(ruta);
-    return /\.(webp|png|jpe?g|gif)$/i.test(e.name) && fs.statSync(ruta).size > PESO_MINIMO ? [ruta] : [];
-  });
+// Carpetas de origen
+const proyectosDir = path.join(assetsDir, 'proyectos');
+const asociadosDir = path.join(assetsDir, 'asociados');
+
+// Carpeta de salida (imágenes optimizadas)
+const outputDir = path.join(assetsDir, 'optimized');
+
+// Crear directorio de salida si no existe
+if (!fs.existsSync(outputDir)) {
+  fs.mkdirSync(outputDir, { recursive: true });
 }
 
-let ahorro = 0;
-for (const ruta of imagenes(CARPETA)) {
-  const antes = fs.statSync(ruta).size;
-  const animada = /\.gif$/i.test(ruta) || ((await sharp(ruta).metadata()).pages ?? 1) > 1;
-  const destino = ruta.replace(/\.(png|jpe?g|gif)$/i, ".webp");
-  const resultado = await sharp(ruta, { animated: animada })
-    .resize({ width: ANCHO_MAXIMO, withoutEnlargement: true })
-    .webp({ quality: animada ? 70 : 80, effort: 5 })
-    .toBuffer();
+async function processImage(inputPath, outputName) {
+  const outputPath = path.join(outputDir, outputName);
 
-  if (resultado.length >= antes) continue;
-  fs.writeFileSync(destino, resultado);
-  if (destino !== ruta) { fs.unlinkSync(ruta); console.log(`  cambió de nombre: ${path.relative(CARPETA, ruta)} → ${path.relative(CARPETA, destino)}`); }
-  ahorro += antes - resultado.length;
-  console.log(`${path.relative(CARPETA, destino)}: ${(antes / 1048576).toFixed(1)} MB → ${(resultado.length / 1048576).toFixed(1)} MB`);
+  try {
+    await sharp(inputPath)
+      .resize(900, 900, {
+        fit: 'cover',      // Recorta para llenar el cuadrado
+        position: 'center', // Centra la imagen
+        kernel: 'lanczos3'  // Alta calidad
+      })
+      .webp({
+        quality: 85,
+        effort: 6  // Compresión más eficiente (0-6)
+      })
+      .toFile(outputPath);
+
+    console.log(`✅ ${path.basename(inputPath)} → ${outputName}`);
+  } catch (error) {
+    console.log(`❌ Error procesando ${path.basename(inputPath)}: ${error.message}`);
+  }
 }
-console.log(`Ahorro total: ${(ahorro / 1048576).toFixed(1)} MB`);
+
+async function processDirectory(dir, prefix) {
+  if (!fs.existsSync(dir)) return;
+
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (entry.isFile() && /\.(webp|png|jpg|jpeg)$/i.test(entry.name)) {
+      const inputPath = path.join(dir, entry.name);
+      const outputName = `${prefix}-${path.parse(entry.name).name}.webp`;
+      await processImage(inputPath, outputName);
+    }
+  }
+}
+
+async function main() {
+  console.log('🚀 Optimizando imágenes a 900x900 webp...\n');
+  console.log('📁 Carpeta de salida:', outputDir);
+  console.log('');
+
+  // Procesar proyectos
+  console.log('📦 Proyectos:');
+  await processDirectory(proyectosDir, 'proyecto');
+
+  // Procesar asociados
+  console.log('\n👥 Asociados:');
+  await processDirectory(asociadosDir, 'asociado');
+
+  console.log('\n✨ ¡Listo!');
+}
+
+main();

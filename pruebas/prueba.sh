@@ -26,9 +26,9 @@ docker build -q ${DOCKER_BUILD_ARGS:-} -t "$IMAGEN" . >/dev/null || { echo "No s
 
 echo "→ Arrancando contenedor en el puerto $PUERTO"
 docker run -d --name "$NOMBRE" -p "127.0.0.1:$PUERTO:389" \
-  -e LDAP_ADMIN_PASSWORD=AdminClavePrueba123 \
-  -e LDAP_BACKEND_PASSWORD="$CLAVE_BACKEND" \
-  -e LDAP_YISHADMIN_PASSWORD=YishClavePrueba123 \
+  -e LDAP_CONTRASENA_ADMIN=AdminClavePrueba123 \
+  -e LDAP_CONTRASENA_SERVIDOR="$CLAVE_BACKEND" \
+  -e LDAP_CONTRASENA_YISHADMIN=YishClavePrueba123 \
   "$IMAGEN" >/dev/null
 for _ in $(seq 40); do ldapwhoami -x -H "$URL" -D "$BACKEND" -w "$CLAVE_BACKEND" >/dev/null 2>&1 && break; sleep 0.5; done
 
@@ -39,7 +39,7 @@ probar "yishadmin entra con su contraseña" ldapwhoami -x -H "$URL" -D "uid=yish
 negar  "yishadmin con contraseña incorrecta es rechazado" ldapwhoami -x -H "$URL" -D "uid=yishadmin,ou=people,$BASE" -w incorrecta
 negar  "búsqueda anónima rechazada" ldapsearch -x -H "$URL" -b "$BASE" "(uid=*)"
 
-echo "→ La cuenta del backend administra usuarios"
+echo "→ La cuenta del servidor administra usuarios"
 probar "crea un usuario con contraseña en texto plano" ldapadd "${B[@]}" -f /dev/stdin <<EOF
 dn: uid=prueba,ou=people,$BASE
 objectClass: inetOrgPerson
@@ -84,7 +84,7 @@ probar "entra con la contraseña nueva" ldapwhoami "${U[@]}"
 echo "→ Bloqueo por intentos fallidos (ppolicy)"
 for _ in $(seq 5); do ldapwhoami -x -H "$URL" -D "uid=prueba,ou=people,$BASE" -w malamala >/dev/null 2>&1; done
 negar "tras 5 fallos la cuenta queda bloqueada aunque la contraseña sea correcta" ldapwhoami "${U[@]}"
-probar "el backend puede desbloquearla" ldapmodify "${B[@]}" -f /dev/stdin <<EOF
+probar "el servidor puede desbloquearla" ldapmodify "${B[@]}" -f /dev/stdin <<EOF
 dn: uid=prueba,ou=people,$BASE
 changetype: modify
 delete: pwdAccountLockedTime
@@ -92,10 +92,10 @@ EOF
 probar "desbloqueada vuelve a entrar" ldapwhoami "${U[@]}"
 
 echo "→ Scripts administrativos"
-probar "cuenta-servicio.sh crea una cuenta de lectura" docker exec -e CLAVE_SERVICIO=ServicioClavePrueba123 "$NOMBRE" /opt/alianza-ldap/scripts/cuenta-servicio.sh nextcloud
+probar "cuenta-servicio.sh crea una cuenta de lectura" docker exec -e CLAVE_SERVICIO=ServicioClavePrueba123 "$NOMBRE" /opt/alianza-ldap/comandos/cuenta-servicio.sh nextcloud
 lectura="$(ldapsearch -x -H "$URL" -D "cn=nextcloud,ou=services,$BASE" -w ServicioClavePrueba123 -LLL -b "ou=people,$BASE" "(memberOf=cn=alianza-administradores,ou=groups,$BASE)" uid)"
 [[ "$lectura" == *"uid: yishadmin"* ]] && ok "la cuenta de servicio filtra administradores por memberOf" || mal "la cuenta de servicio no puede leer el directorio"
-probar "respaldar.sh genera los LDIF" docker exec "$NOMBRE" /opt/alianza-ldap/scripts/respaldar.sh /tmp/respaldos
+probar "respaldar.sh genera los LDIF" docker exec "$NOMBRE" /opt/alianza-ldap/comandos/respaldar.sh /tmp/respaldos
 
 echo
 if [ "$fallos" -eq 0 ]; then echo "Todas las pruebas pasaron."; else echo "$fallos prueba(s) fallaron."; fi

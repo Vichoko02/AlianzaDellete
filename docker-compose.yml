@@ -1,5 +1,5 @@
 # Directorio LDAP de La Alianza.
-# Requiere una vez: docker network create alianza-red   (red compartida con el backend)
+# Requiere una vez: docker network create alianza-red   (red compartida con el servidor)
 services:
   ldap:
     build: .
@@ -12,7 +12,7 @@ services:
       - ldap-config:/etc/ldap/slapd.d
       - ldap-datos:/var/lib/ldap
       - ./respaldos:/respaldos
-    # Solo accesible desde esta máquina; el backend lo alcanza por la red interna como "ldap:389".
+    # Solo accesible desde esta máquina; el servidor lo alcanza por la red interna como "ldap:389".
     ports:
       - "127.0.0.1:${LDAP_PUERTO_LOCAL:-389}:389"
     networks: [alianza]

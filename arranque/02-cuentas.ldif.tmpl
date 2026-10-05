@@ -1,5 +1,5 @@
-# Cuentas iniciales: el superadministrador, la cuenta de servicio del backend y los grupos base.
-# Las contraseñas llegan ya convertidas a hash {SSHA} por entrypoint.sh.
+# Cuentas iniciales: el superadministrador, la cuenta de servicio del servidor y los grupos base.
+# Las contraseñas llegan ya convertidas a hash {SSHA} por inicio.sh.
 
 dn: uid=yishadmin,ou=people,${LDAP_BASE_DN}
 objectClass: top
@@ -11,7 +11,7 @@ cn: YishAdmin
 sn: Admin
 displayName: Yish (Administrador)
 description: Superadministrador de La Alianza
-userPassword: ${LDAP_YISHADMIN_PASSWORD_HASH}
+userPassword: ${LDAP_CONTRASENA_YISHADMIN_HASH}
 
 dn: cn=alianza-backend,ou=services,${LDAP_BASE_DN}
 objectClass: top
@@ -19,7 +19,7 @@ objectClass: applicationProcess
 objectClass: simpleSecurityObject
 cn: alianza-backend
 description: API de La Alianza (crea usuarios y sincroniza grupos)
-userPassword: ${LDAP_BACKEND_PASSWORD_HASH}
+userPassword: ${LDAP_CONTRASENA_SERVIDOR_HASH}
 
 # groupOfNames exige al menos un miembro: el superadmin pertenece a todos los grupos
 # (de hecho tiene todos los permisos), lo que también evita grupos vacíos.

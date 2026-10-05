@@ -1,5 +1,5 @@
 # Configuración inicial de OpenLDAP (cn=config) para La Alianza.
-# Plantilla: las variables ${...} las rellena scripts/entrypoint.sh con envsubst.
+# Plantilla: las variables ${...} las rellena comandos/inicio.sh con envsubst.
 
 dn: cn=config
 objectClass: olcGlobal
@@ -53,25 +53,25 @@ olcDatabase: {1}mdb
 olcDbDirectory: ${LDAP_DATA_DIR}
 olcSuffix: ${LDAP_BASE_DN}
 olcRootDN: cn=admin,${LDAP_BASE_DN}
-olcRootPW: ${LDAP_ADMIN_PASSWORD_HASH}
+olcRootPW: ${LDAP_CONTRASENA_ADMIN_HASH}
 olcDbMaxSize: 1073741824
 olcDbIndex: objectClass eq
 olcDbIndex: uid,cn,mail eq,sub
 olcDbIndex: member,memberOf eq
 olcLastMod: TRUE
-# 0: root local (por el socket ldapi dentro del contenedor) administra todo; lo usan los scripts.
+# 0: root local (por el socket ldapi dentro del contenedor) administra todo; lo usan los comandos.
 olcAccess: {0}to * by dn.exact=gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth manage by * break
-# 1: las contraseñas solo se usan para autenticar; el backend puede cambiarlas, cada usuario la suya.
+# 1: las contraseñas solo se usan para autenticar; el servidor puede cambiarlas, cada usuario la suya.
 olcAccess: {1}to attrs=userPassword,shadowLastChange
   by dn.exact="cn=alianza-backend,ou=services,${LDAP_BASE_DN}" write
   by self write
   by anonymous auth
   by * none
-# 2: estado de bloqueo de ppolicy, solo visible para el backend.
+# 2: estado de bloqueo de ppolicy, solo visible para el servidor.
 olcAccess: {2}to attrs=pwdAccountLockedTime,pwdFailureTime,pwdHistory,pwdChangedTime
   by dn.exact="cn=alianza-backend,ou=services,${LDAP_BASE_DN}" write
   by * none
-# 3: usuarios y grupos los administra la cuenta de servicio del backend.
+# 3: usuarios y grupos los administra la cuenta de servicio del servidor.
 olcAccess: {3}to dn.subtree="ou=people,${LDAP_BASE_DN}"
   by dn.exact="cn=alianza-backend,ou=services,${LDAP_BASE_DN}" write
   by group.exact="cn=alianza-lectores,ou=groups,${LDAP_BASE_DN}" read

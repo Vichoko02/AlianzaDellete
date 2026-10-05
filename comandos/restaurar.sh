@@ -1,7 +1,7 @@
 #!/bin/bash
 # Restaura un respaldo creado con respaldar.sh sobre volúmenes VACÍOS.
 # Uso (con el servicio detenido):
-#   docker compose run --rm --entrypoint /opt/alianza-ldap/scripts/restaurar.sh ldap /respaldos/config-X.ldif /respaldos/datos-X.ldif
+#   docker compose run --rm --entrypoint /opt/alianza-ldap/comandos/restaurar.sh ldap /respaldos/config-X.ldif /respaldos/datos-X.ldif
 set -euo pipefail
 CONFIG="${1:?Indica el LDIF de configuración}"
 DATOS="${2:?Indica el LDIF de datos}"

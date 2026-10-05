@@ -1,6 +1,6 @@
 #!/bin/bash
 # Exporta configuración (cn=config) y datos a LDIF. Uso dentro del contenedor:
-#   docker compose exec ldap /opt/alianza-ldap/scripts/respaldar.sh
+#   docker compose exec ldap /opt/alianza-ldap/comandos/respaldar.sh
 # Deja los archivos en /respaldos (montado desde ./respaldos).
 set -euo pipefail
 DESTINO="${1:-/respaldos}"

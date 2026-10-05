@@ -1,16 +1,18 @@
-import { useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import BotonTema from "./componentes/BotonTema";
 import PaginaInicio from "./paginas/PaginaInicio";
 import RutaWiki from "./paginas/PaginaWiki";
-import PaginaNoticias from "./paginas/noticias/PaginaNoticias";
-import PaginaAdminNoticias from "./paginas/noticias/PaginaAdminNoticias";
-import PaginaEditorNoticias from "./paginas/noticias/PaginaEditorNoticias";
 import { ProveedorSitio } from "./ProveedorSitio";
 
 import "./estilos.css";
 import "./tema-oscuro.css";
 import "./wiki.css";
+
+// Las noticias (y sus imágenes) se descargan solo al visitarlas: no pesan en la portada ni en las wikis.
+const PaginaNoticias = lazy(() => import("./paginas/noticias/PaginaNoticias"));
+const PaginaAdminNoticias = lazy(() => import("./paginas/noticias/PaginaAdminNoticias"));
+const PaginaEditorNoticias = lazy(() => import("./paginas/noticias/PaginaEditorNoticias"));
 
 /** Vuelve al principio de la página en cada cambio de ruta. */
 function SubirAlCambiarDeRuta() {
@@ -40,6 +42,7 @@ export default function Aplicacion() {
       <BrowserRouter>
         <SubirAlCambiarDeRuta />
         <BotonTema modoOscuro={modoOscuro} alCambiar={cambiarTema} />
+        <Suspense fallback={<div className="estado-carga">Cargando…</div>}>
         <Routes>
           <Route path="/" element={<PaginaInicio alCambiarTema={cambiarTema} />} />
           <Route path="/wiki/:identificador" element={<RutaWiki />} />
@@ -48,6 +51,7 @@ export default function Aplicacion() {
           <Route path="/news/admin/new" element={<PaginaEditorNoticias />} />
           <Route path="/news/edit/:id" element={<PaginaEditorNoticias />} />
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </ProveedorSitio>
   );

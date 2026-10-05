@@ -35,7 +35,7 @@ Pensado para un servidor pequeño (Ubuntu o Debian, ~1 GB de RAM). Todo corre di
 
 | Pieza | Qué es | Memoria aprox. |
 |---|---|---|
-| `alianza-servidor` (systemd) | Este servidor, autocontenido: trae su propio .NET | 150–200 MB |
+| `alianza-servidor` (systemd) | Este servidor, autocontenido: trae su propio .NET | 150–250 MB (más al subir archivos grandes) |
 | PostgreSQL | Del sistema, configurado para poca memoria (`sistema/postgresql-pequeno.conf`) | 40–80 MB |
 | nginx | Entrega el sitio (archivos ya comprimidos) y pasa `/api` y `/panel` al servidor | ~5 MB |
 | `alianza-ldap` (opcional) | Rama `programa/ldap` | ~25 MB |

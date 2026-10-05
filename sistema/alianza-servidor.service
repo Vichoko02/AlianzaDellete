@@ -14,11 +14,11 @@ Environment=ASPNETCORE_URLS=http://127.0.0.1:5000
 Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=DOTNET_CLI_TELEMETRY_OPTOUT=1
 # Memoria: el recolector intenta mantenerse bajo este límite y devuelve memoria al sistema.
-Environment=DOTNET_GCHeapHardLimit=0xC000000
+Environment=DOTNET_GCHeapHardLimit=0x10000000
 Environment=DOTNET_GCConserveMemory=7
 Restart=on-failure
 RestartSec=5
-MemoryMax=320M
+MemoryMax=420M
 TasksMax=64
 NoNewPrivileges=true
 ProtectSystem=strict

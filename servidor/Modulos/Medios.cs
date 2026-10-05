@@ -18,7 +18,7 @@ public record DatosMedio([MaxLength(300)] string? TextoAlternativo);
 
 public class ServicioMedios(BaseDeDatos bd)
 {
-    public const long TamanoMaximo = 25 * 1024 * 1024; // pensado para un servidor con poca memoria: cada archivo se procesa completo en memoria
+    public const long TamanoMaximo = 60 * 1024 * 1024;
 
     private static readonly Dictionary<string, string> TiposPorExtension = new(StringComparer.OrdinalIgnoreCase)
     {

@@ -528,7 +528,7 @@ function panelBiblioteca({ alElegir, alSubir, conDetalle = false }: OpcionesBibl
     h("strong", {}, "Subir archivos"),
     "Arrastra imágenes o videos aquí, o ",
     h("button", { type: "button", class: "mini primario", onclick: () => entrada.click() }, "elige archivos"), entrada,
-    h("div", { class: "ayuda" }, "webp, png, jpg, gif, svg, mp4 o webm · máximo 25 MB. Se guardan en la base de datos."));
+    h("div", { class: "ayuda" }, "webp, png, jpg, gif, svg, mp4 o webm · máximo 60 MB. Se guardan en la base de datos."));
   zona.addEventListener("dragover", (e) => { e.preventDefault(); zona.classList.add("encima"); });
   zona.addEventListener("dragleave", () => zona.classList.remove("encima"));
   zona.addEventListener("drop", (e) => { e.preventDefault(); zona.classList.remove("encima"); void subir([...(e.dataTransfer?.files ?? [])]); });

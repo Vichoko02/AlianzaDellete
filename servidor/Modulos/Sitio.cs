@@ -63,10 +63,10 @@ public class ServicioSitio(BaseDeDatos bd, ServicioMedios medios, DireccionesMed
             "Completa el formulario de postulación con tu propuesta, tu portafolio y tu área de interés."),
         new("unete.boton", "Únete", "Botón que abre el formulario", TipoTexto.Texto, "Postular mi proyecto"),
 
-        new("quiz.titulo", "Formulario de postulación", "Título", TipoTexto.Texto, "Postula tu proyecto"),
-        new("quiz.intro", "Formulario de postulación", "Texto inicial", TipoTexto.TextoLargo, "Son solo unos pasos. El equipo de la Alianza revisará tu postulación."),
-        new("quiz.exito.titulo", "Formulario de postulación", "Título al enviar", TipoTexto.Texto, "¡Recibimos tu postulación!"),
-        new("quiz.exito.texto", "Formulario de postulación", "Texto al enviar", TipoTexto.TextoLargo, "Gracias por confiar en la Alianza. Revisaremos tu propuesta y te escribiremos al correo que nos dejaste."),
+        new("formulario.titulo", "Formulario de postulación", "Título", TipoTexto.Texto, "Postula tu proyecto"),
+        new("formulario.intro", "Formulario de postulación", "Texto inicial", TipoTexto.TextoLargo, "Son solo unos pasos. El equipo de la Alianza revisará tu postulación."),
+        new("formulario.exito.titulo", "Formulario de postulación", "Título al enviar", TipoTexto.Texto, "¡Recibimos tu postulación!"),
+        new("formulario.exito.texto", "Formulario de postulación", "Texto al enviar", TipoTexto.TextoLargo, "Gracias por confiar en la Alianza. Revisaremos tu propuesta y te escribiremos al correo que nos dejaste."),
 
         new("apoyanos.titulo", "Apóyanos", "Título del modal", TipoTexto.Texto, "Apóyanos"),
         new("apoyanos.subtitulo", "Apóyanos", "Subtítulo del modal", TipoTexto.Texto, "Tu apoyo hace posible que sigamos creando"),
@@ -76,7 +76,7 @@ public class ServicioSitio(BaseDeDatos bd, ServicioMedios medios, DireccionesMed
         new("wiki.sinopsis", "Wikis", "Sección «Sinopsis»", TipoTexto.Texto, "Sinopsis"),
         new("wiki.galeria", "Wikis", "Enlace «Galería»", TipoTexto.Texto, "Galería"),
         new("wiki.creador", "Wikis", "Sección «Creador»", TipoTexto.Texto, "Creador"),
-        new("wiki.staff", "Wikis", "Sección «Staff»", TipoTexto.Texto, "Staff"),
+        new("wiki.equipo", "Wikis", "Sección del equipo", TipoTexto.Texto, "Staff"),
         new("wiki.arte", "Wikis", "Enlace «Arte»", TipoTexto.Texto, "Arte"),
         new("wiki.arteTitulo", "Wikis", "Sección «Arte del proyecto»", TipoTexto.Texto, "Arte del Proyecto"),
         new("wiki.personajes", "Wikis", "Sección «Personajes»", TipoTexto.Texto, "Personajes"),

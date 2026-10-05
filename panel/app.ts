@@ -1324,7 +1324,7 @@ function iniciarNotificaciones(): void {
     let p: Pendientes;
     try { p = await api<Pendientes>("GET", "/api/panel/postulaciones/pendientes"); } catch { return; }
     if (ultimaVista !== null && p.ultimaId !== null && p.ultimaId > ultimaVista) {
-      aviso(`Nueva postulación de ${p.ultimoNombre ?? "alguien"}. Revísala en Solicitudes.`, "ok");
+      aviso(`Nueva postulación de ${p.ultimoNombre ?? "alguien"}. Revísala en Postulaciones.`, "ok");
       if (location.hash === "#/postulaciones" && !hayCambiosSinGuardar) render();
     }
     ultimaVista = Math.max(ultimaVista ?? 0, p.ultimaId ?? 0);
@@ -1348,7 +1348,7 @@ async function refrescarPendientes(): Promise<void> {
 // ─── Textos del sitio ─────────────────────────────────────────────────────────
 
 const GRUPOS_ENLACES: [grupo: string, titulo: string, ayuda: string][] = [
-  ["footer", "Redes del pie de página", "Íconos de redes al final de la portada."],
+  ["pie", "Redes del pie de página", "Íconos de redes al final de la portada."],
   ["apoyanos", "Opciones del modal «Apóyanos»", "Cada opción muestra su nombre, una descripción corta y abre el enlace."],
 ];
 
@@ -1479,12 +1479,12 @@ async function vistaFormulario(): Promise<HTMLElement> {
       },
     },
       h("div", { class: "tarjeta" },
-        h("p", { class: "ayuda" }, "Cada pregunta es un paso del formulario «Postula tu proyecto» del sitio. Las respuestas llegan a Solicitudes. Debe haber una pregunta de tipo Correo obligatoria para poder responder."),
+        h("p", { class: "ayuda" }, "Cada pregunta es un paso del formulario «Postula tu proyecto» del sitio. Las respuestas llegan a Postulaciones. Debe haber una pregunta de tipo Correo obligatoria para poder responder."),
         contador, lista),
       h("div", { class: "barra-guardar" }, indicadorGuardado(), guardar)));
 }
 
-// ─── Solicitudes ──────────────────────────────────────────────────────────────
+// ─── Postulaciones ───────────────────────────────────────────────────────────
 
 const NOMBRES_ESTADO: Record<EstadoPostulacion, string> = { Nueva: "Nueva", Leida: "Leída", Archivada: "Archivada" };
 
@@ -1510,7 +1510,7 @@ async function vistaPostulaciones(): Promise<HTMLElement> {
       h("td", {}, h("span", { class: "titulo-fila" }, s.nombre), h("div", { class: "ayuda" }, s.correo)),
       h("td", { class: "resumen-solicitud" }, s.resumen),
       h("td", {}, h("span", { class: `chip ${s.estado === "Nueva" ? "sa" : s.estado === "Leida" ? "ok" : "off"}` }, NOMBRES_ESTADO[s.estado]))))
-      : h("tr", {}, h("td", { colspan: 4, class: "vacio" }, filtro === "" ? "No hay postulaciones pendientes." : "No hay solicitudes con este estado.")));
+      : h("tr", {}, h("td", { colspan: 4, class: "vacio" }, filtro === "" ? "No hay postulaciones pendientes." : "No hay postulaciones con este estado.")));
     const paginas = Math.max(1, Math.ceil(r.total / r.tamano));
     vaciar(paginador,
       h("button", { class: "mini", disabled: pagina <= 1, onclick: () => { pagina--; void cargar(); } }, "‹ Anterior"),
@@ -1551,7 +1551,7 @@ async function vistaPostulaciones(): Promise<HTMLElement> {
   return h("div", {},
     cabecera("Postulaciones", [h("a", { class: "boton", href: "#/formulario" }, "Editar formulario")]),
     h("div", { class: "tarjeta" },
-      h("p", { class: "ayuda" }, "Postulaciones enviadas desde el formulario «Postula tu proyecto» del sitio. Solo tú las ves. Abrir una solicitud la marca como leída."),
+      h("p", { class: "ayuda" }, "Postulaciones enviadas desde el formulario «Postula tu proyecto» del sitio. Solo tú las ves. Abrir una postulación la marca como leída."),
       h("div", { class: "accesos" }, botonesFiltro),
       h("div", { class: "tabla-envoltura" }, h("table", { class: "tabla-solicitudes" },
         h("thead", {}, h("tr", {}, h("th", {}, "Fecha"), h("th", {}, "Quién"), h("th", {}, "Resumen"), h("th", {}, "Estado"))), cuerpo)),

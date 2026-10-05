@@ -1,26 +1,10 @@
 #!/bin/bash
 # Arranque del directorio LDAP de La Alianza.
 # La primera vez (sin configuración) genera cn=config desde configuracion/slapd.ldif.tmpl y carga arranque/*.ldif.tmpl;
-# las siguientes veces solo arranca slapd con los datos persistidos en los volúmenes.
+# las siguientes veces solo arranca slapd con los datos guardados. Lo ejecuta el servicio alianza-ldap (systemd).
 set -euo pipefail
 
-: "${LDAP_DOMINIO:=alianza.local}"
-: "${LDAP_ORGANIZACION:=La Alianza}"
-: "${LDAP_CONF_DIR:=/etc/ldap/slapd.d}"
-: "${LDAP_DATA_DIR:=/var/lib/ldap}"
-: "${LDAP_RUN_DIR:=/run/slapd}"
-: "${LDAP_MODULE_DIR:=/usr/lib/ldap}"
-: "${LDAP_SCHEMA_DIR:=/etc/ldap/schema}"
-: "${LDAP_PLANTILLAS_DIR:=/opt/alianza-ldap}"
-: "${LDAP_URLS:=ldap:///}"
-: "${LDAP_USUARIO:=openldap}"
-: "${LDAP_NIVEL_LOG:=stats}"
-
-# alianza.local → dc=alianza,dc=local
-LDAP_BASE_DN="dc=${LDAP_DOMINIO//./,dc=}"
-LDAP_DC="${LDAP_DOMINIO%%.*}"
-LDAPI_URL="ldapi://$(printf '%s' "${LDAP_RUN_DIR}/ldapi" | sed 's|/|%2F|g')"
-export LDAP_BASE_DN LDAP_DC LDAP_ORGANIZACION LDAP_DATA_DIR LDAP_RUN_DIR LDAP_MODULE_DIR LDAP_SCHEMA_DIR
+. "$(dirname "$0")/comun.sh"
 
 log() { echo "[alianza-ldap] $*"; }
 

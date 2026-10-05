@@ -1,35 +1,32 @@
 #!/bin/bash
-# Prueba de punta a punta del directorio: construye la imagen, la arranca y verifica
-# ACLs, hash de contraseñas, bloqueo por intentos fallidos, cuentas de servicio y respaldo.
-# Requiere Docker y ldap-utils (ldapsearch, ldapwhoami...) en la máquina que lo ejecuta.
+# Prueba de punta a punta del directorio: arranca slapd en una carpeta temporal (sin tocar el sistema)
+# y verifica ACLs, hash de contraseñas, bloqueo por intentos fallidos, cuentas de servicio y respaldo.
+# Requiere slapd, ldap-utils y gettext-base instalados. Ejecutar con sudo (slapd necesita root para arrancar).
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
 PUERTO="${PUERTO:-3899}"
-NOMBRE="alianza-ldap-prueba-$$"
-IMAGEN="alianza-ldap:prueba"
 URL="ldap://127.0.0.1:$PUERTO"
 BASE="dc=alianza,dc=local"
 BACKEND="cn=alianza-backend,ou=services,$BASE"
 CLAVE_BACKEND="BackendClavePrueba123"
+TEMPORAL="$(mktemp -d)"
 fallos=0
+
+# Las variables de comun.sh apuntan a la carpeta temporal en vez de las del sistema.
+export LDAP_SIN_ARCHIVO_ENV=1 LDAP_USUARIO=root LDAP_PLANTILLAS_DIR="$PWD" LDAP_URLS="$URL/" \
+  LDAP_CONF_DIR="$TEMPORAL/configuracion" LDAP_DATA_DIR="$TEMPORAL/datos" LDAP_RUN_DIR="$TEMPORAL/run" \
+  LDAP_CONTRASENA_ADMIN=AdminClavePrueba123 LDAP_CONTRASENA_SERVIDOR="$CLAVE_BACKEND" LDAP_CONTRASENA_YISHADMIN=YishClavePrueba123
 
 ok()   { echo "  ✔ $*"; }
 mal()  { echo "  ✘ $*"; fallos=$((fallos + 1)); }
 probar() { local desc="$1"; shift; if "$@" >/dev/null 2>&1; then ok "$desc"; else mal "$desc"; fi; }
 negar()  { local desc="$1"; shift; if "$@" >/dev/null 2>&1; then mal "$desc"; else ok "$desc"; fi; }
-limpiar() { docker rm -f "$NOMBRE" >/dev/null 2>&1; }
+limpiar() { [ -f "$TEMPORAL/run/slapd.pid" ] && kill "$(cat "$TEMPORAL/run/slapd.pid")"; sleep 1; rm -rf "$TEMPORAL"; }
 trap limpiar EXIT
 
-echo "→ Construyendo imagen"
-docker build -q ${DOCKER_BUILD_ARGS:-} -t "$IMAGEN" . >/dev/null || { echo "No se pudo construir la imagen"; exit 1; }
-
-echo "→ Arrancando contenedor en el puerto $PUERTO"
-docker run -d --name "$NOMBRE" -p "127.0.0.1:$PUERTO:389" \
-  -e LDAP_CONTRASENA_ADMIN=AdminClavePrueba123 \
-  -e LDAP_CONTRASENA_SERVIDOR="$CLAVE_BACKEND" \
-  -e LDAP_CONTRASENA_YISHADMIN=YishClavePrueba123 \
-  "$IMAGEN" >/dev/null
+echo "→ Arrancando slapd en el puerto $PUERTO"
+comandos/inicio.sh > "$TEMPORAL/registro" 2>&1 &
 for _ in $(seq 40); do ldapwhoami -x -H "$URL" -D "$BACKEND" -w "$CLAVE_BACKEND" >/dev/null 2>&1 && break; sleep 0.5; done
 
 B=(-x -H "$URL" -D "$BACKEND" -w "$CLAVE_BACKEND")
@@ -91,11 +88,11 @@ delete: pwdAccountLockedTime
 EOF
 probar "desbloqueada vuelve a entrar" ldapwhoami "${U[@]}"
 
-echo "→ Scripts administrativos"
-probar "cuenta-servicio.sh crea una cuenta de lectura" docker exec -e CLAVE_SERVICIO=ServicioClavePrueba123 "$NOMBRE" /opt/alianza-ldap/comandos/cuenta-servicio.sh nextcloud
+echo "→ Comandos administrativos"
+probar "cuenta-servicio.sh crea una cuenta de lectura" env CLAVE_SERVICIO=ServicioClavePrueba123 comandos/cuenta-servicio.sh nextcloud
 lectura="$(ldapsearch -x -H "$URL" -D "cn=nextcloud,ou=services,$BASE" -w ServicioClavePrueba123 -LLL -b "ou=people,$BASE" "(memberOf=cn=alianza-administradores,ou=groups,$BASE)" uid)"
 [[ "$lectura" == *"uid: yishadmin"* ]] && ok "la cuenta de servicio filtra administradores por memberOf" || mal "la cuenta de servicio no puede leer el directorio"
-probar "respaldar.sh genera los LDIF" docker exec "$NOMBRE" /opt/alianza-ldap/comandos/respaldar.sh /tmp/respaldos
+probar "respaldar.sh genera los LDIF" comandos/respaldar.sh "$TEMPORAL/respaldos"
 
 echo
 if [ "$fallos" -eq 0 ]; then echo "Todas las pruebas pasaron."; else echo "$fallos prueba(s) fallaron."; fi

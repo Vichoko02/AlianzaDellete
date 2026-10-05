@@ -1,12 +1,12 @@
 #!/bin/bash
-# Exporta configuración (cn=config) y datos a LDIF. Uso dentro del contenedor:
-#   docker compose exec ldap /opt/alianza-ldap/comandos/respaldar.sh
-# Deja los archivos en /respaldos (montado desde ./respaldos).
+# Exporta configuración (cn=config) y datos a LDIF. Uso: sudo /opt/alianza-ldap/comandos/respaldar.sh [carpeta]
 set -euo pipefail
-DESTINO="${1:-/respaldos}"
+. "$(dirname "$0")/comun.sh"
+DESTINO="${1:-/var/backups/alianza-ldap}"
 FECHA="$(date -u +%Y%m%dT%H%M%SZ)"
+
 mkdir -p "$DESTINO"
-slapcat -n 0 -F "${LDAP_CONF_DIR:-/etc/ldap/slapd.d}" -l "$DESTINO/config-$FECHA.ldif"
-slapcat -n 1 -F "${LDAP_CONF_DIR:-/etc/ldap/slapd.d}" -l "$DESTINO/datos-$FECHA.ldif"
+slapcat -n 0 -F "$LDAP_CONF_DIR" -l "$DESTINO/config-$FECHA.ldif"
+slapcat -n 1 -F "$LDAP_CONF_DIR" -l "$DESTINO/datos-$FECHA.ldif"
 chmod 600 "$DESTINO"/*-"$FECHA".ldif
 echo "Respaldo creado: $DESTINO/{config,datos}-$FECHA.ldif"

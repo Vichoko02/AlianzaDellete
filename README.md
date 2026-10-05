@@ -55,35 +55,32 @@ dc=alianza,dc=local
   - Cada usuario puede cambiar su propia contraseña, pero no ve las ajenas.
   - Las cuentas de `alianza-lectores` solo leen.
 - **Al desactivar** un usuario en el panel, el servidor lo quita de todos los grupos y **bloquea** su cuenta (`pwdAccountLockedTime`). Así tampoco entra a otras apps.
-- **Puerto publicado solo en `127.0.0.1`**: el servidor usa la red interna de Docker.
-- **El contenedor corre como `openldap`**, no como root.
+- **Solo escucha en `127.0.0.1`**: el servidor de La Alianza corre en la misma máquina.
+- **slapd corre como `openldap`**, no como root, con límites de systemd (64 MB de memoria como máximo; en uso ocupa unos 25 MB).
 
-## Puesta en marcha
+## Puesta en marcha (sin contenedores)
 
-```bash
-docker network create alianza-red     # una sola vez (la comparte el servidor)
-cp .env.example .env                  # y define las tres contraseñas
-docker compose up -d --build
-docker compose logs -f ldap           # la primera vez verás "Directorio inicializado."
-```
-
-La primera vez el contenedor genera la configuración y carga `arranque/`. Después solo arranca con lo que hay en los volúmenes; cambiar `.env` no altera un directorio ya creado.
-
-Luego, en el `.env` del servidor define `LDAP_CONTRASENA_SERVIDOR` con el mismo valor y levántalo con `docker-compose.ldap.yml`.
-
-Interfaz web opcional (phpLDAPadmin en http://127.0.0.1:8090):
+En Ubuntu o Debian, desde esta rama:
 
 ```bash
-docker compose --profile ui up -d
+sudo ./instalar.sh        # la primera vez crea /etc/alianza/ldap.env: completa las tres contraseñas
+sudo ./instalar.sh        # la segunda vez activa el servicio alianza-ldap
+systemctl status alianza-ldap
 ```
+
+`instalar.sh` instala `slapd` del propio sistema y desactiva el servicio `slapd` que trae el paquete. Copia los archivos a `/opt/alianza-ldap` y guarda los datos en `/var/lib/alianza-ldap`.
+
+La primera vez el servicio genera la configuración y carga `arranque/`. Después solo arranca con los datos guardados: cambiar `ldap.env` no altera un directorio ya creado.
+
+Luego, en `/etc/alianza/servidor.env` del servidor, activa LDAP y usa el mismo valor de `LDAP_CONTRASENA_SERVIDOR`.
 
 ## Operación
 
 | Tarea | Comando |
 |---|---|
-| Respaldo (queda en `./respaldos`) | `docker compose exec ldap /opt/alianza-ldap/comandos/respaldar.sh` |
-| Restaurar (volúmenes vacíos) | `docker compose down -v && docker compose run --rm --entrypoint /opt/alianza-ldap/comandos/restaurar.sh ldap /respaldos/config-X.ldif /respaldos/datos-X.ldif` |
-| Cuenta de lectura para otra app | `docker compose exec ldap /opt/alianza-ldap/comandos/cuenta-servicio.sh nextcloud` |
+| Respaldo (queda en `/var/backups/alianza-ldap`) | `sudo /opt/alianza-ldap/comandos/respaldar.sh` |
+| Restaurar | Ver los pasos al inicio de `comandos/restaurar.sh` |
+| Cuenta de lectura para otra app | `sudo /opt/alianza-ldap/comandos/cuenta-servicio.sh nextcloud` |
 | Buscar como el servidor | `ldapsearch -x -H ldap://127.0.0.1 -D cn=alianza-backend,ou=services,dc=alianza,dc=local -W -b dc=alianza,dc=local` |
 
 Las **cuentas de personas no se crean a mano**: créalas desde el panel del servidor (Usuarios y permisos → Nuevo usuario → origen LDAP). Así quedan registradas en PostgreSQL con sus permisos.
@@ -93,16 +90,16 @@ Para filtrar administradores en otra aplicación, usa:
 
 ## Pruebas
 
-`pruebas/prueba.sh` construye la imagen, la arranca y verifica de punta a punta:
+`pruebas/prueba.sh` arranca slapd en una carpeta temporal (sin tocar el sistema) y verifica de punta a punta:
 - autenticación y rechazo de acceso anónimo;
 - hash de contraseñas, memberOf y ACLs de usuario normal;
 - bloqueo por intentos fallidos y desbloqueo;
 - cuentas de servicio y respaldo.
 
-Necesita Docker y `ldap-utils`. Se ejecuta en CI en cada push.
+Necesita `slapd`, `ldap-utils` y `gettext-base`, y se ejecuta con `sudo`. Se ejecuta en CI en cada push.
 
 ```bash
-pruebas/prueba.sh
+sudo pruebas/prueba.sh
 ```
 
 ## Archivos

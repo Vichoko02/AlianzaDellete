@@ -1,0 +1,21 @@
+[Unit]
+Description=Directorio LDAP de La Alianza
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/alianza-ldap/comandos/inicio.sh
+RuntimeDirectory=alianza-ldap
+Restart=on-failure
+RestartSec=5
+# Límites para un servidor pequeño: el directorio tiene pocas decenas de cuentas.
+MemoryMax=64M
+TasksMax=32
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/alianza-ldap /run/alianza-ldap
+
+[Install]
+WantedBy=multi-user.target

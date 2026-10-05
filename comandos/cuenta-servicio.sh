@@ -2,15 +2,15 @@
 # Crea una cuenta de servicio de solo lectura para otra aplicación (wiki interna, Nextcloud, Grafana…).
 # Las cuentas de personas NO se crean aquí: las crea YishAdmin desde el panel del servidor.
 # Uso:
-#   docker compose exec ldap /opt/alianza-ldap/comandos/cuenta-servicio.sh nombre-app
+#   sudo /opt/alianza-ldap/comandos/cuenta-servicio.sh nombre-app
 # La contraseña se pide por teclado (o en la variable CLAVE_SERVICIO).
 set -euo pipefail
 NOMBRE="${1:?Indica el nombre de la cuenta (ej: nextcloud)}"
 [[ "$NOMBRE" =~ ^[a-z0-9-]{3,40}$ ]] || { echo "Nombre inválido: solo minúsculas, números y guiones." >&2; exit 1; }
 
-DOMINIO="${LDAP_DOMINIO:-alianza.local}"
-BASE="dc=${DOMINIO//./,dc=}"
-LDAPI="ldapi://%2Frun%2Fslapd%2Fldapi"
+. "$(dirname "$0")/comun.sh"
+BASE="$LDAP_BASE_DN"
+LDAPI="$LDAPI_URL"
 
 if [ -z "${CLAVE_SERVICIO:-}" ]; then
   read -rsp "Contraseña para cn=$NOMBRE: " CLAVE_SERVICIO; echo

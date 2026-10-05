@@ -8,7 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Instalar ldap-utils
-        run: sudo apt-get update && sudo apt-get install -y ldap-utils
+      - name: Instalar slapd y utilidades
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y slapd ldap-utils gettext-base
+          sudo systemctl disable --now slapd
       - name: Prueba de punta a punta
-        run: pruebas/prueba.sh
+        run: sudo pruebas/prueba.sh

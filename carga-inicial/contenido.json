@@ -1,0 +1,1217 @@
+{
+  "series": [
+    {
+      "identificador": "armados",
+      "nombre": "MAF Studios — Armados",
+      "estado": "En Producción",
+      "orden": 0,
+      "portada": "Armados/Armados.webp",
+      "cabecera": "Banner/ArmadosBanner.webp",
+      "logo": "Armados/LOGO_ARMADOS.webp",
+      "urlVideo": "https://www.youtube.com/embed/iBUSVhjTLbI",
+      "sinopsis": "Sigue a Estic, un joven que sueña con vivir aventuras como las de sus héroes de manga. Todo cambia cuando descubre los poderes ocultos de su yoyo, otorgándole habilidades extraordinarias.",
+      "creador": {
+        "nombre": "Saikomic",
+        "imagen": "Armados/Saiko.webp",
+        "descripcion": "Saikomic es un creador independiente que publica sus mangas en MANGA Plus Creators by Shueisha. Su estilo mezcla acción con ideas experimentales, y ha desarrollado obras como Armados, Antagonista y Replika.",
+        "redes": {
+          "instagram": "https://www.instagram.com/saikomic/",
+          "twitter": "https://x.com/saikomic"
+        },
+        "obras": [
+          {
+            "titulo": "Armados",
+            "url": "https://mangaplus-creators.jp/titles/qs2208160000288690004683825"
+          },
+          {
+            "titulo": "Antagonista",
+            "url": "https://mangaplus-creators.jp/titles/u42303080658013710004683825"
+          },
+          {
+            "titulo": "Replika",
+            "url": "https://mangaplus-creators.jp/titles/gv2502041122154520004683825"
+          },
+          {
+            "titulo": "Personaje",
+            "url": "https://mangaplus-creators.jp/episodes/ev2311100818294080004683825"
+          }
+        ]
+      },
+      "redes": {
+        "instagram": "https://www.instagram.com/mafstudios/",
+        "twitter": "https://x.com/mafstudios_",
+        "youtube": "https://www.youtube.com/@mafstudioss",
+        "tiktok": "https://www.tiktok.com/@mafstudioss",
+        "patreon": "https://www.patreon.com/cw/SomoslaAlianza"
+      },
+      "apoyo": {},
+      "carrusel": [
+        "Armados/CarrucelTemp.webp",
+        "Armados/CarrucelTemp1.webp",
+        "Armados/CarrucelTemp2.webp",
+        "Armados/CarrucelTemp3.webp"
+      ],
+      "personajes": [
+        {
+          "nombre": "Estic",
+          "imagen": "Armados/ArteArmados3.webp",
+          "rol": "Protagonista",
+          "descripcion": "Tras su batalla contra Ego, cuenta con una pequeña pero notable cicatriz en su mejilla derecha. Su frase iconica es '¿Por qué los hombres tienen pezones?' ",
+          "actorVoz": "Maximiliano Cerda",
+          "imagenActorVoz": "Armados/ArmadosStaffMaximilianoCerda.webp"
+        },
+        {
+          "nombre": "Megan",
+          "imagen": "Armados/ArteArmados1.webp",
+          "rol": "Personaje principal",
+          "descripcion": " Es una chica joven, y su arma es un bate y pelotas de baseball. Aliada clave dentro de la historia, con un rol importante en el desarrollo del protagonista.",
+          "actorVoz": "Darianny Calderón",
+          "imagenActorVoz": "Armados/ArmadosStaffDariannyCalderón.webp"
+        }
+      ],
+      "equipo": [
+        {
+          "categoria": "Dirección",
+          "miembros": [
+            {
+              "nombre": "KAYKKOI",
+              "rol": "Dirección General · Animación",
+              "imagen": "Armados/ArmadosStaffKaykkoi.webp"
+            },
+            {
+              "nombre": "Niell Munn",
+              "rol": "Dirección General",
+              "imagen": "Armados/ArmadosStaffNiell.webp"
+            },
+            {
+              "nombre": "Chico",
+              "rol": "Dirección de Arte",
+              "imagen": "Armados/ArmadosStaffChico.webp"
+            }
+          ]
+        },
+        {
+          "categoria": "Arte y Animación",
+          "miembros": [
+            {
+              "nombre": "Edr",
+              "rol": "Animación",
+              "imagen": "Armados/ArmadosStaffEdr.webp"
+            },
+            {
+              "nombre": "El Prayo",
+              "rol": "Animación",
+              "imagen": "Armados/ArmadosStaffElPrayo.webp"
+            },
+            {
+              "nombre": "JoisD0G",
+              "rol": "Animación",
+              "imagen": "Armados/ArmadosStaffjoisdog.webp"
+            },
+            {
+              "nombre": "Kenart",
+              "rol": "Animación",
+              "imagen": "Armados/ArmadosStaffKenart.webp"
+            },
+            {
+              "nombre": "Mr. Jota",
+              "rol": "Animación",
+              "imagen": "Armados/ArmadosStaffMrJjota.webp"
+            },
+            {
+              "nombre": "Z15",
+              "rol": "Animación",
+              "imagen": "Armados/ArmadosStaffZ15.webp"
+            }
+          ]
+        },
+        {
+          "categoria": "Guión",
+          "miembros": [
+            {
+              "nombre": "KAYKKOI",
+              "rol": "Guión · Guión Gráfico",
+              "imagen": "Armados/ArmadosStaffKaykkoi.webp"
+            },
+            {
+              "nombre": "Niell Munn",
+              "rol": "Guión · Guión Gráfico",
+              "imagen": "Armados/ArmadosStaffNiell.webp"
+            },
+            {
+              "nombre": "Saikomic",
+              "rol": "Guión · Autor Original",
+              "imagen": "Armados/Saiko.webp"
+            }
+          ]
+        },
+        {
+          "categoria": "Música",
+          "miembros": [
+            {
+              "nombre": "FonxBomz",
+              "rol": "Compositor",
+              "imagen": "Armados/ArmadosStaffFonxbomz.webp"
+            },
+            {
+              "nombre": "OneFixMissed",
+              "rol": "Compositor",
+              "imagen": "Armados/ArmadosStaffOneFixMissed.webp"
+            }
+          ]
+        },
+        {
+          "categoria": "Actuación de Voz",
+          "miembros": [
+            {
+              "nombre": "Maximiliano Cerda",
+              "rol": "Estic",
+              "imagen": "Armados/ArmadosStaffMaximilianoCerda.webp"
+            },
+            {
+              "nombre": "Darianny Calderón",
+              "rol": "Megan",
+              "imagen": "Armados/ArmadosStaffDariannyCalderón.webp"
+            }
+          ]
+        }
+      ],
+      "galeria": [
+        {
+          "imagen": "Armados/POSTER_1.webp",
+          "textoAlternativo": "Poster oficial Armados"
+        },
+        {
+          "imagen": "Armados/ArteArmados2.webp",
+          "textoAlternativo": "Arte Armados 2"
+        },
+        {
+          "imagen": "Armados/meganaaaa.webp",
+          "textoAlternativo": "Megan"
+        },
+        {
+          "imagen": "Armados/estic_aaaaa.webp",
+          "textoAlternativo": "Estic"
+        },
+        {
+          "imagen": "Armados/ArteArmados3.webp",
+          "textoAlternativo": "Arte Armados 3"
+        },
+        {
+          "imagen": "Armados/ArteArmados4.webp",
+          "textoAlternativo": "Arte Armados 4"
+        },
+        {
+          "imagen": "Armados/ArteArmados5.webp",
+          "textoAlternativo": "Arte Armados 5"
+        },
+        {
+          "imagen": "Armados/ArteArmados6.webp",
+          "textoAlternativo": "Arte Armados 6"
+        },
+        {
+          "imagen": "Armados/ArteArmados7.webp",
+          "textoAlternativo": "Arte Armados 7"
+        },
+        {
+          "imagen": "Armados/ArteArmados8.webp",
+          "textoAlternativo": "Arte Armados 8"
+        },
+        {
+          "imagen": "Armados/ArteArmados9.webp",
+          "textoAlternativo": "Arte Armados 9"
+        },
+        {
+          "imagen": "Armados/ArteArmados1.webp",
+          "textoAlternativo": "Arte Armados 1"
+        }
+      ]
+    },
+    {
+      "identificador": "cgd",
+      "nombre": "CGD Studio",
+      "estado": "En Producción",
+      "orden": 100,
+      "portada": null,
+      "cabecera": "Banner/pclubBanner.webp",
+      "logo": "asociados/Cgd-studio.webp",
+      "urlVideo": null,
+      "sinopsis": "CGD Studios es un estudio especializado en producción de doblaje y Voice Acting, colaborador directo del programa de Voice Acting de la Alianza. Entre sus trabajos más destacados figura el doblaje al español latino de Emesis Blue, una de las Web series Machinima más importantes de la comunidad de Team Fortress 2.",
+      "creador": {
+        "nombre": "CGD Studios",
+        "imagen": "",
+        "descripcion": "CGD Studios es un estudio independiente enfocado en la producción de doblaje y actuación de voz para proyectos de animación e internet, trabajando en estrecha colaboración con la Alianza para llevar sus proyectos al español latino.",
+        "redes": {},
+        "obras": []
+      },
+      "redes": {},
+      "apoyo": {},
+      "carrusel": [],
+      "personajes": [],
+      "equipo": [
+        {
+          "categoria": "Animadores",
+          "miembros": [
+            {
+              "nombre": "Lorem Ipsum",
+              "rol": "Animador Principal",
+              "imagen": null
+            },
+            {
+              "nombre": "Lorem Ipsum",
+              "rol": "Animador",
+              "imagen": null
+            },
+            {
+              "nombre": "Lorem Ipsum",
+              "rol": "Animador",
+              "imagen": null
+            },
+            {
+              "nombre": "Lorem Ipsum",
+              "rol": "Animador",
+              "imagen": null
+            }
+          ]
+        },
+        {
+          "categoria": "Actores de Voz / Doblaje",
+          "miembros": [
+            {
+              "nombre": "Lorem Ipsum",
+              "rol": "Personaje A",
+              "imagen": null
+            },
+            {
+              "nombre": "Lorem Ipsum",
+              "rol": "Personaje B",
+              "imagen": null
+            },
+            {
+              "nombre": "Lorem Ipsum",
+              "rol": "Personaje C",
+              "imagen": null
+            },
+            {
+              "nombre": "Lorem Ipsum",
+              "rol": "Personaje D",
+              "imagen": null
+            }
+          ]
+        }
+      ],
+      "galeria": []
+    },
+    {
+      "identificador": "crunchfizz",
+      "nombre": "Crunch Fizz",
+      "estado": "En Emisión",
+      "orden": 2,
+      "portada": "CrunchFizz/CrunchFizz.webp",
+      "cabecera": "Banner/CrunchBanner.webp",
+      "logo": "CrunchFizz/CrunchFizz.webp",
+      "urlVideo": "https://www.tiktok.com/@crunch_crujido/video/7576013235594218773",
+      "sinopsis": "Crunch Fizz es un spin-off animado creado por Liners que sigue la historia de Lazy y Hoody, dos chicas desafortunadas que, tras un giro inesperado del destino, se ven obligadas a formar una alianza. Juntas deciden enfrentarse a una peligrosa organización criminal que domina su ciudad, dejando a su paso un rastro de destrucción mientras pelean utilizando poderes provenientes de un ser cosimico que escapa del entendimiento.",
+      "creador": {
+        "nombre": "Liners",
+        "imagen": "",
+        "descripcion": "Liners es un autor sencillo. Su construcción de mundos es sencilla pero sólida, desenvolviendo situaciones de la vida cotidiana con elementos de fantasía que recuerdan al realismo mágico. Le gusta mostrar la crudeza del bajo mundo sin rayar en lo obsceno, logrando fácilmente una cercanía con sus personajes al atravesar tantas desgracias. Él mismo incluso ha revelado que su propio sufrimiento lo ha usado como combustible para potenciar tanto su historia como su arte, pudiendo verlo claramente en el arco de Ricky de su cómic y anime Crunch, donde tanto el tono como los paneles de su manga se vuelven mucho más producidos.",
+        "redes": {},
+        "obras": []
+      },
+      "redes": {
+        "instagram": "https://www.instagram.com/draw_liners/?hl=es-es",
+        "twitter": "https://x.com/CRUNCH_LINERS",
+        "youtube": "https://www.youtube.com/@LINERS_CRUNCH",
+        "tiktok": "https://www.tiktok.com/@crunch_crujido",
+        "discord": "https://discord.gg/w9kefZXfw2",
+        "facebook": "https://www.facebook.com/kevin.soria.140"
+      },
+      "apoyo": {},
+      "carrusel": [
+        "CrunchFizz/CrunchFizzArte2.webp",
+        "CrunchFizz/CrunchFizzArte3.webp",
+        "CrunchFizz/CrunchFizzArte4.webp",
+        "CrunchFizz/CrunchFizzArte5.webp",
+        "CrunchFizz/CrunchFizzArte6.webp"
+      ],
+      "personajes": [],
+      "equipo": [],
+      "galeria": [
+        {
+          "imagen": "CrunchFizz/CrunchFizzArte1.webp",
+          "textoAlternativo": "Crunch Fizz - Arte 1"
+        },
+        {
+          "imagen": "CrunchFizz/CrunchFizzArte2.webp",
+          "textoAlternativo": "Crunch Fizz - Arte 2"
+        },
+        {
+          "imagen": "CrunchFizz/CrunchFizzArte3.webp",
+          "textoAlternativo": "Crunch Fizz - Arte 3"
+        },
+        {
+          "imagen": "CrunchFizz/CrunchFizzArte4.webp",
+          "textoAlternativo": "Crunch Fizz - Arte 4"
+        },
+        {
+          "imagen": "CrunchFizz/CrunchFizzArte5.webp",
+          "textoAlternativo": "Crunch Fizz - Arte 5"
+        },
+        {
+          "imagen": "CrunchFizz/CrunchFizzArte6.webp",
+          "textoAlternativo": "Crunch Fizz - Arte 6"
+        },
+        {
+          "imagen": "CrunchFizz/CrunchFizzArte7.webp",
+          "textoAlternativo": "Crunch Fizz - Arte 7"
+        },
+        {
+          "imagen": "CrunchFizz/CrunchFizzArte8.webp",
+          "textoAlternativo": "Crunch Fizz - Arte 8"
+        },
+        {
+          "imagen": "CrunchFizz/CrunchFizzArte9.webp",
+          "textoAlternativo": "Crunch Fizz - Arte 9"
+        },
+        {
+          "imagen": "CrunchFizz/CrunchFizzArte10.webp",
+          "textoAlternativo": "Crunch Fizz - Arte 10"
+        },
+        {
+          "imagen": "CrunchFizz/CrunchFizzArte11.webp",
+          "textoAlternativo": "Crunch Fizz - Arte 11"
+        },
+        {
+          "imagen": "CrunchFizz/CrunchFizzArte12.webp",
+          "textoAlternativo": "Crunch Fizz - Arte 12"
+        },
+        {
+          "imagen": "CrunchFizz/CrunchFizzArte13.webp",
+          "textoAlternativo": "Crunch Fizz - Arte 13"
+        }
+      ]
+    },
+    {
+      "identificador": "crunch",
+      "nombre": "Crunch",
+      "estado": "En Producción",
+      "orden": 6,
+      "portada": "Crunch/Crunch.webp",
+      "cabecera": "Banner/CrunchBanner.webp",
+      "logo": "Crunch/Crunch.webp",
+      "urlVideo": "https://www.youtube.com/embed/CXjmgvtRvMw?si=VDp4oFf7GPbXIEIx",
+      "sinopsis": "Conocido como 'El Primer Anime Latino', Crunch es una Web serie que sigue la historia de Dany, un joven desempleado que debido a su desesperación decide unirse a una Organización del bajo mundo encargada de auspiciar peleas clandestinas para poder subsistir, un ecosistema en donde solo los más fuertes sobreviven y que retrata de forma bastante ruda y un poco cómica como es un día normal en Latinoamérica.",
+      "creador": {
+        "nombre": "Liners",
+        "imagen": "",
+        "descripcion": "Liners es un autor sencillo. Su construcción de mundos es sencilla pero sólida, desenvolviendo situaciones de la vida cotidiana con elementos de fantasía que recuerdan al realismo mágico. Le gusta mostrar la crudeza del bajo mundo sin rayar en lo obsceno, logrando fácilmente una cercanía con sus personajes al atravesar tantas desgracias. Él mismo incluso ha revelado que su propio sufrimiento lo ha usado como combustible para potenciar tanto su historia como su arte, pudiendo verlo claramente en el arco de Ricky de su cómic y anime Crunch, donde tanto el tono como los paneles de su manga se vuelven mucho más producidos.",
+        "redes": {},
+        "obras": []
+      },
+      "redes": {},
+      "apoyo": {},
+      "carrusel": [
+        "Crunch/Crunch.webp"
+      ],
+      "personajes": [],
+      "equipo": [],
+      "galeria": [
+        {
+          "imagen": "Crunch/Crunch.webp",
+          "textoAlternativo": "Crunch - Bienvenida"
+        }
+      ]
+    },
+    {
+      "identificador": "emesis",
+      "nombre": "Emesis Blue",
+      "estado": "En Emisión",
+      "orden": 3,
+      "portada": "Emesis/emesisblue.webp",
+      "cabecera": "",
+      "logo": "Emesis/emesisblue.webp",
+      "urlVideo": "https://www.youtube.com/embed/YK2psBYCy94?si=hSHyw071wfV5MNHL",
+      "sinopsis": "Creado en Source Filmmaker, Emesis Blue es una de las Web series Machinima más importantes de toda la comunidad de Team Fortress 2, donde se narra la historia de un detective privado y un veterano de guerra fracasado que, tras ser asignados para investigar el secuestro de Jules Archivald, terminan envueltos en una turbia red criminal que esconde un secreto perturbador. Este proyecto de doblaje fue creado como parte del programa de Voice Acting de la Alianza en colaboración con CGD Studios.",
+      "creador": {
+        "nombre": "Fortress Films",
+        "imagen": "Emesis/FortressFilms.webp",
+        "descripcion": "Fortress Films es un Proyecto de Animacion Independiente dedicado a realizar cortos hechos en Source Film Maker o 'Machinimas'  aprovechando los recursos del Juego Team Fortress 2 para contar sus propías historias, usando algunos elementos del Lore original pero añadiendo una trama mucho mas densa y oscura.",
+        "redes": {},
+        "obras": []
+      },
+      "redes": {},
+      "apoyo": {},
+      "carrusel": [],
+      "personajes": [],
+      "equipo": [],
+      "galeria": []
+    },
+    {
+      "identificador": "garabato",
+      "nombre": "Garabato Studio — P-CLUB",
+      "estado": "En Emisión",
+      "orden": 1,
+      "portada": "Garabato/Garabato-studio.webp",
+      "cabecera": "Banner/pclubBanner.webp",
+      "logo": "Garabato/Garabato-studioLogo.webp",
+      "urlVideo": "https://www.youtube.com/embed/-XdAa5o0TEI?si=A5GfM0XmPKX-vLQo",
+      "sinopsis": "El P-Club es una Web serie creada por Garabato Studios en la que seguimos las desventuras de Mónica, Natacha, Yasuri y Saori, un grupo de chicas que tras formar su propio club en el instituto se ven envueltas en toda clase de situaciones bizarras y surrealistas, haciendo de cada momento un deleite de referencias a memes de internet, sketches entretenidos, pero, sobre todo, de 'ROTOSCOPIA'.",
+      "creador": {
+        "nombre": "Garabato",
+        "imagen": "Garabato/Garabato.webp",
+        "descripcion": "Garabato Studios es un animador independiente enfocado en crear contenido original con muchas referencias, chistes peruanos y la maravilla de la rotoscopia, nada le gana",
+        "redes": {},
+        "obras": []
+      },
+      "redes": {
+        "instagram": "https://www.instagram.com/gbt_studios",
+        "twitter": "https://twitter.com/Gbt_Studios",
+        "youtube": "https://www.youtube.com/@Gbt_studios",
+        "tiktok": "https://www.tiktok.com/@garabato_studios"
+      },
+      "apoyo": {},
+      "carrusel": [
+        "Garabato/CarruceGbt1.webp",
+        "Garabato/CarruceGbt2.webp",
+        "Garabato/CarruceGbt3.webp",
+        "Garabato/CarruceGbt4.webp",
+        "Garabato/CarruceGbt5.webp",
+        "Garabato/CarruceGbt6.webp"
+      ],
+      "personajes": [
+        {
+          "nombre": "Monika",
+          "imagen": null,
+          "rol": "Líder / Protagonista",
+          "descripcion": "La cabecilla del club. Es carismática, manipuladora y tiene la habilidad de romper la cuarta pared. Siempre intenta mantener el control de las situaciones bizarras que rodean al grupo.",
+          "actorVoz": "Nerekoow",
+          "imagenActorVoz": null
+        },
+        {
+          "nombre": "Sayori",
+          "imagen": null,
+          "rol": "Protagonista",
+          "descripcion": "Alegre, despistada y el alma emocional del club. Su naturaleza optimista suele chocar con el caos surrealista del instituto, aunque casi siempre termina siendo parte del mismo.",
+          "actorVoz": "Diana Speed",
+          "imagenActorVoz": null
+        },
+        {
+          "nombre": "Yasuri",
+          "imagen": null,
+          "rol": "Protagonista",
+          "descripcion": "La integrante refinada y madura, aunque con tendencias intensas y oscuras que afloran en los momentos menos oportunos. Basada en una versión parodiada de Yuri.",
+          "actorVoz": "Geeky Miki",
+          "imagenActorVoz": null
+        },
+        {
+          "nombre": "Natacha",
+          "imagen": null,
+          "rol": "Protagonista",
+          "descripcion": "Ruda, de carácter fuerte y defensivo. No duda en usar la fuerza o insultos para marcar su territorio, especialmente cuando se siente subestimada por su tamaño.",
+          "actorVoz": "Kunsei Mai",
+          "imagenActorVoz": null
+        },
+        {
+          "nombre": "Vanny",
+          "imagen": null,
+          "rol": "Personaje Recurrente",
+          "descripcion": "Personaje original de Garabato Studios que funge como la víctima eterna de la serie. Siempre está en el lugar equivocado en el momento equivocado, sufriendo accidentes catastróficos.",
+          "actorVoz": "Jade Vlz",
+          "imagenActorVoz": null
+        },
+        {
+          "nombre": "Pi-O (PENA)",
+          "imagen": null,
+          "rol": "Antagonista / Caótico",
+          "descripcion": "Una entidad bizarra basada en ENA. Existe en múltiples variantes (Andina, Pituca) y suele interrumpir la realidad con diálogos abstractos y humor puramente peruano.",
+          "actorVoz": "Sugarser0 / Jade Vlz",
+          "imagenActorVoz": null
+        },
+        {
+          "nombre": "Misi",
+          "imagen": null,
+          "rol": "Personaje Secundario",
+          "descripcion": "La fiel compañera de Vanny. Aunque es más cuerda que el resto, su lealtad la lleva a verse involucrada en las mismas situaciones peligrosas y absurdas.",
+          "actorVoz": "Kunsei Mai",
+          "imagenActorVoz": null
+        }
+      ],
+      "equipo": [
+        {
+          "categoria": "Producción y Dirección",
+          "miembros": [
+            {
+              "nombre": "Garabato Studios",
+              "rol": "Dirección General, Guion y Storyboard",
+              "imagen": "Garabato/Garabato.webp"
+            },
+            {
+              "nombre": "Kunsei Mai",
+              "rol": "Co-Guionista y Producción",
+              "imagen": null
+            }
+          ]
+        },
+        {
+          "categoria": "Animación y Arte",
+          "miembros": [
+            {
+              "nombre": "Garabato",
+              "rol": "Animación Principal y Layout",
+              "imagen": "Garabato/Garabato.webp"
+            },
+            {
+              "nombre": "Andrestre",
+              "rol": "Animación de Apoyo",
+              "imagen": null
+            },
+            {
+              "nombre": "Neyland",
+              "rol": "Fondos y Color",
+              "imagen": null
+            },
+            {
+              "nombre": "The_Aji",
+              "rol": "Efectos Visuales (VFX)",
+              "imagen": null
+            }
+          ]
+        },
+        {
+          "categoria": "Actores de Voz",
+          "miembros": [
+            {
+              "nombre": "Nerekoow",
+              "rol": "Monika",
+              "imagen": null
+            },
+            {
+              "nombre": "Diana Speed",
+              "rol": "Sayori",
+              "imagen": null
+            },
+            {
+              "nombre": "Kunsei Mai",
+              "rol": "Natacha, Misi",
+              "imagen": null
+            },
+            {
+              "nombre": "Geeky Miki",
+              "rol": "Yasuri",
+              "imagen": null
+            },
+            {
+              "nombre": "Jade Vlz",
+              "rol": "Vanny, PENA (Pituca)",
+              "imagen": null
+            },
+            {
+              "nombre": "Sugarser0",
+              "rol": "PENA (Andina)",
+              "imagen": null
+            },
+            {
+              "nombre": "Milis Anakuma",
+              "rol": "Presidenta Club M",
+              "imagen": null
+            }
+          ]
+        }
+      ],
+      "galeria": [
+        {
+          "imagen": "Garabato/GtbStudios1.webp",
+          "textoAlternativo": "Garabato Studio - Imagen 1"
+        },
+        {
+          "imagen": "Garabato/GtbStudios2.webp",
+          "textoAlternativo": "Garabato Studio - Imagen 2"
+        },
+        {
+          "imagen": "Garabato/GtbStudios3.webp",
+          "textoAlternativo": "Garabato Studio - Imagen 3"
+        },
+        {
+          "imagen": "Garabato/GtbStudios4.webp",
+          "textoAlternativo": "Garabato Studio - Imagen 4"
+        },
+        {
+          "imagen": "Garabato/GtbStudios5.webp",
+          "textoAlternativo": "Garabato Studio - Imagen 5"
+        },
+        {
+          "imagen": "Garabato/GtbStudios6.webp",
+          "textoAlternativo": "Garabato Studio - Imagen 6"
+        },
+        {
+          "imagen": "Garabato/Gbt_StudiosGaleria.webp",
+          "textoAlternativo": "Garabato Studio - Imagen 7"
+        }
+      ]
+    },
+    {
+      "identificador": "metrecalia",
+      "nombre": "Metrecalia",
+      "estado": "En Emisión",
+      "orden": 5,
+      "portada": "Metrecalia/Metrecalia.webp",
+      "cabecera": "Metrecalia/MetrecaliaBanner4.webp",
+      "logo": "Metrecalia/MetrecaliaLogo2.webp",
+      "urlVideo": "https://www.youtube.com/embed/i0xG74ERaGE",
+      "sinopsis": "Loriner y Jessie buscan aventuras en las crueles y locas tierras de Metrecalia, un universo de fantasía medieval lleno de secretos, y una Web Serie en español e inglés.",
+      "creador": {
+        "nombre": "Camiro Starenn",
+        "imagen": "Metrecalia/Camiro1.webp",
+        "descripcion": "Humano profesional. Escritor, director y diseñador autodidacta. Creador de Metrecalia, Charlotte Gaspel y Brandom Universe, bajo la marca STARENN ENTERTAINMENT. Amante de la ficción y el pollo frito.",
+        "redes": {
+          "instagram": "https://www.instagram.com/cramiro_starenn/",
+          "twitter": "https://twitter.com/Cramiro_Starenn",
+          "youtube": "https://www.youtube.com/@Cramiro_Starenn",
+          "tiktok": "https://tr.ee/ErBpGIwHCS",
+          "patreon": "https://tr.ee/nT7Aq4LCY_"
+        },
+        "obras": [
+          {
+            "titulo": "Universo Brandom",
+            "url": "https://www.youtube.com/@UniversoBrandom"
+          },
+          {
+            "titulo": "Cramiro Starenn",
+            "url": "https://www.youtube.com/@Cramiro_Starenn/videos"
+          },
+          {
+            "titulo": "Charlotte Gaspel",
+            "url": "https://www.youtube.com/watch?v=P38fErKHO30"
+          }
+        ]
+      },
+      "redes": {
+        "twitter": "https://twitter.com/Cramiro_Starenn",
+        "youtube": "https://www.youtube.com/@metrecalia",
+        "tiktok": "https://www.tiktok.com/@metrecalia",
+        "discord": "https://discord.gg/AKx4WCqzhS",
+        "patreon": "https://www.patreon.com/cw/CramiroStarenn"
+      },
+      "apoyo": {},
+      "carrusel": [
+        "Metrecalia/ArteMetrecaliaParte210.webp",
+        "Metrecalia/ArteMetrecaliaParte214.webp",
+        "Metrecalia/ArteMetrecaliaParte215.webp",
+        "Metrecalia/ArteMetrecaliaParte217.webp",
+        "Metrecalia/ArteMetrecaliaParte218.webp"
+      ],
+      "personajes": [
+        {
+          "nombre": "Loriner Gatherson",
+          "imagen": "Metrecalia/Loriner.webp",
+          "rol": "Protagonista",
+          "descripcion": "Conocido como \"El Héroe de los Mensos\", es un protagonista novato, despistado y perezoso con más suerte que talento. Actúa como un bardo inexperto que sobrevive improvisando canciones y evitando el trabajo a toda costa.",
+          "actorVoz": "Julio López (Julio Di Esto)",
+          "imagenActorVoz": null
+        },
+        {
+          "nombre": "Jessie Murchet",
+          "imagen": "Metrecalia/Jessie.webp",
+          "rol": "Protagonista",
+          "descripcion": "Apodada \"La Heroína de Medio Cerebro\", es una fuerza bruta impulsiva y caótica que se guía por puro instinto animal. Compensa su total falta de inteligencia con ataques físicos salvajes, aunque siempre manteniendo un corazón puro.",
+          "actorVoz": "Okami Sanchokomilk",
+          "imagenActorVoz": null
+        },
+        {
+          "nombre": "Jester Jesterson",
+          "imagen": "Metrecalia/Jester.webp",
+          "rol": "Personaje Principal",
+          "descripcion": "\"El Bufón Sin Gracia\" es un artista atormentado, sarcástico y muy estresado que lidia con problemas psicológicos. Usa el humor negro, las distracciones y la ironía como mecanismos de defensa contra sus propios traumas.",
+          "actorVoz": "Valentino Gassmann",
+          "imagenActorVoz": null
+        },
+        {
+          "nombre": "Rod Gatherson",
+          "imagen": "Metrecalia/Rod.webp",
+          "rol": "Personaje Principal",
+          "descripcion": "Temido como \"El Guerrero Imparable\", es el guerrero brutal, serio y letal del grupo que arrasa con todo a su paso. A pesar de su imponente fuerza destructiva y actitud fría, oculta una profunda vulnerabilidad hacia los sentimientos.",
+          "actorVoz": "Leon Reyes (Luci)",
+          "imagenActorVoz": null
+        },
+        {
+          "nombre": "Rey Desces",
+          "imagen": "Metrecalia/ReyDesces.webp",
+          "rol": "Personaje Principal",
+          "descripcion": "\"El Monstruo Bélico\" es el villano principal: un monarca sádico, cruel, manipulador y con una inteligencia altísima. Gobierna mediante el miedo y la traición, aunque irónicamente su única y verdadera debilidad es la Reina.",
+          "actorVoz": "Octavio Rojas",
+          "imagenActorVoz": null
+        },
+        {
+          "nombre": "Counsel",
+          "imagen": "Metrecalia/Counsel.webp",
+          "rol": "Personaje Principal",
+          "descripcion": "\"El Payaso Lamebotas\" es un burócrata arrogante, cobarde y el secuaz más leal (y clasista) del Rey Desces. Evita el combate físico, prefiriendo destruir la moral de sus oponentes usando insultos y correcciones gramaticales.",
+          "actorVoz": "Derrick Álvarez",
+          "imagenActorVoz": null
+        }
+      ],
+      "equipo": [
+        {
+          "categoria": "Animatics",
+          "miembros": [
+            {
+              "nombre": "Camiro Starenn",
+              "rol": "Animatics",
+              "imagen": "Metrecalia/Camiro1.webp"
+            },
+            {
+              "nombre": "Ckiryuu",
+              "rol": "Animatics",
+              "imagen": "Metrecalia/Ckiryuu.webp"
+            },
+            {
+              "nombre": "Camilo Ospina",
+              "rol": "Animatics",
+              "imagen": "Metrecalia/Camilo Ospina.webp"
+            }
+          ]
+        },
+        {
+          "categoria": "Actores de Voz",
+          "miembros": [
+            {
+              "nombre": "Camiro Starenn",
+              "rol": "Varios Personajes",
+              "imagen": "Metrecalia/Camiro1.webp"
+            },
+            {
+              "nombre": "Julio López (Julio Di Esto)",
+              "rol": "Loriner Gatherson",
+              "imagen": "Metrecalia/Julio_Lopez.webp"
+            },
+            {
+              "nombre": "Okami Sanchokomilk",
+              "rol": "Jessie Murchet",
+              "imagen": "Metrecalia/Okami_Sanchokomilk.webp"
+            },
+            {
+              "nombre": "Valentino Gassmann",
+              "rol": "Jester Jesterson",
+              "imagen": "Metrecalia/ValGassmanAD.webp"
+            },
+            {
+              "nombre": "Leon Reyes (Luci)",
+              "rol": "Rod Gatherson",
+              "imagen": null
+            },
+            {
+              "nombre": "Octavio Rojas",
+              "rol": "Rey Desces",
+              "imagen": "Metrecalia/Octavio_Rojas.webp"
+            },
+            {
+              "nombre": "Derrick Álvarez",
+              "rol": "Counsel",
+              "imagen": "Metrecalia/DerrickAlvarez.jpg"
+            }
+          ]
+        }
+      ],
+      "galeria": [
+        {
+          "imagen": "Metrecalia/ArteMetrecalia1.webp",
+          "textoAlternativo": "Arte Metrecalia 1"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecalia2.webp",
+          "textoAlternativo": "Arte Metrecalia 2"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecalia3.webp",
+          "textoAlternativo": "Arte Metrecalia 3"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecalia4.webp",
+          "textoAlternativo": "Arte Metrecalia 4"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecalia5.webp",
+          "textoAlternativo": "Arte Metrecalia 5"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecalia6.webp",
+          "textoAlternativo": "Arte Metrecalia 6"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecalia7.webp",
+          "textoAlternativo": "Arte Metrecalia 7"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecalia8.webp",
+          "textoAlternativo": "Arte Metrecalia 8"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecalia9.webp",
+          "textoAlternativo": "Arte Metrecalia 9"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecalia11.webp",
+          "textoAlternativo": "Arte Metrecalia 11"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecalia12.webp",
+          "textoAlternativo": "Arte Metrecalia 12"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecalia13.webp",
+          "textoAlternativo": "Arte Metrecalia 13"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecalia16.webp",
+          "textoAlternativo": "Arte Metrecalia 16"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecaliaParte21.webp",
+          "textoAlternativo": "Arte Metrecalia Parte 2 - 1"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecaliaParte22.webp",
+          "textoAlternativo": "Arte Metrecalia Parte 2 - 2"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecaliaParte23.webp",
+          "textoAlternativo": "Arte Metrecalia Parte 2 - 3"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecaliaParte24.webp",
+          "textoAlternativo": "Arte Metrecalia Parte 2 - 4"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecaliaParte25.webp",
+          "textoAlternativo": "Arte Metrecalia Parte 2 - 5"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecaliaParte26.webp",
+          "textoAlternativo": "Arte Metrecalia Parte 2 - 6"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecaliaParte27.webp",
+          "textoAlternativo": "Arte Metrecalia Parte 2 - 7"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecaliaParte28.webp",
+          "textoAlternativo": "Arte Metrecalia Parte 2 - 8"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecaliaParte29.webp",
+          "textoAlternativo": "Arte Metrecalia Parte 2 - 9"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecaliaParte210.webp",
+          "textoAlternativo": "Arte Metrecalia Parte 2 - 10"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecaliaParte214.webp",
+          "textoAlternativo": "Arte Metrecalia Parte 2 - 14"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecaliaParte215.webp",
+          "textoAlternativo": "Arte Metrecalia Parte 2 - 15"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecaliaParte217.webp",
+          "textoAlternativo": "Arte Metrecalia Parte 2 - 17"
+        },
+        {
+          "imagen": "Metrecalia/ArteMetrecaliaParte218.webp",
+          "textoAlternativo": "Arte Metrecalia Parte 2 - 18"
+        }
+      ]
+    },
+    {
+      "identificador": "tbtf",
+      "nombre": "TBTF — The Brave and the Furious and the Jackass",
+      "estado": "En Producción",
+      "orden": 4,
+      "portada": "TheBraveAndTheFuriousAndTheJackass/TBTF.webp",
+      "cabecera": "Banner/TBTFBanner.webp",
+      "logo": "TheBraveAndTheFuriousAndTheJackass/TBTF.webp",
+      "urlVideo": null,
+      "sinopsis": "Una historia llena de Honor, tradición, combate y sobre todo mucho carisma, TBFAJ nos cuenta la historia de Shinta, un peleador novato, pero con mucho talento que tras cruzarse con el dojo () es tomado como discípulo por Hachi, el abuelo de () su discípulo más prominente, y el más iracundo también. Ambos serán entrenados en el arte del: aprendiendo a llevarse bien en el proceso y desarrollando un vínculo de hermandad que los ayudará a superar cualquier dificultad.",
+      "creador": {
+        "nombre": "Garabato Studio",
+        "imagen": "",
+        "descripcion": "Garabato Studio es un estudio de animación independiente enfocado en crear contenido original con humor y acción.",
+        "redes": {},
+        "obras": []
+      },
+      "redes": {},
+      "apoyo": {},
+      "carrusel": [
+        "TheBraveAndTheFuriousAndTheJackass/TBTF.webp"
+      ],
+      "personajes": [],
+      "equipo": [],
+      "galeria": [
+        {
+          "imagen": "TheBraveAndTheFuriousAndTheJackass/TBTF.webp",
+          "textoAlternativo": "TBTF"
+        }
+      ]
+    },
+    {
+      "identificador": "tecnosis",
+      "nombre": "Tecnosis",
+      "estado": "En Producción",
+      "orden": 7,
+      "portada": "Tecnosis/Tecnosis.webp",
+      "cabecera": "",
+      "logo": "Tecnosis/Tecnosis.webp",
+      "urlVideo": null,
+      "sinopsis": "Descripción del proyecto Tecnosis próximamente.",
+      "creador": {
+        "nombre": "La Alianza",
+        "imagen": "",
+        "descripcion": "La Alianza es una organización independiente sin fines de lucro centrada en apoyar proyectos con gran potencial.",
+        "redes": {},
+        "obras": []
+      },
+      "redes": {},
+      "apoyo": {},
+      "carrusel": [],
+      "personajes": [],
+      "equipo": [],
+      "galeria": []
+    },
+    {
+      "identificador": "tripleboca",
+      "nombre": "Triple Boca",
+      "estado": "En Emisión",
+      "orden": 8,
+      "portada": "TripleBoca/TripleBoca.webp",
+      "cabecera": "Banner/TripleBocaBanner.gif",
+      "logo": "TripleBoca/TripleBocaLogo.webp",
+      "urlVideo": "https://www.youtube.com/embed/AbQxHp3ttbU?si=toA-PjT1FIDZGOP7",
+      "sinopsis": "Las nuevas aventuras de Micu y sus amigas Vocaloid Techo y Newu quienes, tras ser despedidas de su antigua agencia de idols en Japón, terminan viajando a Latinoamérica para conseguir una nueva oportunidad de brillar. Sin embargo, terminan estancadas debido a la austera y precaria situación de la región. Aun así, lejos de resignarse, resuelven que continuarán dandolo todo para poder levantar sus carreras desde abajo y sobrevivir al día a día en las zonas más precarias de toda Latam.",
+      "creador": {
+        "nombre": "IszArtist",
+        "imagen": "TripleBoca/Isz.webp",
+        "descripcion": "Autor mexicano independiente, con más de 10 años de trayectoria, que combina animación, humor mexicano, shitpost y ¡rotoscopia, amigo! Antes de la creación de Triple Boca, Isz comenzó a animar en el lejano 2015 en su canal Iszartist, donde creó animaciones variadas, mostrando la evolución de su estilo a lo largo de los años.",
+        "redes": {
+          "twitter": "https://x.com/Isz_Studios",
+          "youtube": "https://www.youtube.com/@Iszartist/videos",
+          "kofi": "https://ko-fi.com/isz_studios"
+        },
+        "obras": []
+      },
+      "redes": {
+        "twitter": "https://x.com/Isz_Studios",
+        "youtube": "https://www.youtube.com/@Isz_studios",
+        "kofi": "https://ko-fi.com/isz_studios"
+      },
+      "apoyo": {},
+      "carrusel": [
+        "TripleBoca/ArteTripleBoca.webp",
+        "TripleBoca/ajolote.gif",
+        "TripleBoca/ArteTripleBoca1.webp",
+        "TripleBoca/ArteTripleBoca2.webp",
+        "TripleBoca/ArteTripleBoca3.webp"
+      ],
+      "personajes": [
+        {
+          "nombre": "MICU",
+          "imagen": "TripleBoca/MICU.webp",
+          "rol": "Protagonista",
+          "descripcion": "Una Vocaloid optimista y llena de energía que busca nuevas oportunidades en Latinoamérica.",
+          "actorVoz": "Xi lii",
+          "imagenActorVoz": null
+        },
+        {
+          "nombre": "NEWU",
+          "imagen": "TripleBoca/NEWU.webp",
+          "rol": "Protagonista",
+          "descripcion": "Una Vocaloid con un carisma especial que aporta dinamismo al grupo.",
+          "actorVoz": "Valy sr",
+          "imagenActorVoz": null
+        },
+        {
+          "nombre": "TECHO",
+          "imagen": "TripleBoca/TECHO.webp",
+          "rol": "Protagonista",
+          "descripcion": "Una Vocaloid única con un estilo propio que la distingue del resto.",
+          "actorVoz": "Basil",
+          "imagenActorVoz": null
+        }
+      ],
+      "equipo": [
+        {
+          "categoria": "Dirección",
+          "miembros": [
+            {
+              "nombre": "Isz Studios",
+              "rol": "Arte, Animación y Guion",
+              "imagen": "TripleBoca/Isz.webp"
+            },
+            {
+              "nombre": "Oto",
+              "rol": "Arte y Animación",
+              "imagen": "TripleBoca/Oto.webp"
+            }
+          ]
+        },
+        {
+          "categoria": "Música y Actuación de Voz",
+          "miembros": [
+            {
+              "nombre": "Redlik",
+              "rol": "Música",
+              "imagen": "TripleBoca/Redlik.webp"
+            },
+            {
+              "nombre": "Xi lii",
+              "rol": "Actuación de Voz",
+              "imagen": null
+            },
+            {
+              "nombre": "Basil",
+              "rol": "Actuación de Voz",
+              "imagen": "TripleBoca/bachil.webp"
+            },
+            {
+              "nombre": "Valy sr",
+              "rol": "Actuación de Voz",
+              "imagen": null
+            }
+          ]
+        }
+      ],
+      "galeria": [
+        {
+          "imagen": "TripleBoca/MICU.webp",
+          "textoAlternativo": "MICU"
+        },
+        {
+          "imagen": "TripleBoca/NEWU.webp",
+          "textoAlternativo": "NEWU"
+        },
+        {
+          "imagen": "TripleBoca/TECHO.webp",
+          "textoAlternativo": "TECHO"
+        },
+        {
+          "imagen": "TripleBoca/ArteTripleBoca.webp",
+          "textoAlternativo": "Arte Triple Boca 1"
+        },
+        {
+          "imagen": "TripleBoca/ArteTripleBoca1.webp",
+          "textoAlternativo": "Arte Triple Boca 2"
+        },
+        {
+          "imagen": "TripleBoca/ArteTripleBoca2.webp",
+          "textoAlternativo": "Arte Triple Boca 3"
+        },
+        {
+          "imagen": "TripleBoca/ArteTripleBoca3.webp",
+          "textoAlternativo": "Arte Triple Boca 4"
+        },
+        {
+          "imagen": "TripleBoca/ArteTripleBoca4.webp",
+          "textoAlternativo": "Arte Triple Boca 5"
+        },
+        {
+          "imagen": "TripleBoca/ArteTripleBoca5.webp",
+          "textoAlternativo": "Arte Triple Boca 6"
+        },
+        {
+          "imagen": "TripleBoca/ArteTripleBoca6.webp",
+          "textoAlternativo": "Arte Triple Boca 7"
+        },
+        {
+          "imagen": "TripleBoca/ArteTripleBoca7.webp",
+          "textoAlternativo": "Arte Triple Boca 8"
+        },
+        {
+          "imagen": "TripleBoca/TripleBocaEp0.webp",
+          "textoAlternativo": "Triple Boca Episode 0"
+        },
+        {
+          "imagen": "TripleBoca/TripleBocaEp1.webp",
+          "textoAlternativo": "Triple Boca Episode 1"
+        },
+        {
+          "imagen": "TripleBoca/TripleBocaMicuFiesta.webp",
+          "textoAlternativo": "MICU en fiesta"
+        },
+        {
+          "imagen": "TripleBoca/BocasFrierenMeme.webp",
+          "textoAlternativo": "Bocas Frieren Meme"
+        },
+        {
+          "imagen": "TripleBoca/ajolote.gif",
+          "textoAlternativo": "Ajolote"
+        },
+        {
+          "imagen": "TripleBoca/Isz.webp",
+          "textoAlternativo": "Isz"
+        }
+      ]
+    }
+  ],
+  "socios": [
+    {
+      "nombre": "Soy Rikku",
+      "imagen": "asociados/Soy-Rikku.webp",
+      "descripcion": "Actriz de voz, ilustradora, coverista, Co-fundadora de la Alianza. Como Vtuber una osita amante de los videojuegos y la charla ",
+      "redes": {
+        "instagram": "https://www.instagram.com/soyrikku/",
+        "twitter": "https://x.com/SoyRikku",
+        "youtube": "https://www.youtube.com/@SoyRikku",
+        "twitch": "https://www.twitch.tv/soyrikku"
+      },
+      "series": [
+        "armados",
+        "garabato",
+        "metrecalia",
+        "crunch"
+      ]
+    },
+    {
+      "nombre": "Dexuz Music",
+      "imagen": "asociados/Dexuz.webp",
+      "descripcion": " Músico, freestyler y battlecat independiente, compositor dede musica freek. Puro talento peruano",
+      "redes": {
+        "instagram": "https://www.instagram.com/dexuz_official/",
+        "youtube": "https://www.youtube.com/channel/UCBahS4k28VHzvV69MFKCkuw?fbclid=PAZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQMMjU2MjgxMDQwNTU4AAGn1ZcUbZgD7S-NIaSKMfpGhwl010NbyFNiX2ftOzi6LA0nob04D06XcTQaTbc_aem_-rvX_Ts8dWCqYec1gqT7wQ"
+      },
+      "series": [
+        "crunch"
+      ]
+    },
+    {
+      "nombre": "Julio di esto",
+      "imagen": "asociados/Julio-di-esto.webp",
+      "descripcion": "Julio di esto es un creador de contenido mexicano, actor de voz y streamer que se ha hecho conocido principalmente en YouTube y TikTok por sus videos de humor shitposter y con muchas referencias a la cultura pop. Además, trabaja profesionalmente en doblaje desde 2024",
+      "redes": {
+        "instagram": "https://www.instagram.com/julio_di_esto/",
+        "twitter": "https://x.com/Julio_di_esto",
+        "youtube": "https://www.youtube.com/@juliodiesto",
+        "tiktok": "https://www.tiktok.com/@julio_di_esto?lang=es",
+        "facebook": "https://web.facebook.com/julio.posting?_rdc=1&_rdr#"
+      },
+      "series": [
+        "crunch",
+        "metrecalia"
+      ]
+    },
+    {
+      "nombre": "CGD Studio",
+      "imagen": "asociados/Cgd-studio.webp",
+      "descripcion": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Actor de voz, animador y creador de contenido con amplia experiencia en proyectos independientes.",
+      "redes": {},
+      "series": []
+    }
+  ],
+  "carrusel": [
+    "Banner/TBTFBanner.webp",
+    "Banner/pclubBanner.webp",
+    "Banner/MetrecaliaBanner.webp",
+    "Banner/CrunchBanner.webp",
+    "Banner/ArmadosBanner.webp"
+  ]
+}

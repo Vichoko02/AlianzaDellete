@@ -1,57 +1,57 @@
 // Panel de administración de La Alianza (TypeScript, sin dependencias en tiempo de ejecución).
-// Se compila con `npm run build` a src/Alianza.Api/wwwroot/admin/app.js y se sirve desde /admin.
+// Se compila con `npm run build` a servidor/publico/panel/app.js y se sirve desde /panel.
 // Todo el DOM se construye con h(), nunca con innerHTML, para que ningún texto que venga de la BD pueda inyectar HTML.
 "use strict";
 
 // ─── Tipos de la API ──────────────────────────────────────────────────────────
 
-type Ambito = "Wikis" | "Socios" | "Estados" | "Medios" | "Sitio";
+type Area = "Wikis" | "Socios" | "Estados" | "Medios" | "Sitio";
 type Origen = "Local" | "Ldap";
 
-interface Permiso { ambito: Ambito; serieId?: number | null; serieNombre?: string | null }
+interface Permiso { area: Area; serieId?: number | null; serieNombre?: string | null }
 interface Perfil {
-  id: number; username: string; nombreVisible: string; email: string | null; origen: Origen;
-  esSuperAdmin: boolean; puedeCrearWikis: boolean; permisos: Permiso[];
+  id: number; nombreUsuario: string; nombreVisible: string; correo: string | null; origen: Origen;
+  esSuperadmin: boolean; puedeCrearWikis: boolean; permisos: Permiso[];
 }
 interface Sesion { token: string; expira: string; usuario: Perfil }
 interface Estado { id: number; codigo: string; nombre: string; color: string; orden: number }
-interface Medio { id: string; url: string; nombreArchivo: string; tipoContenido: string; tamano: number; alt: string; creadoEn: string }
-interface Pagina<T> { items: T[]; total: number; pagina: number; tamanoPagina: number }
+interface Medio { id: string; url: string; nombreArchivo: string; tipoContenido: string; tamano: number; textoAlternativo: string; subidoEn: string }
+interface Pagina<T> { elementos: T[]; total: number; numero: number; tamano: number }
 interface Enlace { plataforma: string; url: string }
 interface Obra { titulo: string; url: string | null }
-interface Imagen { medioId: string; alt: string | null }
+interface Imagen { medioId: string; textoAlternativo: string | null }
 interface Personaje { nombre: string; rol: string | null; descripcion: string | null; imagenId: string | null; actorVoz: string | null; imagenActorVozId: string | null }
 interface Miembro { nombre: string; rol: string | null; imagenId: string | null }
 interface GrupoEquipo { categoria: string; miembros: Miembro[] }
 interface Creador { nombre: string | null; descripcion: string | null; imagenId: string | null; redes: Enlace[]; obras: Obra[] }
 interface SerieEdicion {
-  id: number | null; slug: string; nombre: string; sinopsis: string | null; estadoId: number;
-  portadaId: string | null; bannerId: string | null; logoId: string | null; videoUrl: string | null; videoLocalId: string | null;
+  id: number | null; identificador: string; nombre: string; sinopsis: string | null; estadoId: number;
+  portadaId: string | null; cabeceraId: string | null; logoId: string | null; urlVideo: string | null; videoPropioId: string | null;
   creador: Creador; redes: Enlace[]; apoyo: Enlace[]; carrusel: Imagen[]; galeria: Imagen[];
-  personajes: Personaje[]; equipo: GrupoEquipo[]; orden: number; publicada: boolean; actualizadoEn?: string | null;
+  personajes: Personaje[]; equipo: GrupoEquipo[]; orden: number; publicada: boolean; actualizadaEn?: string | null;
 }
-interface SerieLista { id: number; slug: string; nombre: string; estado: Estado; portada: string | null; publicada: boolean; orden: number; actualizadoEn: string }
+interface SerieLista { id: number; identificador: string; nombre: string; estado: Estado; portada: string | null; publicada: boolean; orden: number; actualizadaEn: string }
 interface SocioEdicion {
-  id: number | null; slug: string; nombre: string; descripcion: string | null; imagenId: string | null;
+  id: number | null; identificador: string; nombre: string; descripcion: string | null; imagenId: string | null;
   orden: number; publicado: boolean; redes: Enlace[]; serieIds: number[];
 }
-interface SocioLista { id: number; slug: string; nombre: string; imagen: string | null; publicado: boolean; orden: number }
+interface SocioLista { id: number; identificador: string; nombre: string; imagen: string | null; publicado: boolean; orden: number }
 interface UsuarioLista {
-  id: number; username: string; nombreVisible: string; email: string | null; origen: Origen; esSuperAdmin: boolean;
+  id: number; nombreUsuario: string; nombreVisible: string; correo: string | null; origen: Origen; esSuperadmin: boolean;
   puedeCrearWikis: boolean; activo: boolean; creadoEn: string; ultimoAcceso: string | null; permisos: Permiso[];
 }
 interface Resumen { series: number; seriesPublicadas: number; socios: number; medios: number; bytesMedios: number; usuarios: number; seriesPorEstado: Record<string, number> }
-interface RegistroAuditoria { id: number; fecha: string; username: string; accion: string; entidad: string; entidadId: string | null; detalle: string | null }
-interface ConfigPanel { urlSitio: string }
+interface RegistroAuditoria { id: number; fecha: string; nombreUsuario: string; accion: string; entidad: string; detalle: string | null }
+interface ConfiguracionPanel { urlSitio: string }
 type TipoTexto = "Texto" | "TextoLargo" | "Url" | "Imagen" | "ListaImagenes";
 interface CampoSitio { clave: string; grupo: string; etiqueta: string; tipo: TipoTexto; valor: string }
 interface EnlaceSitio { plataforma: string; url: string; etiqueta: string | null; descripcion: string | null }
-type TipoPregunta = "Nombre" | "Email" | "Texto" | "TextoLargo" | "Opcion" | "VariasOpciones";
-interface Pregunta { id: number | null; texto: string; ayuda: string | null; tipo: TipoPregunta; opciones: string[]; requerida: boolean; activa: boolean }
-type EstadoSolicitud = "Nueva" | "Leida" | "Archivada";
-interface SolicitudLista { id: number; fecha: string; nombre: string; email: string; estado: EstadoSolicitud; resumen: string }
-interface Solicitud { id: number; fecha: string; nombre: string; email: string; estado: EstadoSolicitud; leidaEn: string | null; respuestas: { pregunta: string; respuesta: string }[] }
-interface Pendientes { nuevas: number; ultimaId: number | null; ultimoNombre: string | null; ultimaFecha: string | null }
+type TipoPregunta = "Nombre" | "Correo" | "Texto" | "TextoLargo" | "Opcion" | "VariasOpciones";
+interface Pregunta { id: number | null; texto: string; ayuda: string | null; tipo: TipoPregunta; opciones: string[]; obligatoria: boolean; activa: boolean }
+type EstadoPostulacion = "Nueva" | "Leida" | "Archivada";
+interface PostulacionEnLista { id: number; recibidaEn: string; nombre: string; correo: string; estado: EstadoPostulacion; resumen: string }
+interface Postulacion { id: number; recibidaEn: string; nombre: string; correo: string; estado: EstadoPostulacion; respuestas: { pregunta: string; valor: string }[] }
+interface Pendientes { nuevas: number; ultimaId: number | null; ultimoNombre: string | null; }
 
 // ─── Utilidades de DOM ────────────────────────────────────────────────────────
 
@@ -112,7 +112,7 @@ const fecha = (iso: string | null | undefined): string => (iso ? new Date(iso).t
 const urlMedio = (id: string | null | undefined): string | null => (id ? `/api/medios/${id}` : null);
 const clonar = <T>(o: T): T => JSON.parse(JSON.stringify(o)) as T;
 const normalizar = (t: string | null | undefined): string => (t ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
-const slugDe = (texto: string): string => normalizar(texto).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+const identificadorDe = (texto: string): string => normalizar(texto).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
 function etiquetaEstado(estado: Pick<Estado, "nombre" | "color">): HTMLSpanElement {
   const e = h("span", { class: "etiqueta" }, estado.nombre);
@@ -142,7 +142,7 @@ async function api<T = unknown>(metodo: string, ruta: string, cuerpo?: unknown, 
     else { headers["Content-Type"] = "application/json"; opciones.body = JSON.stringify(cuerpo); }
   }
   const r = await fetch(ruta, opciones);
-  if (r.status === 401 && ruta !== "/api/auth/login") {
+  if (r.status === 401 && ruta !== "/api/sesion/iniciar") {
     cerrarSesion();
     throw new ErrorApi("Tu sesión expiró. Vuelve a iniciar sesión.", 401);
   }
@@ -185,11 +185,11 @@ function perfil(): Perfil {
   if (!sesion) throw new Error("Sin sesión");
   return sesion.usuario;
 }
-const esSA = (): boolean => !!sesion?.usuario.esSuperAdmin;
-const puede = (ambito: Ambito): boolean => esSA() || !!sesion?.usuario.permisos.some((p) => p.ambito === ambito && p.serieId == null);
+const esSA = (): boolean => !!sesion?.usuario.esSuperadmin;
+const puede = (area: Area): boolean => esSA() || !!sesion?.usuario.permisos.some((p) => p.area === area && p.serieId == null);
 const puedeCrearWikis = (): boolean => esSA() || !!sesion?.usuario.puedeCrearWikis;
 
-const NOMBRES_AMBITO: Record<Ambito, string> = {
+const NOMBRES_AMBITO: Record<Area, string> = {
   Wikis: "Editar wikis",
   Socios: "Socios / asociados",
   Estados: "Estados de serie",
@@ -203,14 +203,14 @@ const PLATAFORMAS_APOYO = ["patreon", "kofi", "buymeacoffee", "vaquite"];
 // ─── Login ────────────────────────────────────────────────────────────────────
 
 function vistaLogin(): HTMLElement {
-  const usuario = h("input", { type: "text", id: "u", autocomplete: "username", required: true, autofocus: true });
+  const usuario = h("input", { type: "text", id: "u", autocomplete: "nombreUsuario", required: true, autofocus: true });
   const clave = h("input", { type: "password", id: "p", autocomplete: "current-password", required: true });
   const boton = h("button", { class: "primario", type: "submit" }, "Entrar");
   const form = h("form", {
     onsubmit: async (ev) => {
       ev.preventDefault();
       boton.disabled = true;
-      const s = await intentar(() => api<Sesion>("POST", "/api/auth/login", { username: usuario.value.trim(), password: clave.value }));
+      const s = await intentar(() => api<Sesion>("POST", "/api/sesion/iniciar", { nombreUsuario: usuario.value.trim(), contrasena: clave.value }));
       boton.disabled = false;
       if (s) { sesion = s; almacen.guardar(s); await cargarConfig(); render(); iniciarNotificaciones(); }
       else { clave.value = ""; clave.focus(); }
@@ -244,12 +244,12 @@ function alternarTema(): void {
 
 // ─── Configuración del panel ─────────────────────────────────────────────────
 
-let config: ConfigPanel = { urlSitio: "" };
+let config: ConfiguracionPanel = { urlSitio: "" };
 async function cargarConfig(): Promise<void> {
-  try { config = await api<ConfigPanel>("GET", "/api/admin/config"); } catch { /* sigue con valores por defecto */ }
+  try { config = await api<ConfiguracionPanel>("GET", "/api/panel/configuracion"); } catch { /* sigue con valores por defecto */ }
 }
 /** Enlace a la ficha pública de una wiki, si se configuró la URL del sitio. */
-const urlWikiPublica = (slug: string): string | null => (config.urlSitio && slug ? `${config.urlSitio}/wiki/${slug}` : null);
+const urlWikiPublica = (identificador: string): string | null => (config.urlSitio && identificador ? `${config.urlSitio}/wiki/${identificador}` : null);
 
 // ─── Estructura y enrutado ────────────────────────────────────────────────────
 
@@ -267,8 +267,8 @@ const RUTAS: Ruta[] = [
   { patron: /^\/estados$/, vista: () => vistaEstados(), menu: "estados" },
   { patron: /^\/medios$/, vista: () => vistaMedios(), menu: "medios" },
   { patron: /^\/sitio$/, vista: () => vistaSitio(), menu: "sitio", permiso: () => puede("Sitio") },
-  { patron: /^\/solicitudes$/, vista: () => vistaSolicitudes(), menu: "solicitudes", permiso: esSA },
-  { patron: /^\/quiz$/, vista: () => vistaQuiz(), menu: "quiz", permiso: esSA },
+  { patron: /^\/postulaciones$/, vista: () => vistaPostulaciones(), menu: "postulaciones", permiso: esSA },
+  { patron: /^\/formulario$/, vista: () => vistaFormulario(), menu: "formulario", permiso: esSA },
   { patron: /^\/usuarios$/, vista: () => vistaUsuarios(), menu: "usuarios", permiso: esSA },
   { patron: /^\/auditoria$/, vista: () => vistaAuditoria(), menu: "auditoria", permiso: esSA },
   { patron: /^\/cuenta$/, vista: () => vistaCuenta(), menu: "cuenta" },
@@ -340,14 +340,14 @@ function menuLateral(activo: string): HTMLElement {
     enlace("medios", "#/medios", "Medios"),
     puede("Sitio") && enlace("sitio", "#/sitio", "Textos del sitio"),
     esSA() && h("div", { class: "grupo" }, "Postulaciones"),
-    esSA() && h("a", { href: "#/solicitudes", class: `nav${activo === "solicitudes" ? " activo" : ""}` }, "Solicitudes", insigniaSolicitudes),
-    esSA() && enlace("quiz", "#/quiz", "Formulario"),
+    esSA() && h("a", { href: "#/postulaciones", class: `nav${activo === "postulaciones" ? " activo" : ""}` }, "Postulaciones", insigniaPostulaciones),
+    esSA() && enlace("formulario", "#/formulario", "Formulario"),
     esSA() && h("div", { class: "grupo" }, "Administración"),
     esSA() && enlace("usuarios", "#/usuarios", "Usuarios y permisos"),
     esSA() && enlace("auditoria", "#/auditoria", "Auditoría"),
     h("div", { class: "sep" }),
     enlace("cuenta", "#/cuenta", "Mi cuenta"),
-    h("div", { class: "quien" }, h("strong", {}, u.nombreVisible), u.username, esSA() ? " · superadmin" : ""),
+    h("div", { class: "quien" }, h("strong", {}, u.nombreVisible), u.nombreUsuario, esSA() ? " · superadmin" : ""),
     h("div", { class: "pie-lateral" },
       h("button", { class: "boton-tema", onclick: alternarTema, title: "Cambiar tema" }, temaActual() === "oscuro" ? "☀ Claro" : "☾ Oscuro"),
       h("button", { onclick: () => cerrarSesion() }, "Salir")),
@@ -395,9 +395,9 @@ function confirmar(texto: string, { peligro = true, boton = "Confirmar" } = {}):
 
 async function vistaResumen(): Promise<HTMLElement> {
   const [r, estados, actividad] = await Promise.all([
-    api<Resumen>("GET", "/api/admin/resumen"),
-    api<Estado[]>("GET", "/api/admin/estados"),
-    esSA() ? api<Pagina<RegistroAuditoria>>("GET", "/api/admin/auditoria?pagina=1&tamano=8") : Promise.resolve(null),
+    api<Resumen>("GET", "/api/panel/resumen"),
+    api<Estado[]>("GET", "/api/panel/estados"),
+    esSA() ? api<Pagina<RegistroAuditoria>>("GET", "/api/panel/auditoria?pagina=1&tamano=8") : Promise.resolve(null),
   ]);
   const est = (n: number, t: string, href?: string) =>
     href ? h("a", { class: "estadistica", href }, h("b", {}, n), h("span", {}, t)) : h("div", { class: "estadistica" }, h("b", {}, n), h("span", {}, t));
@@ -406,9 +406,9 @@ async function vistaResumen(): Promise<HTMLElement> {
     ? ["Superadministrador: control total, incluida la gestión de usuarios y permisos."]
     : [
       ...(puedeCrearWikis() ? ["Puedes crear wikis nuevas."] : []),
-      ...u.permisos.map((p) => p.ambito === "Wikis"
+      ...u.permisos.map((p) => p.area === "Wikis"
         ? (p.serieId ? `Editar la wiki «${p.serieNombre}».` : "Editar todas las wikis.")
-        : `${NOMBRES_AMBITO[p.ambito]}.`),
+        : `${NOMBRES_AMBITO[p.area]}.`),
     ];
 
   const maximo = Math.max(1, ...Object.values(r.seriesPorEstado));
@@ -434,7 +434,7 @@ async function vistaResumen(): Promise<HTMLElement> {
       est(r.socios, "Socios", puede("Socios") ? "#/socios" : undefined),
       est(r.medios, `Archivos · ${formatoBytes(r.bytesMedios)}`, "#/medios"),
       esSA() && est(r.usuarios, "Usuarios activos", "#/usuarios"),
-      esSA() && est(ultimasPendientes.nuevas, "Solicitudes nuevas", "#/solicitudes")),
+      esSA() && est(ultimasPendientes.nuevas, "Postulaciones nuevas", "#/postulaciones")),
     h("div", { class: "rejilla" },
       h("div", { class: "tarjeta" }, h("h2", {}, "Wikis por estado"),
         barras.length ? h("div", { class: "barras" }, barras) : h("p", { class: "vacio" }, "Aún no hay wikis.")),
@@ -443,10 +443,10 @@ async function vistaResumen(): Promise<HTMLElement> {
           : h("p", { class: "vacio" }, "Todavía no tienes permisos asignados. Pídeselos a YishAdmin."))),
     actividad && h("div", { class: "tarjeta" },
       h("h2", {}, "Actividad reciente", h("a", { class: "boton mini", href: "#/auditoria" }, "Ver todo")),
-      actividad.items.length
-        ? h("ul", { class: "actividad" }, actividad.items.map((a) => h("li", {},
+      actividad.elementos.length
+        ? h("ul", { class: "actividad" }, actividad.elementos.map((a) => h("li", {},
           h("time", {}, fecha(a.fecha)),
-          h("span", {}, h("b", {}, a.username), ` · ${a.accion} ${a.entidad}`, a.detalle ? ` · ${a.detalle}` : ""))))
+          h("span", {}, h("b", {}, a.nombreUsuario), ` · ${a.accion} ${a.entidad}`, a.detalle ? ` · ${a.detalle}` : ""))))
         : h("p", { class: "vacio" }, "Sin actividad todavía.")),
   );
 }
@@ -493,10 +493,10 @@ function panelBiblioteca({ alElegir, alSubir, conDetalle = false }: OpcionesBibl
   async function cargar(): Promise<void> {
     const q = new URLSearchParams({ pagina: String(pagina), tamano: "60" });
     if (buscar.value.trim()) q.set("buscar", buscar.value.trim());
-    const r = await intentar(() => api<Pagina<Medio>>("GET", `/api/admin/medios?${q}`));
+    const r = await intentar(() => api<Pagina<Medio>>("GET", `/api/panel/medios?${q}`));
     if (!r) return;
-    vaciar(rejilla, r.items.length ? r.items.map(tarjetaMedio) : h("p", { class: "vacio" }, "No hay archivos."));
-    const paginas = Math.max(1, Math.ceil(r.total / r.tamanoPagina));
+    vaciar(rejilla, r.elementos.length ? r.elementos.map(tarjetaMedio) : h("p", { class: "vacio" }, "No hay archivos."));
+    const paginas = Math.max(1, Math.ceil(r.total / r.tamano));
     info.textContent = `${r.total} archivo(s)`;
     vaciar(paginador,
       h("button", { class: "mini", disabled: pagina <= 1, onclick: () => { pagina--; void cargar(); } }, "‹ Anterior"),
@@ -507,7 +507,7 @@ function panelBiblioteca({ alElegir, alSubir, conDetalle = false }: OpcionesBibl
   function tarjetaMedio(m: Medio): HTMLElement {
     const esVideo = m.tipoContenido.startsWith("video/");
     const nodo = h("button", { type: "button", class: "medio", title: `${m.nombreArchivo} · ${formatoBytes(m.tamano)}` },
-      esVideo ? h("video", { src: m.url, muted: true, preload: "metadata" }) : h("img", { src: m.url, alt: m.alt || m.nombreArchivo, loading: "lazy" }),
+      esVideo ? h("video", { src: m.url, muted: true, preload: "metadata" }) : h("img", { src: m.url, textoAlternativo: m.textoAlternativo || m.nombreArchivo, loading: "lazy" }),
       h("div", { class: "nombre" }, m.nombreArchivo));
     if (alElegir) nodo.addEventListener("click", () => alElegir(m, nodo));
     if (conDetalle) nodo.addEventListener("click", () => void detalleMedio(m, cargar));
@@ -520,7 +520,7 @@ function panelBiblioteca({ alElegir, alSubir, conDetalle = false }: OpcionesBibl
     const fd = new FormData();
     for (const f of archivos) fd.append("archivos", f);
     aviso(`Subiendo ${archivos.length} archivo(s)…`);
-    const r = await intentar(() => api<Medio[]>("POST", "/api/admin/medios", fd, { formulario: true }), "Archivos subidos");
+    const r = await intentar(() => api<Medio[]>("POST", "/api/panel/medios", fd, { formulario: true }), "Archivos subidos");
     if (r) { pagina = 1; buscar.value = ""; await cargar(); alSubir?.(r); }
   }
   entrada.addEventListener("change", () => void subir([...(entrada.files ?? [])]));
@@ -542,17 +542,17 @@ function panelBiblioteca({ alElegir, alSubir, conDetalle = false }: OpcionesBibl
 /** Ficha de un archivo: vista previa, datos, texto alternativo, dónde se usa y eliminación. */
 async function detalleMedio(m: Medio, alCambiar?: () => unknown): Promise<void> {
   const esVideo = m.tipoContenido.startsWith("video/");
-  const d = { alt: m.alt || "" };
+  const d = { textoAlternativo: m.textoAlternativo || "" };
   const usos = h("div", {}, h("p", { class: "ayuda" }, "Buscando dónde se usa…"));
   const urlCompleta = new URL(m.url, location.origin).href;
   const dlg = modal("Archivo", h("div", { class: "detalle-medio" },
-    h("div", { class: "previa" }, esVideo ? h("video", { src: m.url, controls: true }) : h("img", { src: m.url, alt: m.alt || m.nombreArchivo })),
+    h("div", { class: "previa" }, esVideo ? h("video", { src: m.url, controls: true }) : h("img", { src: m.url, textoAlternativo: m.textoAlternativo || m.nombreArchivo })),
     h("div", {},
       h("dl", {},
         h("dt", {}, "Nombre"), h("dd", {}, m.nombreArchivo),
         h("dt", {}, "Tipo"), h("dd", {}, m.tipoContenido),
         h("dt", {}, "Tamaño"), h("dd", {}, formatoBytes(m.tamano)),
-        h("dt", {}, "Subido"), h("dd", {}, fecha(m.creadoEn))),
+        h("dt", {}, "Subido"), h("dd", {}, fecha(m.subidoEn))),
       h("div", { class: "campo" }, h("label", {}, "Dirección"),
         h("div", { class: "acciones" }, h("code", {}, m.url),
           h("button", {
@@ -561,28 +561,28 @@ async function detalleMedio(m: Medio, alCambiar?: () => unknown): Promise<void> 
               try { await navigator.clipboard.writeText(urlCompleta); aviso("Dirección copiada", "ok"); } catch { aviso("No se pudo copiar", "error"); }
             },
           }, "Copiar"))),
-      campo("Texto alternativo", d, "alt", { ayuda: "Describe la imagen para lectores de pantalla." }),
+      campo("Texto alternativo", d, "textoAlternativo", { ayuda: "Describe la imagen para lectores de pantalla." }),
       h("h3", {}, "Dónde se usa"), usos)),
     [
       puede("Medios") && h("button", {
         class: "peligro",
         onclick: async () => {
           if (!(await confirmar(`¿Eliminar «${m.nombreArchivo}»? Solo se puede si no está en uso.`, { boton: "Eliminar" }))) return;
-          if ((await intentar(() => api("DELETE", `/api/admin/medios/${m.id}`), "Archivo eliminado")) !== undefined) { dlg.close(); alCambiar?.(); }
+          if ((await intentar(() => api("DELETE", `/api/panel/medios/${m.id}`), "Archivo eliminado")) !== undefined) { dlg.close(); alCambiar?.(); }
         },
       }, "Eliminar"),
       h("button", { onclick: () => dlg.close() }, "Cerrar"),
       h("button", {
         class: "primario",
         onclick: async () => {
-          const r = await intentar(() => api<Medio>("PATCH", `/api/admin/medios/${m.id}`, d), "Archivo actualizado");
+          const r = await intentar(() => api<Medio>("PATCH", `/api/panel/medios/${m.id}`, d), "Archivo actualizado");
           if (r) { dlg.close(); alCambiar?.(); }
         },
       }, "Guardar"),
     ]);
   // El modal edita un solo campo propio: no debe bloquear la navegación del editor que está detrás.
   dlg.addEventListener("close", () => { hayCambiosSinGuardar = false; });
-  const lista = await intentar(() => api<string[]>("GET", `/api/admin/medios/${m.id}/usos`));
+  const lista = await intentar(() => api<string[]>("GET", `/api/panel/medios/${m.id}/usos`));
   if (lista) vaciar(usos, lista.length ? h("ul", {}, lista.map((u) => h("li", {}, u))) : h("p", { class: "vacio" }, "No se usa en ninguna parte."));
 }
 
@@ -613,7 +613,7 @@ function campo<T extends object>(etiqueta: string, obj: T, clave: ClavesDe<T, st
   return h("div", { class: "campo" }, h("label", { for: id }, etiqueta, requerido ? " *" : ""), control, ayuda && h("p", { class: "ayuda" }, ayuda));
 }
 
-/** Entrada del control creado por campo() (para actualizarlo desde fuera, p. ej. el slug automático). */
+/** Entrada del control creado por campo() (para actualizarlo desde fuera, p. ej. el identificador automático). */
 const entradaDe = (contenedor: HTMLElement): HTMLInputElement => contenedor.querySelector("input, textarea") as HTMLInputElement;
 
 /** Interruptor accesible (checkbox con apariencia de switch). */
@@ -703,9 +703,9 @@ function editorGaleria(lista: Imagen[]): HTMLElement {
   function pintar(): void {
     vaciar(cont,
       h("div", { class: "galeria-editor" }, lista.map((img, i) => h("div", { class: "pieza" },
-        h("img", { src: urlMedio(img.medioId), alt: img.alt || "", loading: "lazy" }),
+        h("img", { src: urlMedio(img.medioId), textoAlternativo: img.textoAlternativo || "", loading: "lazy" }),
         h("div", { class: "pie" },
-          h("input", { type: "text", placeholder: "Texto alternativo", value: img.alt || "", oninput: (e) => { img.alt = e.target.value; marcarCambio(); } }),
+          h("input", { type: "text", placeholder: "Texto alternativo", value: img.textoAlternativo || "", oninput: (e) => { img.textoAlternativo = e.target.value; marcarCambio(); } }),
           h("div", { class: "acciones" },
             h("button", { type: "button", class: "mini", disabled: i === 0, "aria-label": "Mover antes", onclick: () => mover(i, -1) }, "←"),
             h("button", { type: "button", class: "mini", disabled: i === lista.length - 1, "aria-label": "Mover después", onclick: () => mover(i, 1) }, "→"),
@@ -715,7 +715,7 @@ function editorGaleria(lista: Imagen[]): HTMLElement {
         type: "button",
         onclick: async () => {
           const ms = await elegirMedios({ multiple: true });
-          if (ms?.length) { lista.push(...ms.map((m) => ({ medioId: m.id, alt: m.alt || "" }))); marcarCambio(); pintar(); }
+          if (ms?.length) { lista.push(...ms.map((m) => ({ medioId: m.id, textoAlternativo: m.textoAlternativo || "" }))); marcarCambio(); pintar(); }
         },
       }, "+ Agregar imágenes")));
   }
@@ -777,11 +777,11 @@ function pestanas(secciones: Seccion[]): HTMLElement {
   return raiz;
 }
 
-/** Cuando el usuario no ha tocado el slug, se genera a partir del nombre. */
-function slugAutomatico(obj: { slug: string }, campoSlug: HTMLElement, editando: boolean): (nombre: string) => void {
+/** Cuando el usuario no ha tocado el identificador, se genera a partir del nombre. */
+function slugAutomatico(obj: { identificador: string }, campoSlug: HTMLElement, editando: boolean): (nombre: string) => void {
   let tocado = editando;
   entradaDe(campoSlug).addEventListener("input", () => { tocado = true; });
-  return (nombre) => { if (!tocado) { obj.slug = slugDe(nombre); entradaDe(campoSlug).value = obj.slug; } };
+  return (nombre) => { if (!tocado) { obj.identificador = identificadorDe(nombre); entradaDe(campoSlug).value = obj.identificador; } };
 }
 
 // ─── Wikis ────────────────────────────────────────────────────────────────────
@@ -791,7 +791,7 @@ function buscador(placeholder: string, alCambiar: (texto: string) => void): HTML
 }
 
 async function vistaWikis(): Promise<HTMLElement> {
-  const [series, estados] = await Promise.all([api<SerieLista[]>("GET", "/api/admin/series"), api<Estado[]>("GET", "/api/admin/estados")]);
+  const [series, estados] = await Promise.all([api<SerieLista[]>("GET", "/api/panel/series"), api<Estado[]>("GET", "/api/panel/estados")]);
   const filtro = { texto: "", estado: "" };
   const cuerpo = h("tbody");
   const contador = h("p", { class: "ayuda" });
@@ -801,24 +801,24 @@ async function vistaWikis(): Promise<HTMLElement> {
       "aria-label": `Estado de ${s.nombre}`,
       onchange: async (e) => {
         const nuevo = Number(e.target.value);
-        const ok = await intentar(() => api("PATCH", `/api/admin/series/${s.id}/estado`, { estadoId: nuevo }), "Estado actualizado");
+        const ok = await intentar(() => api("PATCH", `/api/panel/series/${s.id}/estado`, { estadoId: nuevo }), "Estado actualizado");
         if (ok === undefined) e.target.value = String(s.estado.id);
         else s.estado = estados.find((x) => x.id === nuevo) ?? s.estado;
       },
     }, estados.map((x) => h("option", { value: x.id, selected: x.id === s.estado.id }, x.nombre)));
-    const publica = urlWikiPublica(s.slug);
+    const publica = urlWikiPublica(s.identificador);
     const visibilidad = interruptor(s.publicada ? "Publicada" : "Oculta", s.publicada, async (v, entrada) => {
-      const ok = await intentar(() => api("PATCH", `/api/admin/series/${s.id}/publicada`, { publicada: v }), v ? "Wiki publicada" : "Wiki oculta");
+      const ok = await intentar(() => api("PATCH", `/api/panel/series/${s.id}/visibilidad`, { publicada: v }), v ? "Wiki publicada" : "Wiki oculta");
       if (ok === undefined) { entrada.checked = !v; return; }
       s.publicada = v;
       (visibilidad as HTMLLabelElement & { rotulo: HTMLElement }).rotulo.textContent = v ? "Publicada" : "Oculta";
     });
     return h("tr", {},
       h("td", { class: "miniatura" }, s.portada ? h("img", { src: s.portada, alt: "", loading: "lazy" }) : null),
-      h("td", {}, h("a", { class: "titulo-fila", href: `#/wikis/${s.id}` }, s.nombre), h("div", { class: "ayuda" }, `/wiki/${s.slug}`)),
+      h("td", {}, h("a", { class: "titulo-fila", href: `#/wikis/${s.id}` }, s.nombre), h("div", { class: "ayuda" }, `/wiki/${s.identificador}`)),
       h("td", {}, selEstado),
       h("td", {}, visibilidad),
-      h("td", { class: "ayuda" }, fecha(s.actualizadoEn)),
+      h("td", { class: "ayuda" }, fecha(s.actualizadaEn)),
       h("td", {}, h("div", { class: "acciones" },
         h("a", { class: "boton mini primario", href: `#/wikis/${s.id}` }, "Editar"),
         publica && h("a", { class: "boton mini", href: publica, target: "_blank", rel: "noopener" }, "Ver ↗"),
@@ -826,14 +826,14 @@ async function vistaWikis(): Promise<HTMLElement> {
           class: "mini peligro",
           onclick: async () => {
             if (!(await confirmar(`¿Eliminar la wiki «${s.nombre}» con todos sus personajes, equipo y galerías? No se puede deshacer.`, { boton: "Eliminar wiki" }))) return;
-            if ((await intentar(() => api("DELETE", `/api/admin/series/${s.id}`), "Wiki eliminada")) !== undefined) render();
+            if ((await intentar(() => api("DELETE", `/api/panel/series/${s.id}`), "Wiki eliminada")) !== undefined) render();
           },
         }, "Eliminar"))));
   }
 
   function pintar(): void {
     const visibles = series.filter((s) =>
-      (!filtro.texto || normalizar(`${s.nombre} ${s.slug}`).includes(filtro.texto)) &&
+      (!filtro.texto || normalizar(`${s.nombre} ${s.identificador}`).includes(filtro.texto)) &&
       (!filtro.estado || String(s.estado.id) === filtro.estado));
     vaciar(cuerpo, visibles.length ? visibles.map(fila) : h("tr", {}, h("td", { colspan: 6, class: "vacio" }, "Ninguna wiki coincide con el filtro.")));
     contador.textContent = `Mostrando ${visibles.length} de ${series.length}`;
@@ -856,29 +856,29 @@ async function vistaWikis(): Promise<HTMLElement> {
 }
 
 const wikiVacia = (estadoId: number): SerieEdicion => ({
-  id: null, slug: "", nombre: "", sinopsis: "", estadoId, portadaId: null, bannerId: null, logoId: null,
-  videoUrl: "", videoLocalId: null,
+  id: null, identificador: "", nombre: "", sinopsis: "", estadoId, portadaId: null, cabeceraId: null, logoId: null,
+  urlVideo: "", videoPropioId: null,
   creador: { nombre: "", descripcion: "", imagenId: null, redes: [], obras: [] },
   redes: [], apoyo: [], carrusel: [], galeria: [], personajes: [], equipo: [], orden: 100, publicada: false,
 });
 
 async function vistaEditorWiki(id: number | null): Promise<HTMLElement> {
-  const estados = await api<Estado[]>("GET", "/api/admin/estados");
+  const estados = await api<Estado[]>("GET", "/api/panel/estados");
   if (id == null && !puedeCrearWikis()) throw new Error("No tienes permiso para crear wikis. Pídeselo a YishAdmin.");
-  const d = id == null ? wikiVacia(estados[0]?.id ?? 0) : await api<SerieEdicion>("GET", `/api/admin/series/${id}`);
+  const d = id == null ? wikiVacia(estados[0]?.id ?? 0) : await api<SerieEdicion>("GET", `/api/panel/series/${id}`);
   d.redes ??= []; d.apoyo ??= []; d.carrusel ??= []; d.galeria ??= []; d.personajes ??= []; d.equipo ??= [];
   d.creador ??= { nombre: "", descripcion: "", imagenId: null, redes: [], obras: [] };
   d.creador.redes ??= []; d.creador.obras ??= [];
 
   // General
-  const campoSlug = campo("Identificador (URL)", d, "slug", { requerido: true, ayuda: "Aparece en /wiki/<identificador>. Solo minúsculas, números y guiones." });
+  const campoSlug = campo("Identificador (URL)", d, "identificador", { requerido: true, ayuda: "Aparece en /wiki/<identificador>. Solo minúsculas, números y guiones." });
   const alCambiarNombre = slugAutomatico(d, campoSlug, id != null);
   const etiquetaVivo = h("span");
   const pintarEstado = (): void => { const e = estados.find((x) => x.id === d.estadoId); vaciar(etiquetaVivo, e ? etiquetaEstado(e) : ""); };
   pintarEstado();
   const previaVideo = h("div");
   const pintarVideo = (): void => {
-    const url = (d.videoUrl ?? "").trim();
+    const url = (d.urlVideo ?? "").trim();
     const embed = urlYoutubeEmbed(url);
     vaciar(previaVideo, embed
       ? h("div", { class: "video-previa" }, h("iframe", { src: embed, title: "Vista previa del video", allowfullscreen: true, loading: "lazy" }))
@@ -895,9 +895,9 @@ async function vistaEditorWiki(id: number | null): Promise<HTMLElement> {
         h("p", { class: "ayuda" }, "Así se verá: ", etiquetaVivo)),
       campo("Orden en la portada", d, "orden", { tipo: "number", ayuda: "Menor = aparece antes." })),
     campo("Sinopsis", d, "sinopsis", { multilinea: true }),
-    campo("Video de YouTube", d, "videoUrl", {
+    campo("Video de YouTube", d, "urlVideo", {
       tipo: "url", ayuda: "Pega el enlace del video (watch, youtu.be o embed); se convierte al formato de inserción.",
-      alCambiar: (v) => { const e = urlYoutubeEmbed(v); if (e) d.videoUrl = e; pintarVideo(); },
+      alCambiar: (v) => { const e = urlYoutubeEmbed(v); if (e) d.urlVideo = e; pintarVideo(); },
     }),
     previaVideo,
     h("div", { class: "campo" }, interruptor("Publicada (visible en el sitio)", d.publicada, (v) => { d.publicada = v; marcarCambio(); })));
@@ -906,9 +906,9 @@ async function vistaEditorWiki(id: number | null): Promise<HTMLElement> {
     h("p", { class: "ayuda" }, "Haz clic en un recuadro para elegir o subir la imagen."),
     h("div", { class: "rejilla" },
       selectorImagen("Tarjeta de portada", d, "portadaId"),
-      selectorImagen("Banner", d, "bannerId"),
+      selectorImagen("Banner", d, "cabeceraId"),
       selectorImagen("Logo", d, "logoId"),
-      selectorImagen("Video propio (opcional)", d, "videoLocalId", { video: true })));
+      selectorImagen("Video propio (opcional)", d, "videoPropioId", { video: true })));
 
   const creador = h("div", { class: "tarjeta" },
     h("div", { class: "rejilla" }, campo("Nombre", d.creador, "nombre"), selectorImagen("Foto", d.creador, "imagenId")),
@@ -961,17 +961,17 @@ async function vistaEditorWiki(id: number | null): Promise<HTMLElement> {
       e.preventDefault();
       guardar.disabled = true;
       const cuerpo = clonar(d);
-      const r = await intentar(() => id == null ? api<SerieEdicion>("POST", "/api/admin/series", cuerpo) : api<SerieEdicion>("PUT", `/api/admin/series/${id}`, cuerpo),
+      const r = await intentar(() => id == null ? api<SerieEdicion>("POST", "/api/panel/series", cuerpo) : api<SerieEdicion>("PUT", `/api/panel/series/${id}`, cuerpo),
         id == null ? "Wiki creada" : "Cambios guardados");
       guardar.disabled = false;
       if (!r) return;
       hayCambiosSinGuardar = false;
       if (id == null) {
         // Al crear, el usuario recibe permiso sobre la wiki: se refresca el perfil.
-        if (sesion) { sesion.usuario = await api<Perfil>("GET", "/api/auth/yo"); almacen.guardar(sesion); }
+        if (sesion) { sesion.usuario = await api<Perfil>("GET", "/api/sesion/perfil"); almacen.guardar(sesion); }
         location.hash = `#/wikis/${r.id}`;
       } else {
-        d.actualizadoEn = r.actualizadoEn ?? null;
+        d.actualizadaEn = r.actualizadaEn ?? null;
       }
     },
   },
@@ -981,7 +981,7 @@ async function vistaEditorWiki(id: number | null): Promise<HTMLElement> {
       ["Carrusel", carrusel, () => d.carrusel.length], ["Galería", galeria, () => d.galeria.length]]),
     h("div", { class: "barra-guardar" }, indicadorGuardado(), h("a", { class: "boton", href: "#/wikis" }, "Volver"), guardar));
 
-  const publica = id != null ? urlWikiPublica(d.slug) : null;
+  const publica = id != null ? urlWikiPublica(d.identificador) : null;
   return h("div", {},
     cabecera(id == null ? "Nueva wiki" : d.nombre,
       [publica && h("a", { class: "boton", href: publica, target: "_blank", rel: "noopener" }, "Ver en el sitio ↗")],
@@ -992,13 +992,13 @@ async function vistaEditorWiki(id: number | null): Promise<HTMLElement> {
 // ─── Socios ───────────────────────────────────────────────────────────────────
 
 async function vistaSocios(): Promise<HTMLElement> {
-  const socios = await api<SocioLista[]>("GET", "/api/admin/socios");
+  const socios = await api<SocioLista[]>("GET", "/api/panel/socios");
   const cuerpo = h("tbody");
   let texto = "";
 
   const fila = (s: SocioLista): HTMLElement => h("tr", {},
     h("td", { class: "miniatura" }, s.imagen ? h("img", { src: s.imagen, alt: "", loading: "lazy" }) : null),
-    h("td", {}, h("a", { class: "titulo-fila", href: `#/socios/${s.id}` }, s.nombre), h("div", { class: "ayuda" }, s.slug)),
+    h("td", {}, h("a", { class: "titulo-fila", href: `#/socios/${s.id}` }, s.nombre), h("div", { class: "ayuda" }, s.identificador)),
     h("td", {}, h("span", { class: `chip ${s.publicado ? "ok" : "off"}` }, s.publicado ? "Publicado" : "Oculto")),
     h("td", {}, s.orden),
     h("td", {}, h("div", { class: "acciones" },
@@ -1007,12 +1007,12 @@ async function vistaSocios(): Promise<HTMLElement> {
         class: "mini peligro",
         onclick: async () => {
           if (!(await confirmar(`¿Eliminar a «${s.nombre}»?`, { boton: "Eliminar" }))) return;
-          if ((await intentar(() => api("DELETE", `/api/admin/socios/${s.id}`), "Socio eliminado")) !== undefined) render();
+          if ((await intentar(() => api("DELETE", `/api/panel/socios/${s.id}`), "Socio eliminado")) !== undefined) render();
         },
       }, "Eliminar"))));
 
   function pintar(): void {
-    const visibles = socios.filter((s) => !texto || normalizar(`${s.nombre} ${s.slug}`).includes(texto));
+    const visibles = socios.filter((s) => !texto || normalizar(`${s.nombre} ${s.identificador}`).includes(texto));
     vaciar(cuerpo, visibles.length ? visibles.map(fila) : h("tr", {}, h("td", { colspan: 5, class: "vacio" }, "Ningún socio coincide.")));
   }
   pintar();
@@ -1029,13 +1029,13 @@ async function vistaSocios(): Promise<HTMLElement> {
 
 async function vistaEditorSocio(id: number | null): Promise<HTMLElement> {
   const [series, d] = await Promise.all([
-    api<SerieLista[]>("GET", "/api/admin/series"),
+    api<SerieLista[]>("GET", "/api/panel/series"),
     id == null
-      ? Promise.resolve<SocioEdicion>({ id: null, slug: "", nombre: "", descripcion: "", imagenId: null, orden: 100, publicado: true, redes: [], serieIds: [] })
-      : api<SocioEdicion>("GET", `/api/admin/socios/${id}`),
+      ? Promise.resolve<SocioEdicion>({ id: null, identificador: "", nombre: "", descripcion: "", imagenId: null, orden: 100, publicado: true, redes: [], serieIds: [] })
+      : api<SocioEdicion>("GET", `/api/panel/socios/${id}`),
   ]);
   d.redes ??= []; d.serieIds ??= [];
-  const campoSlug = campo("Identificador", d, "slug", { requerido: true });
+  const campoSlug = campo("Identificador", d, "identificador", { requerido: true });
   const alCambiarNombre = slugAutomatico(d, campoSlug, id != null);
 
   const guardar = h("button", { class: "primario", type: "submit" }, id == null ? "Crear asociado" : "Guardar cambios");
@@ -1045,7 +1045,7 @@ async function vistaEditorSocio(id: number | null): Promise<HTMLElement> {
       onsubmit: async (e) => {
         e.preventDefault();
         guardar.disabled = true;
-        const r = await intentar(() => id == null ? api<SocioEdicion>("POST", "/api/admin/socios", d) : api<SocioEdicion>("PUT", `/api/admin/socios/${id}`, d),
+        const r = await intentar(() => id == null ? api<SocioEdicion>("POST", "/api/panel/socios", d) : api<SocioEdicion>("PUT", `/api/panel/socios/${id}`, d),
           id == null ? "Asociado creado" : "Cambios guardados");
         guardar.disabled = false;
         if (r) { hayCambiosSinGuardar = false; if (id == null) location.hash = `#/socios/${r.id}`; }
@@ -1072,7 +1072,7 @@ async function vistaEditorSocio(id: number | null): Promise<HTMLElement> {
 // ─── Estados ──────────────────────────────────────────────────────────────────
 
 async function vistaEstados(): Promise<HTMLElement> {
-  const estados = await api<Estado[]>("GET", "/api/admin/estados");
+  const estados = await api<Estado[]>("GET", "/api/panel/estados");
   const editable = puede("Estados");
 
   function formulario(e: Estado | null): void {
@@ -1080,7 +1080,7 @@ async function vistaEstados(): Promise<HTMLElement> {
     const muestra = etiquetaEstado(d);
     const color = h("input", { type: "color", value: d.color, "aria-label": "Color", oninput: (ev) => { d.color = ev.target.value; muestra.style.background = d.color; } });
     const cod = campo("Código", d, "codigo", { requerido: true, ayuda: "Identificador estable para el frontend (ej: en-emision)." });
-    const alCambiarNombre = slugAutomatico({ get slug() { return d.codigo; }, set slug(v: string) { d.codigo = v; } }, cod, e != null);
+    const alCambiarNombre = slugAutomatico({ get identificador() { return d.codigo; }, set identificador(v: string) { d.codigo = v; } }, cod, e != null);
     const dlg = modal(e ? `Editar estado «${e.nombre}»` : "Nuevo estado", h("div", {},
       campo("Nombre visible", d, "nombre", { requerido: true, alCambiar: (v) => { alCambiarNombre(v); muestra.textContent = v || "Vista previa"; } }),
       cod,
@@ -1091,7 +1091,7 @@ async function vistaEstados(): Promise<HTMLElement> {
         h("button", {
           class: "primario",
           onclick: async () => {
-            const r = await intentar(() => e ? api<Estado>("PUT", `/api/admin/estados/${e.id}`, d) : api<Estado>("POST", "/api/admin/estados", d), "Estado guardado");
+            const r = await intentar(() => e ? api<Estado>("PUT", `/api/panel/estados/${e.id}`, d) : api<Estado>("POST", "/api/panel/estados", d), "Estado guardado");
             if (r) { hayCambiosSinGuardar = false; dlg.close(); render(); }
           },
         }, "Guardar")], { estrecho: true });
@@ -1112,7 +1112,7 @@ async function vistaEstados(): Promise<HTMLElement> {
               class: "mini peligro",
               onclick: async () => {
                 if (!(await confirmar(`¿Eliminar el estado «${e.nombre}»?`, { boton: "Eliminar" }))) return;
-                if ((await intentar(() => api("DELETE", `/api/admin/estados/${e.id}`), "Estado eliminado")) !== undefined) render();
+                if ((await intentar(() => api("DELETE", `/api/panel/estados/${e.id}`), "Estado eliminado")) !== undefined) render();
               },
             }, "Eliminar"))))))))));
 }
@@ -1131,11 +1131,11 @@ function vistaMedios(): HTMLElement {
 // ─── Usuarios y permisos (solo superadmin) ────────────────────────────────────
 
 function chipsPermisos(u: UsuarioLista): Hijo {
-  if (u.esSuperAdmin) return h("span", { class: "chip sa" }, "Todo (superadmin)");
+  if (u.esSuperadmin) return h("span", { class: "chip sa" }, "Todo (superadmin)");
   const chips: HTMLElement[] = [];
   if (u.puedeCrearWikis) chips.push(h("span", { class: "chip" }, "Crear wikis"));
   for (const p of u.permisos) {
-    chips.push(h("span", { class: "chip" }, p.ambito === "Wikis" ? (p.serieId ? `Wiki: ${p.serieNombre}` : "Todas las wikis") : NOMBRES_AMBITO[p.ambito]));
+    chips.push(h("span", { class: "chip" }, p.area === "Wikis" ? (p.serieId ? `Wiki: ${p.serieNombre}` : "Todas las wikis") : NOMBRES_AMBITO[p.area]));
   }
   return chips.length ? chips : h("span", { class: "vacio" }, "Sin permisos");
 }
@@ -1144,11 +1144,11 @@ interface EstadoPermisos { puedeCrearWikis: boolean; permisos: Permiso[] }
 
 /** Controles de permisos; modifica estado.permisos en sitio. */
 function editorPermisos(estado: EstadoPermisos, series: SerieLista[]): HTMLElement {
-  const tiene = (ambito: Ambito, serieId: number | null = null): boolean =>
-    estado.permisos.some((p) => p.ambito === ambito && (p.serieId ?? null) === serieId);
-  const poner = (ambito: Ambito, serieId: number | null, si: boolean): void => {
-    estado.permisos = estado.permisos.filter((p) => !(p.ambito === ambito && (p.serieId ?? null) === serieId));
-    if (si) estado.permisos.push({ ambito, serieId });
+  const tiene = (area: Area, serieId: number | null = null): boolean =>
+    estado.permisos.some((p) => p.area === area && (p.serieId ?? null) === serieId);
+  const poner = (area: Area, serieId: number | null, si: boolean): void => {
+    estado.permisos = estado.permisos.filter((p) => !(p.area === area && (p.serieId ?? null) === serieId));
+    if (si) estado.permisos.push({ area, serieId });
   };
   const listaWikis = h("div", { class: "permisos-wikis" }, series.length
     ? series.map((s) => h("label", { class: "check" },
@@ -1159,7 +1159,7 @@ function editorPermisos(estado: EstadoPermisos, series: SerieLista[]): HTMLEleme
     onchange: (e) => { poner("Wikis", null, e.target.checked); listaWikis.classList.toggle("oculto", e.target.checked); },
   });
   listaWikis.classList.toggle("oculto", tiene("Wikis"));
-  const otras: Ambito[] = ["Socios", "Estados", "Medios", "Sitio"];
+  const otras: Area[] = ["Socios", "Estados", "Medios", "Sitio"];
 
   return h("div", {},
     h("h3", {}, "Crear wikis"),
@@ -1174,16 +1174,16 @@ function editorPermisos(estado: EstadoPermisos, series: SerieLista[]): HTMLEleme
 }
 
 async function vistaUsuarios(): Promise<HTMLElement> {
-  const [usuarios, series] = await Promise.all([api<UsuarioLista[]>("GET", "/api/admin/usuarios"), api<SerieLista[]>("GET", "/api/admin/series")]);
+  const [usuarios, series] = await Promise.all([api<UsuarioLista[]>("GET", "/api/panel/usuarios"), api<SerieLista[]>("GET", "/api/panel/series")]);
 
   function nuevo(): void {
-    const d = { username: "", nombreVisible: "", email: "", password: "", origen: "Local" as Origen, puedeCrearWikis: false, permisos: [] as Permiso[] };
+    const d = { nombreUsuario: "", nombreVisible: "", correo: "", contrasena: "", origen: "Local" as Origen, puedeCrearWikis: false, permisos: [] as Permiso[] };
     const dlg = modal("Nuevo usuario administrativo", h("div", {},
       h("div", { class: "rejilla" },
-        campo("Usuario", d, "username", { requerido: true, ayuda: "3-64 caracteres: letras, números, punto o guion." }),
+        campo("Usuario", d, "nombreUsuario", { requerido: true, ayuda: "3-64 caracteres: letras, números, punto o guion." }),
         campo("Nombre visible", d, "nombreVisible", { requerido: true }),
-        campo("Correo", d, "email", { tipo: "email" }),
-        campo("Contraseña inicial", d, "password", { tipo: "password", requerido: true, ayuda: "Mínimo 10 caracteres, con letras y números." })),
+        campo("Correo", d, "correo", { tipo: "email" }),
+        campo("Contraseña inicial", d, "contrasena", { tipo: "password", requerido: true, ayuda: "Mínimo 10 caracteres, con letras y números." })),
       h("div", { class: "campo" }, h("label", {}, "Origen de la cuenta"),
         h("select", { onchange: (e) => { d.origen = e.target.value as Origen; } },
           h("option", { value: "Local" }, "Local (contraseña en la base de datos)"),
@@ -1193,7 +1193,7 @@ async function vistaUsuarios(): Promise<HTMLElement> {
         h("button", {
           class: "primario",
           onclick: async () => {
-            const r = await intentar(() => api("POST", "/api/admin/usuarios", { ...d, email: d.email || null }), "Usuario creado");
+            const r = await intentar(() => api("POST", "/api/panel/usuarios", { ...d, correo: d.correo || null }), "Usuario creado");
             if (r) { hayCambiosSinGuardar = false; dlg.close(); render(); }
           },
         }, "Crear usuario")]);
@@ -1201,29 +1201,29 @@ async function vistaUsuarios(): Promise<HTMLElement> {
   }
 
   function editar(u: UsuarioLista): void {
-    const d = { nombreVisible: u.nombreVisible, email: u.email ?? "", activo: u.activo, puedeCrearWikis: u.puedeCrearWikis, permisos: clonar(u.permisos) };
-    const pass = { password: "" };
-    const dlg = modal(`Usuario ${u.username}`, h("div", {},
+    const d = { nombreVisible: u.nombreVisible, correo: u.correo ?? "", activo: u.activo, puedeCrearWikis: u.puedeCrearWikis, permisos: clonar(u.permisos) };
+    const pass = { contrasena: "" };
+    const dlg = modal(`Usuario ${u.nombreUsuario}`, h("div", {},
       h("div", { class: "tarjeta" }, h("h2", {}, "Datos"),
-        h("div", { class: "rejilla" }, campo("Nombre visible", d, "nombreVisible", { requerido: true }), campo("Correo", d, "email", { tipo: "email" })),
-        !u.esSuperAdmin && h("div", { class: "campo" }, interruptor("Cuenta activa", d.activo, (v) => { d.activo = v; })),
-        !u.esSuperAdmin && h("p", { class: "ayuda" }, "Desactivar la cuenta cierra sus sesiones abiertas" + (u.origen === "Ldap" ? " y la bloquea en el directorio." : ".")),
+        h("div", { class: "rejilla" }, campo("Nombre visible", d, "nombreVisible", { requerido: true }), campo("Correo", d, "correo", { tipo: "email" })),
+        !u.esSuperadmin && h("div", { class: "campo" }, interruptor("Cuenta activa", d.activo, (v) => { d.activo = v; })),
+        !u.esSuperadmin && h("p", { class: "ayuda" }, "Desactivar la cuenta cierra sus sesiones abiertas" + (u.origen === "Ldap" ? " y la bloquea en el directorio." : ".")),
         h("p", { class: "ayuda" }, `Origen: ${u.origen} · Creado: ${fecha(u.creadoEn)} · Último acceso: ${fecha(u.ultimoAcceso)}`)),
-      !u.esSuperAdmin && h("div", { class: "tarjeta" }, h("h2", {}, "Permisos"), editorPermisos(d, series)),
+      !u.esSuperadmin && h("div", { class: "tarjeta" }, h("h2", {}, "Permisos"), editorPermisos(d, series)),
       h("div", { class: "tarjeta" }, h("h2", {}, "Restablecer contraseña"),
-        campo("Nueva contraseña", pass, "password", { tipo: "password", ayuda: "Cierra las sesiones abiertas del usuario." }),
+        campo("Nueva contraseña", pass, "contrasena", { tipo: "password", ayuda: "Cierra las sesiones abiertas del usuario." }),
         h("div", { class: "acciones" },
           h("button", {
             onclick: async () => {
-              if ((await intentar(() => api("POST", `/api/admin/usuarios/${u.id}/password`, pass), "Contraseña restablecida")) !== undefined) pass.password = "";
+              if ((await intentar(() => api("POST", `/api/panel/usuarios/${u.id}/contrasena`, pass), "Contraseña restablecida")) !== undefined) pass.contrasena = "";
             },
           }, "Restablecer"),
-          u.origen === "Ldap" && h("button", { onclick: () => void intentar(() => api("POST", `/api/admin/usuarios/${u.id}/sincronizar-ldap`), "Grupos LDAP sincronizados") }, "Resincronizar LDAP"))),
-      !u.esSuperAdmin && h("button", {
+          u.origen === "Ldap" && h("button", { onclick: () => void intentar(() => api("POST", `/api/panel/usuarios/${u.id}/sincronizar-ldap`), "Grupos LDAP sincronizados") }, "Resincronizar LDAP"))),
+      !u.esSuperadmin && h("button", {
         class: "peligro",
         onclick: async () => {
-          if (!(await confirmar(`¿Eliminar la cuenta ${u.username}? Si solo quieres bloquearla, desactívala.`, { boton: "Eliminar cuenta" }))) return;
-          if ((await intentar(() => api("DELETE", `/api/admin/usuarios/${u.id}`), "Usuario eliminado")) !== undefined) { dlg.close(); render(); }
+          if (!(await confirmar(`¿Eliminar la cuenta ${u.nombreUsuario}? Si solo quieres bloquearla, desactívala.`, { boton: "Eliminar cuenta" }))) return;
+          if ((await intentar(() => api("DELETE", `/api/panel/usuarios/${u.id}`), "Usuario eliminado")) !== undefined) { dlg.close(); render(); }
         },
       }, "Eliminar cuenta")),
       [h("button", { onclick: () => dlg.close() }, "Cerrar"),
@@ -1231,8 +1231,8 @@ async function vistaUsuarios(): Promise<HTMLElement> {
           class: "primario",
           onclick: async () => {
             const ok = await intentar(async () => {
-              await api("PUT", `/api/admin/usuarios/${u.id}`, { nombreVisible: d.nombreVisible, email: d.email || null, activo: d.activo, puedeCrearWikis: d.puedeCrearWikis });
-              if (!u.esSuperAdmin) await api("PUT", `/api/admin/usuarios/${u.id}/permisos`, d.permisos);
+              await api("PUT", `/api/panel/usuarios/${u.id}`, { nombreVisible: d.nombreVisible, correo: d.correo || null, activo: d.activo, puedeCrearWikis: d.puedeCrearWikis });
+              if (!u.esSuperadmin) await api("PUT", `/api/panel/usuarios/${u.id}/permisos`, d.permisos);
               return true;
             }, "Usuario actualizado");
             if (ok) { hayCambiosSinGuardar = false; dlg.close(); render(); }
@@ -1248,7 +1248,7 @@ async function vistaUsuarios(): Promise<HTMLElement> {
       h("div", { class: "tabla-envoltura" }, h("table", {},
         h("thead", {}, h("tr", {}, h("th", {}, "Usuario"), h("th", {}, "Origen"), h("th", {}, "Estado"), h("th", {}, "Permisos"), h("th", {}, ""))),
         h("tbody", {}, usuarios.map((u) => h("tr", {},
-          h("td", {}, h("span", { class: "titulo-fila" }, u.username), h("div", { class: "ayuda" }, u.nombreVisible)),
+          h("td", {}, h("span", { class: "titulo-fila" }, u.nombreUsuario), h("div", { class: "ayuda" }, u.nombreVisible)),
           h("td", {}, u.origen),
           h("td", {}, h("span", { class: `chip ${u.activo ? "ok" : "off"}` }, u.activo ? "Activo" : "Desactivado")),
           h("td", {}, chipsPermisos(u)),
@@ -1262,12 +1262,12 @@ async function vistaAuditoria(): Promise<HTMLElement> {
   const paginador = h("div", { class: "paginador" });
   let pagina = 1;
   async function cargar(): Promise<void> {
-    const r = await intentar(() => api<Pagina<RegistroAuditoria>>("GET", `/api/admin/auditoria?pagina=${pagina}&tamano=50`));
+    const r = await intentar(() => api<Pagina<RegistroAuditoria>>("GET", `/api/panel/auditoria?pagina=${pagina}&tamano=50`));
     if (!r) return;
-    vaciar(tabla, r.items.length ? r.items.map((a) => h("tr", {},
-      h("td", { class: "ayuda" }, fecha(a.fecha)), h("td", {}, a.username), h("td", {}, a.accion), h("td", {}, a.entidad), h("td", {}, a.detalle || a.entidadId || "")))
+    vaciar(tabla, r.elementos.length ? r.elementos.map((a) => h("tr", {},
+      h("td", { class: "ayuda" }, fecha(a.fecha)), h("td", {}, a.nombreUsuario), h("td", {}, a.accion), h("td", {}, a.entidad), h("td", {}, a.detalle || "")))
       : h("tr", {}, h("td", { colspan: 5, class: "vacio" }, "Sin registros.")));
-    const paginas = Math.max(1, Math.ceil(r.total / r.tamanoPagina));
+    const paginas = Math.max(1, Math.ceil(r.total / r.tamano));
     vaciar(paginador,
       h("button", { class: "mini", disabled: pagina <= 1, onclick: () => { pagina--; void cargar(); } }, "‹ Anterior"),
       `Página ${pagina} de ${paginas}`,
@@ -1283,34 +1283,34 @@ async function vistaAuditoria(): Promise<HTMLElement> {
 // ─── Mi cuenta ────────────────────────────────────────────────────────────────
 
 function vistaCuenta(): HTMLElement {
-  const d = { passwordActual: "", passwordNueva: "", repetir: "" };
+  const d = { contrasenaActual: "", contrasenaNueva: "", repetir: "" };
   const u = perfil();
   return h("div", {},
     cabecera("Mi cuenta"),
     h("div", { class: "tarjeta" }, h("h2", {}, "Datos"),
-      h("p", {}, h("strong", {}, u.nombreVisible), ` · ${u.username} · origen ${u.origen}`),
-      h("p", { class: "ayuda" }, u.esSuperAdmin ? "Eres el superadministrador." : "Tus permisos los gestiona YishAdmin.")),
+      h("p", {}, h("strong", {}, u.nombreVisible), ` · ${u.nombreUsuario} · origen ${u.origen}`),
+      h("p", { class: "ayuda" }, u.esSuperadmin ? "Eres el superadministrador." : "Tus permisos los gestiona YishAdmin.")),
     h("form", {
       class: "tarjeta",
       onsubmit: async (e) => {
         e.preventDefault();
-        if (d.passwordNueva !== d.repetir) { aviso("Las contraseñas nuevas no coinciden.", "error"); return; }
-        const s = await intentar(() => api<Sesion>("POST", "/api/auth/cambiar-password", { passwordActual: d.passwordActual, passwordNueva: d.passwordNueva }),
+        if (d.contrasenaNueva !== d.repetir) { aviso("Las contraseñas nuevas no coinciden.", "error"); return; }
+        const s = await intentar(() => api<Sesion>("POST", "/api/sesion/cambiar-contrasena", { contrasenaActual: d.contrasenaActual, contrasenaNueva: d.contrasenaNueva }),
           "Contraseña cambiada. Se cerraron tus otras sesiones.");
         if (s) { sesion = s; almacen.guardar(s); hayCambiosSinGuardar = false; (e.target as HTMLFormElement).reset(); }
       },
     },
       h("h2", {}, "Cambiar contraseña"),
-      campo("Contraseña actual", d, "passwordActual", { tipo: "password", requerido: true }),
-      campo("Nueva contraseña", d, "passwordNueva", { tipo: "password", requerido: true, ayuda: "Mínimo 10 caracteres, con letras y números." }),
+      campo("Contraseña actual", d, "contrasenaActual", { tipo: "password", requerido: true }),
+      campo("Nueva contraseña", d, "contrasenaNueva", { tipo: "password", requerido: true, ayuda: "Mínimo 10 caracteres, con letras y números." }),
       campo("Repetir nueva contraseña", d, "repetir", { tipo: "password", requerido: true }),
       h("button", { class: "primario", type: "submit" }, "Cambiar contraseña")));
 }
 
 // ─── Notificaciones de postulaciones (solo superadmin) ─────────────────────────
 
-const insigniaSolicitudes = h("span", { class: "insignia oculto", "aria-label": "Solicitudes nuevas" });
-let ultimasPendientes: Pendientes = { nuevas: 0, ultimaId: null, ultimoNombre: null, ultimaFecha: null };
+const insigniaPostulaciones = h("span", { class: "insignia oculto", "aria-label": "Postulaciones nuevas" });
+let ultimasPendientes: Pendientes = { nuevas: 0, ultimaId: null, ultimoNombre: null, };
 let temporizadorNotificaciones: number | undefined;
 const tituloBase = document.title;
 
@@ -1320,12 +1320,12 @@ function iniciarNotificaciones(): void {
   if (!esSA()) return;
   let ultimaVista: number | null = null;
   const revisar = async (): Promise<void> => {
-    if (!sesion?.usuario.esSuperAdmin) { clearInterval(temporizadorNotificaciones); return; }
+    if (!sesion?.usuario.esSuperadmin) { clearInterval(temporizadorNotificaciones); return; }
     let p: Pendientes;
-    try { p = await api<Pendientes>("GET", "/api/admin/solicitudes/pendientes"); } catch { return; }
+    try { p = await api<Pendientes>("GET", "/api/panel/postulaciones/pendientes"); } catch { return; }
     if (ultimaVista !== null && p.ultimaId !== null && p.ultimaId > ultimaVista) {
       aviso(`Nueva postulación de ${p.ultimoNombre ?? "alguien"}. Revísala en Solicitudes.`, "ok");
-      if (location.hash === "#/solicitudes" && !hayCambiosSinGuardar) render();
+      if (location.hash === "#/postulaciones" && !hayCambiosSinGuardar) render();
     }
     ultimaVista = Math.max(ultimaVista ?? 0, p.ultimaId ?? 0);
     actualizarInsignia(p);
@@ -1336,13 +1336,13 @@ function iniciarNotificaciones(): void {
 
 function actualizarInsignia(p: Pendientes): void {
   ultimasPendientes = p;
-  insigniaSolicitudes.textContent = p.nuevas > 99 ? "99+" : String(p.nuevas);
-  insigniaSolicitudes.classList.toggle("oculto", p.nuevas === 0);
+  insigniaPostulaciones.textContent = p.nuevas > 99 ? "99+" : String(p.nuevas);
+  insigniaPostulaciones.classList.toggle("oculto", p.nuevas === 0);
   document.title = p.nuevas > 0 ? `(${p.nuevas}) ${tituloBase}` : tituloBase;
 }
 
 async function refrescarPendientes(): Promise<void> {
-  try { actualizarInsignia(await api<Pendientes>("GET", "/api/admin/solicitudes/pendientes")); } catch { /* se reintenta en el próximo ciclo */ }
+  try { actualizarInsignia(await api<Pendientes>("GET", "/api/panel/postulaciones/pendientes")); } catch { /* se reintenta en el próximo ciclo */ }
 }
 
 // ─── Textos del sitio ─────────────────────────────────────────────────────────
@@ -1378,7 +1378,7 @@ function controlCampoSitio(c: CampoSitio): HTMLElement {
       return Object.assign(el, { sincronizar: () => { c.valor = holder.id ?? ""; } });
     }
     case "ListaImagenes": {
-      const imagenes: Imagen[] = c.valor.split(",").filter(Boolean).map((id) => ({ medioId: id, alt: "" }));
+      const imagenes: Imagen[] = c.valor.split(",").filter(Boolean).map((id) => ({ medioId: id, textoAlternativo: "" }));
       const el = h("div", { class: "campo" }, h("label", {}, c.etiqueta), editorGaleria(imagenes));
       return Object.assign(el, { sincronizar: () => { c.valor = imagenes.map((i) => i.medioId).join(","); } });
     }
@@ -1387,9 +1387,9 @@ function controlCampoSitio(c: CampoSitio): HTMLElement {
 }
 
 async function vistaSitio(): Promise<HTMLElement> {
-  const campos = await api<CampoSitio[]>("GET", "/api/admin/sitio");
+  const campos = await api<CampoSitio[]>("GET", "/api/panel/sitio");
   const enlaces = Object.fromEntries(await Promise.all(GRUPOS_ENLACES.map(async ([g]) =>
-    [g, await api<EnlaceSitio[]>("GET", `/api/admin/sitio/enlaces/${g}`)] as const)));
+    [g, await api<EnlaceSitio[]>("GET", `/api/panel/sitio/enlaces/${g}`)] as const)));
   const controles: (HTMLElement & { sincronizar?: () => void })[] = [];
   const grupos = [...new Set(campos.map((c) => c.grupo))];
 
@@ -1408,8 +1408,8 @@ async function vistaSitio(): Promise<HTMLElement> {
         controles.forEach((c) => c.sincronizar?.());
         guardar.disabled = true;
         const ok = await intentar(async () => {
-          await api("PUT", "/api/admin/sitio", campos.map((c) => ({ clave: c.clave, valor: c.valor })));
-          for (const [g] of GRUPOS_ENLACES) await api("PUT", `/api/admin/sitio/enlaces/${g}`, (enlaces[g] ?? []).filter((x) => x.url.trim()));
+          await api("PUT", "/api/panel/sitio", campos.map((c) => ({ clave: c.clave, valor: c.valor })));
+          for (const [g] of GRUPOS_ENLACES) await api("PUT", `/api/panel/sitio/enlaces/${g}`, (enlaces[g] ?? []).filter((x) => x.url.trim()));
           return true;
         }, "Sitio actualizado. Los cambios ya se ven al recargar el sitio.");
         guardar.disabled = false;
@@ -1424,15 +1424,15 @@ async function vistaSitio(): Promise<HTMLElement> {
 
 const TIPOS_PREGUNTA: Record<TipoPregunta, string> = {
   Nombre: "Nombre de quien postula",
-  Email: "Correo de contacto",
+  Correo: "Correo de contacto",
   Texto: "Texto corto",
   TextoLargo: "Texto largo",
   Opcion: "Elegir una opción",
   VariasOpciones: "Elegir varias opciones",
 };
 
-async function vistaQuiz(): Promise<HTMLElement> {
-  const preguntas = await api<Pregunta[]>("GET", "/api/admin/quiz");
+async function vistaFormulario(): Promise<HTMLElement> {
+  const preguntas = await api<Pregunta[]>("GET", "/api/panel/formulario");
   const contador = h("p", { class: "ayuda" });
   const contar = (): void => {
     const n = preguntas.filter((p) => p.activa).length;
@@ -1443,7 +1443,7 @@ async function vistaQuiz(): Promise<HTMLElement> {
 
   const lista = editorLista<Pregunta>({
     lista: preguntas, textoAgregar: "Agregar paso",
-    nuevo: () => ({ id: null, texto: "", ayuda: "", tipo: "Texto", opciones: [], requerida: true, activa: true }),
+    nuevo: () => ({ id: null, texto: "", ayuda: "", tipo: "Texto", opciones: [], obligatoria: true, activa: true }),
     titulo: (p, i) => `Paso ${i + 1} · ${p.texto || "Nueva pregunta"}${p.activa ? "" : " (inactivo)"}`,
     renderItem: (p) => {
       const opciones = { texto: p.opciones.join("\n") };
@@ -1460,7 +1460,7 @@ async function vistaQuiz(): Promise<HTMLElement> {
             (Object.keys(TIPOS_PREGUNTA) as TipoPregunta[]).map((t) => h("option", { value: t, selected: t === p.tipo }, TIPOS_PREGUNTA[t])))),
         bloqueOpciones,
         h("div", { class: "acciones" },
-          interruptor("Obligatoria", p.requerida, (v) => { p.requerida = v; marcarCambio(); }),
+          interruptor("Obligatoria", p.obligatoria, (v) => { p.obligatoria = v; marcarCambio(); }),
           interruptor("Activa", p.activa, (v) => { p.activa = v; marcarCambio(); contar(); })));
     },
   });
@@ -1473,7 +1473,7 @@ async function vistaQuiz(): Promise<HTMLElement> {
       onsubmit: async (e) => {
         e.preventDefault();
         guardar.disabled = true;
-        const r = await intentar(() => api<Pregunta[]>("PUT", "/api/admin/quiz", preguntas), "Formulario guardado");
+        const r = await intentar(() => api<Pregunta[]>("PUT", "/api/panel/formulario", preguntas), "Formulario guardado");
         guardar.disabled = false;
         if (r) { hayCambiosSinGuardar = false; render(); }
       },
@@ -1486,15 +1486,15 @@ async function vistaQuiz(): Promise<HTMLElement> {
 
 // ─── Solicitudes ──────────────────────────────────────────────────────────────
 
-const NOMBRES_ESTADO: Record<EstadoSolicitud, string> = { Nueva: "Nueva", Leida: "Leída", Archivada: "Archivada" };
+const NOMBRES_ESTADO: Record<EstadoPostulacion, string> = { Nueva: "Nueva", Leida: "Leída", Archivada: "Archivada" };
 
-async function vistaSolicitudes(): Promise<HTMLElement> {
+async function vistaPostulaciones(): Promise<HTMLElement> {
   const cuerpo = h("tbody");
   const paginador = h("div", { class: "paginador" });
-  let filtro: EstadoSolicitud | "" = "";
+  let filtro: EstadoPostulacion | "" = "";
   let pagina = 1;
 
-  const filtros: [EstadoSolicitud | "", string][] = [["", "Bandeja"], ["Nueva", "Nuevas"], ["Leida", "Leídas"], ["Archivada", "Archivadas"]];
+  const filtros: [EstadoPostulacion | "", string][] = [["", "Bandeja"], ["Nueva", "Nuevas"], ["Leida", "Leídas"], ["Archivada", "Archivadas"]];
   const botonesFiltro = filtros.map(([valor, texto]) => h("button", {
     type: "button", class: "mini", onclick: () => { filtro = valor; pagina = 1; void cargar(); },
   }, texto));
@@ -1503,15 +1503,15 @@ async function vistaSolicitudes(): Promise<HTMLElement> {
     botonesFiltro.forEach((b, i) => b.classList.toggle("primario", filtros[i]?.[0] === filtro));
     const q = new URLSearchParams({ pagina: String(pagina), tamano: "30" });
     if (filtro) q.set("estado", filtro);
-    const r = await intentar(() => api<Pagina<SolicitudLista>>("GET", `/api/admin/solicitudes?${q}`));
+    const r = await intentar(() => api<Pagina<PostulacionEnLista>>("GET", `/api/panel/postulaciones?${q}`));
     if (!r) return;
-    vaciar(cuerpo, r.items.length ? r.items.map((s) => h("tr", { class: s.estado === "Nueva" ? "fila-nueva" : null, onclick: () => void abrir(s.id) },
-      h("td", { class: "ayuda" }, fecha(s.fecha)),
-      h("td", {}, h("span", { class: "titulo-fila" }, s.nombre), h("div", { class: "ayuda" }, s.email)),
+    vaciar(cuerpo, r.elementos.length ? r.elementos.map((s) => h("tr", { class: s.estado === "Nueva" ? "fila-nueva" : null, onclick: () => void abrir(s.id) },
+      h("td", { class: "ayuda" }, fecha(s.recibidaEn)),
+      h("td", {}, h("span", { class: "titulo-fila" }, s.nombre), h("div", { class: "ayuda" }, s.correo)),
       h("td", { class: "resumen-solicitud" }, s.resumen),
       h("td", {}, h("span", { class: `chip ${s.estado === "Nueva" ? "sa" : s.estado === "Leida" ? "ok" : "off"}` }, NOMBRES_ESTADO[s.estado]))))
       : h("tr", {}, h("td", { colspan: 4, class: "vacio" }, filtro === "" ? "No hay postulaciones pendientes." : "No hay solicitudes con este estado.")));
-    const paginas = Math.max(1, Math.ceil(r.total / r.tamanoPagina));
+    const paginas = Math.max(1, Math.ceil(r.total / r.tamano));
     vaciar(paginador,
       h("button", { class: "mini", disabled: pagina <= 1, onclick: () => { pagina--; void cargar(); } }, "‹ Anterior"),
       `Página ${pagina} de ${paginas}`,
@@ -1519,37 +1519,37 @@ async function vistaSolicitudes(): Promise<HTMLElement> {
     void refrescarPendientes();
   }
 
-  async function cambiarEstado(id: number, estado: EstadoSolicitud, mensaje: string): Promise<boolean> {
-    return (await intentar(() => api("PATCH", `/api/admin/solicitudes/${id}/estado`, { estado }), mensaje)) !== undefined;
+  async function cambiarEstado(id: number, estado: EstadoPostulacion, mensaje: string): Promise<boolean> {
+    return (await intentar(() => api("PATCH", `/api/panel/postulaciones/${id}/estado`, { estado }), mensaje)) !== undefined;
   }
 
   async function abrir(id: number): Promise<void> {
-    const s = await intentar(() => api<Solicitud>("GET", `/api/admin/solicitudes/${id}`));
+    const s = await intentar(() => api<Postulacion>("GET", `/api/panel/postulaciones/${id}`));
     if (!s) return;
     void cargar();
     const asunto = encodeURIComponent("Tu postulación a La Alianza");
     const dlg = modal(`Postulación de ${s.nombre}`, h("div", {},
-      h("p", { class: "ayuda" }, `Recibida el ${fecha(s.fecha)} · ${s.email}`),
-      h("dl", { class: "respuestas" }, s.respuestas.map((r) => [h("dt", {}, r.pregunta), h("dd", {}, r.respuesta)]))),
+      h("p", { class: "ayuda" }, `Recibida el ${fecha(s.recibidaEn)} · ${s.correo}`),
+      h("dl", { class: "respuestas" }, s.respuestas.map((r) => [h("dt", {}, r.pregunta), h("dd", {}, r.valor)]))),
       [
         h("button", {
           class: "peligro",
           onclick: async () => {
             if (!(await confirmar(`¿Eliminar la postulación de ${s.nombre}? No se puede deshacer.`, { boton: "Eliminar" }))) return;
-            if ((await intentar(() => api("DELETE", `/api/admin/solicitudes/${s.id}`), "Solicitud eliminada")) !== undefined) { dlg.close(); void cargar(); }
+            if ((await intentar(() => api("DELETE", `/api/panel/postulaciones/${s.id}`), "Postulacion eliminada")) !== undefined) { dlg.close(); void cargar(); }
           },
         }, "Eliminar"),
         h("button", { onclick: async () => { if (await cambiarEstado(s.id, "Nueva", "Marcada como no leída")) { dlg.close(); void cargar(); } } }, "Marcar no leída"),
         s.estado === "Archivada"
           ? h("button", { onclick: async () => { if (await cambiarEstado(s.id, "Leida", "Devuelta a la bandeja")) { dlg.close(); void cargar(); } } }, "Desarchivar")
-          : h("button", { onclick: async () => { if (await cambiarEstado(s.id, "Archivada", "Solicitud archivada")) { dlg.close(); void cargar(); } } }, "Archivar"),
-        h("a", { class: "boton primario", href: `mailto:${s.email}?subject=${asunto}` }, "Responder por correo"),
+          : h("button", { onclick: async () => { if (await cambiarEstado(s.id, "Archivada", "Postulacion archivada")) { dlg.close(); void cargar(); } } }, "Archivar"),
+        h("a", { class: "boton primario", href: `mailto:${s.correo}?subject=${asunto}` }, "Responder por correo"),
       ]);
   }
 
   await cargar();
   return h("div", {},
-    cabecera("Solicitudes", [h("a", { class: "boton", href: "#/quiz" }, "Editar formulario")]),
+    cabecera("Postulaciones", [h("a", { class: "boton", href: "#/formulario" }, "Editar formulario")]),
     h("div", { class: "tarjeta" },
       h("p", { class: "ayuda" }, "Postulaciones enviadas desde el formulario «Postula tu proyecto» del sitio. Solo tú las ves. Abrir una solicitud la marca como leída."),
       h("div", { class: "accesos" }, botonesFiltro),
@@ -1563,7 +1563,7 @@ async function vistaSolicitudes(): Promise<HTMLElement> {
 void (async () => {
   if (sesion) {
     // Refresca permisos (pudieron cambiar desde el último inicio de sesión).
-    try { sesion.usuario = await api<Perfil>("GET", "/api/auth/yo"); almacen.guardar(sesion); await cargarConfig(); } catch { /* api() ya cierra la sesión si expiró */ }
+    try { sesion.usuario = await api<Perfil>("GET", "/api/sesion/perfil"); almacen.guardar(sesion); await cargarConfig(); } catch { /* api() ya cierra la sesión si expiró */ }
   }
   render();
   iniciarNotificaciones();

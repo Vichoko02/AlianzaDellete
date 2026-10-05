@@ -30,6 +30,6 @@ jobs:
       - name: Pruebas de integración (PostgreSQL real)
         run: dotnet test -c Release --no-build
         env:
-          ALIANZA_TEST_PG: Host=localhost;Port=5432;Username=postgres;Password=postgres
+          PRUEBAS_POSTGRES: Host=localhost;Port=5432;Username=postgres;Password=postgres
       - name: Imagen Docker
-        run: docker build -t alianza-backend:ci .
+        run: docker build -t alianza-servidor:ci .

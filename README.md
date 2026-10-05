@@ -1,230 +1,136 @@
-# alianza-backend
+# Servidor de La Alianza
 
-API REST de La Alianza en **C# (.NET 8) + PostgreSQL**. Incluye un **panel de administración** en `/admin`.
+Servidor del sitio en **C# (.NET 8) + PostgreSQL**. También entrega el **panel de administración** en `/panel`.
 
-Todo el contenido que hoy está escrito a mano en el frontend sale de la base de datos:
+Todo lo que el sitio muestra sale de la base de datos:
 - el **estado** de cada serie (En Emisión, Cancelado…);
-- **imágenes y videos**, guardados en PostgreSQL;
-- descripciones, personajes, equipo, galerías, redes y **socios**.
+- las **imágenes y videos**, guardados en PostgreSQL;
+- textos, personajes, equipo, galerías, redes y **socios**.
+
+Solo el logo, los colores, las tipografías y los íconos quedan fijos en el sitio.
 
 ## Quién puede hacer qué
 
-Los **visitantes del sitio no inician sesión**: la API pública es de solo lectura y no pide cuenta. Solo existen cuentas **administrativas**.
+Los **visitantes no inician sesión**: solo leen. Las únicas cuentas son **administrativas**.
 
 | Acción | Quién |
 |---|---|
-| Ver el sitio (API pública) | Cualquiera, sin cuenta |
-| Crear usuarios, asignar permisos, activar «puede crear wikis» | **Solo YishAdmin** (superadmin) |
-| Crear wikis nuevas | YishAdmin y usuarios con el bool **«puede crear wikis»** que YishAdmin activa. Quien crea una wiki recibe permiso para editarla |
+| Ver el sitio | Cualquiera, sin cuenta |
+| Crear cuentas, dar permisos, activar «puede crear wikis» | **Solo YishAdmin** |
+| Crear wikis | YishAdmin y las cuentas con «puede crear wikis» activado. Quien crea una wiki puede editarla |
 | Editar una wiki | Permiso «Wikis» sobre **esa** wiki o sobre **todas** |
 | Eliminar wikis | Solo YishAdmin |
-| Crear, editar y eliminar socios / asociados | Permiso «Socios» (YishAdmin siempre) |
-| Administrar el catálogo de estados | Permiso «Estados» |
-| Subir archivos | Cualquier cuenta administrativa |
-| Eliminar archivos | Permiso «Medios» |
+| Socios / asociados | Permiso «Socios» |
+| Catálogo de estados | Permiso «Estados» |
+| Subir archivos | Cualquier cuenta. Eliminarlos requiere permiso «Medios» |
+| Textos, imágenes y enlaces generales del sitio | Permiso «Sitio» |
+| Ver postulaciones y editar el formulario | Solo YishAdmin |
 | Ver la auditoría | Solo YishAdmin |
-| Editar los textos, imágenes y enlaces generales del sitio | Permiso «Sitio» |
-| Ver y gestionar las postulaciones; editar el formulario | Solo YishAdmin |
 
-Garantías:
-- **Un solo superadmin**: la API nunca permite otorgar ese rol, y un índice único de PostgreSQL impide que exista otro.
-- La cuenta de YishAdmin **no se puede desactivar ni eliminar**.
+Solo existe un superadministrador: un índice único de PostgreSQL impide otro, y su cuenta no se puede desactivar ni eliminar.
 
 ## Puesta en marcha con Docker
 
 ```bash
 cp .env.example .env
-# Completa POSTGRES_PASSWORD, JWT_CLAVE (openssl rand -hex 32) y ADMIN_PASSWORD
+# Completa CONTRASENA_POSTGRES, CLAVE_SESIONES (openssl rand -hex 32) y SUPERADMIN_CONTRASENA
 docker compose up -d --build
 ```
 
-- Panel: http://127.0.0.1:8080/admin. Inicia sesión con `YishAdmin` y la contraseña de `ADMIN_PASSWORD`.
-- API pública: http://127.0.0.1:8080/api/series
+- Panel: http://127.0.0.1:8080/panel. Entra con `YishAdmin` y la contraseña de `SUPERADMIN_CONTRASENA`.
+- `SUPERADMIN_CONTRASENA` **solo se usa la primera vez**, para crear la cuenta. Después se cambia desde **Mi cuenta**. Nunca la escribas en el repositorio.
 - Salud: http://127.0.0.1:8080/salud
 
-`ADMIN_PASSWORD` **solo se usa la primera vez**, para crear la cuenta. Después puedes quitarla del `.env` y cambiarla desde **Mi cuenta**. Nunca la escribas en el repositorio.
+### Importar el contenido que tenía el sitio
 
-### Importar el contenido actual del sitio
-
-`seed/seed-data.json` trae los datos de las 10 wikis, los 4 socios y la portada, extraídos del frontend (`VistaUsuario`). Para cargarlos junto con sus 142 imágenes en una base vacía:
+`carga-inicial/contenido.json` trae las 10 wikis, los 4 socios y los banners de la portada. Para cargarlos con sus imágenes en una base vacía, define en `.env`:
 
 ```bash
-# en .env
 IMPORTAR_CONTENIDO=true
-RUTA_ASSETS_FRONTEND=/ruta/a/AlianzaDellete/proyecto-alianza/VistaUsuario/src/assets
+CARPETA_IMAGENES_SITIO=/ruta/al/sitio/src/assets
 ```
 
-La importación ocurre una sola vez: si ya hay series, no hace nada. Es transaccional, así que si algo falla no deja datos a medias. Las imágenes repetidas se guardan una sola vez (deduplicación por SHA-256).
+La importación es de todo o nada y solo ocurre si la base no tiene series. Las imágenes repetidas se guardan una vez.
 
 ### Con LDAP
 
-Levanta antes el repositorio `alianza-ldap` y luego:
+Levanta antes el LDAP (rama `programa/ldap`) y luego:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.ldap.yml up -d --build
 ```
 
-Con LDAP habilitado, al crear un usuario YishAdmin elige su **origen**:
-- **Local**: la contraseña se guarda como hash BCrypt en PostgreSQL.
-- **LDAP**: el usuario se crea en el directorio y su contraseña se valida allí.
+Cada cuenta nueva tiene un **origen**:
+- **Local**: contraseña con hash BCrypt en PostgreSQL;
+- **LDAP**: la cuenta vive en el directorio y su contraseña se valida allí.
 
-Los permisos se **reflejan como grupos** LDAP (`alianza-wikis`, `alianza-wiki-<slug>`, `alianza-socios`…). Al desactivar un usuario se le quitan los grupos y se bloquea su cuenta en el directorio.
+Los permisos se reflejan como grupos LDAP (`alianza-wikis`, `alianza-wiki-<identificador>`, `alianza-socios`…). YishAdmin es siempre local, para poder entrar aunque el LDAP no responda.
 
-YishAdmin es siempre **local**: si el LDAP cae, igual puede entrar.
+## Cómo está organizado
 
-## Panel de administración
+```
+servidor/
+  Inicio.cs        Arranque, en orden: configuración → servicios → sesiones → API → base de datos → recorrido de cada petición
+  Datos/           Entidades, BaseDeDatos (EF Core), CargaInicial y migraciones
+  Seguridad/       Configuración, contraseñas y sesiones, usuario actual con sus permisos, directorio LDAP
+  Modulos/         Un archivo por tema. Cada uno trae, en orden: 1) formatos  2) lógica  3) rutas públicas  4) rutas del panel
+                   Series, Socios, Estados, Medios, Sitio, Postulaciones, Usuarios, Sesion, Panel, Comunes
+  publico/panel/   HTML, CSS, fuentes y logos del panel (el JS se compila desde panel/)
+panel/             Código del panel en TypeScript estricto, sin dependencias
+carga-inicial/     Contenido que tenía el sitio escrito a mano
+pruebas/           Pruebas de integración (xUnit + PostgreSQL real)
+```
 
-Está en `panel/` y se escribe en **TypeScript estricto**, sin frameworks ni dependencias en tiempo de ejecución: todo el panel pesa unos 70 KB de JS. Sigue el look and feel del sitio público:
-- tipografías Oswald y Black Ops One (alojadas en el propio panel);
-- azul marino `#1A1A4B` y rojo `#E60000`;
-- modo claro y oscuro.
+Cada método declara sus variables al inicio y marca sus pasos con comentarios numerados (`// 1.`, `// 2.`), en el orden en que ocurren.
+
+## Desarrollo local
+
+```bash
+npm ci                                   # TypeScript para el panel
+export Sesiones__Clave=$(openssl rand -hex 32) Superadmin__Contrasena='TuClaveSegura123'
+# opcional: export CargaInicial__ImportarContenido=true CargaInicial__CarpetaImagenes=/ruta/al/sitio/src/assets
+cd servidor && dotnet run                # → http://localhost:5126/panel
+```
+
+`appsettings.Development.json` usa un PostgreSQL local con `postgres/postgres`. `dotnet build` compila también el panel (necesita Node 20+).
 
 | Comando | Qué hace |
 |---|---|
-| `npm run build` | Compila `panel/*.ts` → `src/Alianza.Api/wwwroot/admin/*.js` (no se versiona) |
-| `npm run watch` | Recompila al guardar |
-| `npm run check` | Solo revisa tipos |
+| `dotnet test` | Pruebas contra una base desechable. Usa `PRUEBAS_POSTGRES` o `Host=localhost;Username=postgres;Password=postgres` |
+| `npm run build` | Compila `panel/*.ts` → `servidor/publico/panel/*.js` |
+| `npm run watch` | Recompila el panel al guardar |
+| `dotnet ef migrations add NombreDelCambio -p servidor -o Datos/Migraciones` | Nueva migración (se aplican solas al arrancar) |
 
-`dotnet build` ejecuta `npm run build` automáticamente (necesita Node 20+). En Docker se compila en una etapa de Node aparte.
+## API
 
-Funciones del panel:
-- **Resumen**:
-  - accesos rápidos;
-  - wikis por estado;
-  - permisos del usuario;
-  - actividad reciente (superadmin).
-- **Wikis**:
-  - búsqueda y filtro por estado;
-  - cambio de estado y de visibilidad en la misma lista;
-  - enlace "Ver en el sitio".
-- **Editor por pestañas**:
-  - General, Imágenes, Creador, Redes, Personajes, Equipo, Carrusel y Galería;
-  - etiqueta de estado en vivo;
-  - vista previa del video (acepta cualquier enlace de YouTube);
-  - contadores en las pestañas;
-  - aviso de cambios sin guardar y guardado con **Ctrl+S**.
-- **Socios**:
-  - búsqueda;
-  - redes;
-  - wikis vinculadas.
-- **Estados**:
-  - catálogo con color y vista previa.
-- **Medios**:
-  - subida por arrastre;
-  - ficha de cada archivo con texto alternativo, dónde se usa, copiar dirección y eliminar.
-- **Textos del sitio**: portada, menú, Únete, formulario, Apóyanos, pie y etiquetas de las wikis.
-- **Solicitudes** y **Formulario** (solo YishAdmin): postulaciones del sitio con aviso en vivo, y edición de los pasos del formulario.
-- **Usuarios y permisos** (solo YishAdmin):
-  - crear usuarios Local o LDAP;
-  - activar «puede crear wikis»;
-  - permisos por wiki y por área;
-  - desactivar cuentas;
-  - restablecer contraseñas.
-- **Auditoría** y **Mi cuenta**.
+### Pública (sin sesión)
 
-Para que funcione "Ver en el sitio", define `CORS_ORIGEN_SITIO` (o `Publico__UrlSitio`) con la URL del sitio público.
-
-## Desarrollo local (sin Docker)
-
-```bash
-npm ci                 # dependencias del panel (solo TypeScript)
-# PostgreSQL local con usuario postgres/postgres (ver appsettings.Development.json)
-export Jwt__Clave=$(openssl rand -hex 32) Admin__Password='TuClaveSegura123'
-# opcional: export Seed__ImportarContenido=true Seed__CarpetaAssets=/ruta/a/VistaUsuario/src/assets
-cd src/Alianza.Api && dotnet run
-# → http://localhost:5126/admin  ·  Swagger en http://localhost:5126/swagger
-```
-
-Pruebas de integración, contra un PostgreSQL real con una base desechable por ejecución:
-
-```bash
-dotnet test        # usa ALIANZA_TEST_PG o Host=localhost;Username=postgres;Password=postgres
-```
-
-Migraciones (EF Core). Se aplican solas al arrancar (`Seed__Migrar=true`):
-
-```bash
-dotnet tool install -g dotnet-ef --version 8.0.11
-dotnet ef migrations add NombreDelCambio -p src/Alianza.Api -o Data/Migraciones
-```
-
-## API pública (sin sesión)
-
-| Método y ruta | Devuelve |
+| Ruta | Devuelve |
 |---|---|
-| `GET /api/estados` | Catálogo de estados `{codigo, nombre, color}` |
-| `GET /api/series[?estado=en-emision]` | Tarjetas de la portada `{id, nombre, imagen, enlace, estado}` |
-| `GET /api/series/{slug}` | Wiki completa, con **la misma forma que `ProjectWikiData`** del frontend, más `estadoInfo` y `socios` |
-| `GET /api/socios`, `GET /api/socios/{slug}` | Socios, con **la misma forma que `Socio`** de `SocioModal.tsx` |
-| `GET /api/medios/{id}` | Imagen o video desde PostgreSQL. Usa caché inmutable y ETag |
-| `GET /api/sitio` | Textos, imágenes y enlaces generales del sitio: `{ textos, listas, enlaces }` |
-| `GET /api/quiz` | Pasos del formulario «Postula tu proyecto» (3 a 5) |
-| `POST /api/quiz/solicitudes` | Envía una postulación. Límite: 5 cada 10 minutos por IP, con campo trampa anti-bots |
+| `GET /api/sitio` | Textos, imágenes y enlaces generales: `{ textos, listas, enlaces }` |
+| `GET /api/estados` | Estados `{codigo, nombre, color}` |
+| `GET /api/series[?estado=en-emision]` | Tarjetas de la portada `{identificador, nombre, imagen, enlace, estado}` |
+| `GET /api/series/{identificador}` | Wiki completa |
+| `GET /api/socios`, `GET /api/socios/{identificador}` | Socios con sus proyectos |
+| `GET /api/medios/{id}` | Imagen o video, con caché y ETag |
+| `GET /api/formulario` | Pasos del formulario «Postula tu proyecto» (3 a 5) |
+| `POST /api/formulario/postulaciones` | Envía una postulación. Máximo 5 cada 10 minutos por IP, con campo trampa contra bots |
 
-### Textos del sitio
+### Panel (con sesión)
 
-Todo lo que el sitio muestra fuera de las wikis y los socios sale de `/api/sitio` y se edita en **Panel → Textos del sitio**:
-- portada (carrusel de banners, eslogan, «Sobre nosotros», títulos de sección);
-- menú, sección «Únete» y textos del formulario;
-- modal «Apóyanos» (opciones y enlaces) y pie de página;
-- etiquetas de las wikis.
+- `POST /api/sesion/iniciar` devuelve la sesión. También existen `GET /api/sesion/perfil` y `POST /api/sesion/cambiar-contrasena`.
+- El resto vive bajo `/api/panel/`: `series`, `socios`, `estados`, `medios`, `sitio`, `resumen`, `configuracion`, y para YishAdmin `usuarios`, `formulario`, `postulaciones` y `auditoria`.
 
-Solo el logo, los colores, las tipografías y los íconos son fijos. El catálogo de claves está en `Services/ServicioSitio.cs`; una clave nueva aparece sola en el panel al desplegar.
-
-### Postulaciones
-
-El botón «Postular mi proyecto» del sitio abre un formulario de 3 a 5 pasos, que se editan en **Panel → Formulario**. Cada envío:
-- se valida en el servidor (obligatorios, opciones válidas, correo) y se guarda en PostgreSQL con el texto de cada pregunta tal como estaba;
-- aparece en **Panel → Solicitudes**, visible solo para YishAdmin.
-
-El panel consulta cada 30 segundos. Muestra el número de solicitudes nuevas en el menú y en el título de la pestaña, y avisa en pantalla cuando llega una. Abrir una solicitud la marca como leída; desde ahí se puede responder por correo, archivar o eliminar.
-
-### Conectar el frontend
-
-Los componentes ya esperan estas formas, así que el cambio es reemplazar los objetos escritos a mano por un `fetch`:
-
-```tsx
-// MetrecaliaWiki.tsx → una sola ruta genérica /wiki/:slug
-const { slug } = useParams();
-const [data, setData] = useState<ProjectWikiData | null>(null);
-useEffect(() => {
-  fetch(`${import.meta.env.VITE_API_URL}/api/series/${slug}`).then(r => r.json()).then(setData);
-}, [slug]);
-return data ? <ProjectWikiTemplate data={data} /> : null;
-```
-
-Para la etiqueta de estado conviene usar `data.estadoInfo.color` y `data.estadoInfo.codigo` en vez de comparar textos. Así, un estado nuevo creado en el panel se ve bien sin tocar el CSS.
-
-Define `URL_PUBLICA_API` y `CORS_ORIGEN_SITIO` en `.env` para que las imágenes tengan URL absoluta y el sitio tenga permiso para llamar a la API.
-
-## API del panel (requiere sesión)
-
-`POST /api/auth/login` devuelve un JWT. Las demás rutas van bajo `/api/admin/*`:
-`series`, `socios`, `estados`, `medios`, `usuarios` (solo superadmin), `auditoria` (solo superadmin) y `resumen`.
-
-La documentación interactiva está en `/swagger` (en desarrollo, o con `SWAGGER=true`).
+Cada postulación aparece en **Panel → Postulaciones**. El panel revisa cada 30 segundos y avisa con un número en el menú y en la pestaña. Abrir una postulación la marca como leída.
 
 ## Seguridad
 
-- **Contraseñas**: BCrypt (coste 12), mínimo 10 caracteres con letras y números. El login no revela si un usuario existe, ni por el mensaje ni por el tiempo de respuesta, y tiene límite de 10 intentos por minuto por IP.
-- **Sesiones JWT de 8 horas** que se **revocan al instante**: el token deja de valer al desactivar al usuario o al cambiar o restablecer su contraseña (sello de seguridad comprobado en cada petición).
-- **Permisos leídos de la BD en cada petición**: quitar un permiso vale de inmediato.
-- **Validaciones**: los enlaces solo aceptan `http(s)`, lo que bloquea `javascript:`. Los archivos subidos se validan por **firma binaria**, no solo por extensión. Los SVG se sirven en sandbox con CSP.
-- **Concurrencia**: si dos personas editan la misma wiki, la segunda recibe un aviso en vez de pisar los cambios.
-- **Panel sin dependencias externas** y con CSP estricta: fuentes alojadas en el propio panel, sin CDNs. Todo el texto se inserta como texto, nunca como HTML.
-- **Auditoría**: queda registro de cada creación, edición, eliminación y cambio de permisos.
-
-## Estructura
-
-```
-src/Alianza.Api/
-  Domain/        Entidades (Serie, EstadoSerie, Personaje, GrupoEquipo, Socio, Medio, Usuario, PermisoUsuario…)
-  Data/          DbContext, migraciones e inicializador (estados, superadmin, importación)
-  Auth/          JWT, BCrypt, usuario actual con permisos, integración LDAP
-  Services/      Lógica de series, socios, medios, usuarios y auditoría
-  Controllers/   API pública y Admin/*
-  wwwroot/admin/ Panel: HTML, CSS, fuentes, logos y el JS compilado
-panel/           Código del panel en TypeScript
-seed/            Datos extraídos del frontend
-tests/           Pruebas de integración (xUnit + PostgreSQL)
-```
+- **Contraseñas**: BCrypt, mínimo 10 caracteres con letras y números. Iniciar sesión no revela si una cuenta existe. Máximo 10 intentos por minuto por IP.
+- **Sesiones de 8 horas que se cierran al instante** si la cuenta se desactiva o cambia su contraseña.
+- **Permisos leídos en cada petición**: quitar un permiso vale de inmediato.
+- **Validaciones**:
+  - los enlaces solo aceptan `http(s)`;
+  - los archivos se validan por su contenido, no solo por la extensión;
+  - si dos personas editan la misma wiki, la segunda recibe un aviso en vez de pisar los cambios.
+- **Panel sin dependencias externas** y con CSP estricta. Todo texto se inserta como texto, nunca como HTML.
+- **Auditoría** de cada creación, edición, eliminación y cambio de permisos.

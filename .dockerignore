@@ -2,7 +2,7 @@
 **/obj/
 .git
 .env
-tests/
+pruebas/
 *.md
 node_modules/
-src/Alianza.Api/wwwroot/admin/*.js
+servidor/publico/panel/*.js

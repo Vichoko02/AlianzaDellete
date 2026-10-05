@@ -1,7 +1,7 @@
-# Backend de La Alianza: PostgreSQL + API (que también sirve el panel en /admin).
+# Servidor de La Alianza: PostgreSQL + servidor (que también entrega el panel en /panel).
 #   cp .env.example .env   # y completa las variables
 #   docker compose up -d --build
-# Con LDAP (repositorio alianza-ldap): docker compose -f docker-compose.yml -f docker-compose.ldap.yml up -d --build
+# Con LDAP (rama programa/ldap): docker compose -f docker-compose.yml -f docker-compose.ldap.yml up -d --build
 services:
   postgres:
     image: postgres:16-alpine
@@ -9,40 +9,39 @@ services:
     environment:
       POSTGRES_DB: alianza
       POSTGRES_USER: alianza
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
+      POSTGRES_PASSWORD: ${CONTRASENA_POSTGRES:?Define CONTRASENA_POSTGRES en .env}
     volumes:
-      - pg-datos:/var/lib/postgresql/data
+      - datos-postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U alianza -d alianza"]
       interval: 5s
       timeout: 5s
       retries: 20
 
-  api:
+  servidor:
     build: .
-    image: alianza-backend:latest
+    image: alianza-servidor:latest
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      ConnectionStrings__Alianza: "Host=postgres;Database=alianza;Username=alianza;Password=${POSTGRES_PASSWORD}"
-      Jwt__Clave: ${JWT_CLAVE:?Define JWT_CLAVE en .env (openssl rand -hex 32)}
-      Admin__Username: ${ADMIN_USERNAME:-YishAdmin}
-      Admin__Password: ${ADMIN_PASSWORD:-}
-      Publico__UrlBase: ${URL_PUBLICA_API:-}
-      Publico__UrlSitio: ${CORS_ORIGEN_SITIO:-}
-      Cors__Origenes__0: ${CORS_ORIGEN_SITIO:-http://localhost:5173}
-      Seed__ImportarContenido: ${IMPORTAR_CONTENIDO:-false}
-      Seed__CarpetaAssets: /seed-assets
+      BaseDeDatos: "Host=postgres;Database=alianza;Username=alianza;Password=${CONTRASENA_POSTGRES}"
+      Sesiones__Clave: ${CLAVE_SESIONES:?Define CLAVE_SESIONES en .env (openssl rand -hex 32)}
+      Superadmin__NombreUsuario: ${SUPERADMIN_USUARIO:-YishAdmin}
+      Superadmin__Contrasena: ${SUPERADMIN_CONTRASENA:-}
+      Publico__UrlApi: ${URL_SERVIDOR:-}
+      Publico__UrlSitio: ${URL_SITIO:-}
+      OrigenesPermitidos__0: ${URL_SITIO:-http://localhost:5173}
+      CargaInicial__ImportarContenido: ${IMPORTAR_CONTENIDO:-false}
+      CargaInicial__CarpetaImagenes: /imagenes-sitio
       Ldap__Habilitado: "false"
-      Swagger: ${SWAGGER:-false}
     volumes:
-      # Carpeta src/assets del frontend (VistaUsuario) para la importación inicial de imágenes.
-      - ${RUTA_ASSETS_FRONTEND:-./seed}:/seed-assets:ro
-    # Publicado solo en localhost: ponlo detrás de un proxy inverso con HTTPS (Caddy, nginx...).
+      # Carpeta src/assets del sitio, solo para la importación inicial de imágenes.
+      - ${CARPETA_IMAGENES_SITIO:-./carga-inicial}:/imagenes-sitio:ro
+    # Solo en localhost: ponlo detrás de un proxy inverso con HTTPS (Caddy, nginx...).
     ports:
-      - "127.0.0.1:${API_PUERTO:-8080}:8080"
+      - "127.0.0.1:${PUERTO:-8080}:8080"
 
 volumes:
-  pg-datos:
+  datos-postgres:

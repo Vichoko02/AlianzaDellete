@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "servidor": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "panel/",
+      "applicationUrl": "http://localhost:5126",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

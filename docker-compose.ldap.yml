@@ -1,14 +1,14 @@
-# Conecta la API al directorio del repositorio alianza-ldap (red compartida "alianza-red").
+# Conecta el servidor al directorio LDAP (rama programa/ldap) por la red compartida "alianza-red".
 services:
-  api:
+  servidor:
     environment:
       Ldap__Habilitado: "true"
-      Ldap__Host: ldap
+      Ldap__Servidor: ldap
       Ldap__Puerto: "389"
       Ldap__BaseDn: ${LDAP_BASE_DN:-dc=alianza,dc=local}
-      Ldap__BindDn: cn=alianza-backend,ou=services,${LDAP_BASE_DN:-dc=alianza,dc=local}
-      Ldap__BindPassword: ${LDAP_BACKEND_PASSWORD:?Define LDAP_BACKEND_PASSWORD en .env}
-      Ldap__MiembroPorDefectoDn: uid=yishadmin,ou=people,${LDAP_BASE_DN:-dc=alianza,dc=local}
+      Ldap__CuentaServicioDn: cn=alianza-backend,ou=services,${LDAP_BASE_DN:-dc=alianza,dc=local}
+      Ldap__CuentaServicioContrasena: ${LDAP_CONTRASENA_SERVIDOR:?Define LDAP_CONTRASENA_SERVIDOR en .env}
+      Ldap__SuperadminDn: uid=yishadmin,ou=people,${LDAP_BASE_DN:-dc=alianza,dc=local}
     networks: [default, alianza]
 
 networks:

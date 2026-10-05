@@ -1,3 +1,8 @@
+/* Tipografías alojadas en el propio sitio (sin depender de Google Fonts). Licencia en assets/fuentes/LICENCIA-OFL.txt */
+@font-face { font-family: "Oswald"; font-weight: 400; font-display: swap; src: url("./assets/fuentes/oswald-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Oswald"; font-weight: 600; font-display: swap; src: url("./assets/fuentes/oswald-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Black Ops One"; font-weight: 400; font-display: swap; src: url("./assets/fuentes/black-ops-one-latin-400-normal.woff2") format("woff2"); }
+
 /* --- RESETEO Y CONFIGURACIÓN BASE --- */
 * {
   box-sizing: border-box;

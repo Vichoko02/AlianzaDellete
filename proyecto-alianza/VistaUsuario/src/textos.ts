@@ -63,6 +63,12 @@ export function useListaImagenes(clave: string): string[] {
   return (sitio?.listas[clave] ?? []).map((u) => urlMedio(u)!).filter(Boolean);
 }
 
+/** Series y socios de la portada (vacíos mientras carga). */
+export function useContenidoInicio(): Pick<Sitio, "series" | "socios"> {
+  const sitio = useContext(SitioContexto);
+  return { series: sitio?.series ?? [], socios: sitio?.socios ?? [] };
+}
+
 export function useEnlaces(grupo: string): EnlaceSitio[] {
   return useContext(SitioContexto)?.enlaces[grupo] ?? [];
 }

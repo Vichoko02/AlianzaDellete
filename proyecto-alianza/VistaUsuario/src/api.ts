@@ -58,10 +58,13 @@ export interface Wiki {
 }
 
 export interface EnlaceSitio { plataforma: string; url: string; etiqueta: string | null; descripcion: string | null }
+/** Todo lo de la portada llega en una sola respuesta. */
 export interface Sitio {
   textos: Record<string, string>;
   listas: Record<string, string[]>;
   enlaces: Record<string, EnlaceSitio[]>;
+  series: TarjetaSerie[];
+  socios: Socio[];
 }
 
 export type TipoPregunta = "Nombre" | "Correo" | "Texto" | "TextoLargo" | "Opcion" | "VariasOpciones";
@@ -87,8 +90,6 @@ async function pedir<T>(ruta: string, opciones?: RequestInit): Promise<T> {
 }
 
 export const pedirSitio = () => pedir<Sitio>("/api/sitio");
-export const pedirSeries = () => pedir<TarjetaSerie[]>("/api/series");
-export const pedirSocios = () => pedir<Socio[]>("/api/socios");
 export const pedirWiki = (identificador: string) => pedir<Wiki>(`/api/series/${encodeURIComponent(identificador)}`);
 export const pedirFormulario = () => pedir<Pregunta[]>("/api/formulario");
 export const enviarPostulacion = (respuestas: Respuesta[], trampa: string) =>

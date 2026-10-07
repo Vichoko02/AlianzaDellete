@@ -62,7 +62,13 @@ public class BaseDeDatos(DbContextOptions<BaseDeDatos> opciones) : DbContext(opc
             ApuntaAMedio(t, x => x.ImagenActorVozId);
         });
         modelo.Entity<GrupoEquipo>(t => t.HasMany(x => x.Miembros).WithOne().HasForeignKey(x => x.GrupoId).OnDelete(DeleteBehavior.Cascade));
-        modelo.Entity<MiembroEquipo>(t => ApuntaAMedio(t, x => x.ImagenId));
+        modelo.Entity<MiembroEquipo>(t =>
+        {
+            ApuntaAMedio(t, x => x.ImagenId);
+            ApuntaAMedio(t, x => x.ImagenAlternativaId);
+            // Si el socio se elimina, el miembro queda en el equipo, solo que ya no figura como socio.
+            t.HasOne(x => x.Socio).WithMany().HasForeignKey(x => x.SocioId).OnDelete(DeleteBehavior.SetNull);
+        });
 
         modelo.Entity<Socio>(t =>
         {

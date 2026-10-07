@@ -131,6 +131,11 @@ public class MiembroEquipo
     public string Nombre { get; set; } = "";
     public string Rol { get; set; } = "";
     public Guid? ImagenId { get; set; }
+    /// <summary>Segunda imagen (por ejemplo, el avatar de su personaje público); el sitio la muestra al pasar el cursor.</summary>
+    public Guid? ImagenAlternativaId { get; set; }
+    /// <summary>Si es también socio de la Alianza (ej: Julio López es «Julio di esto»).</summary>
+    public int? SocioId { get; set; }
+    public Socio? Socio { get; set; }
     public int Orden { get; set; }
 }
 

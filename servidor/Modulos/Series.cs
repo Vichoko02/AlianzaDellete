@@ -30,7 +30,8 @@ public record DatosPersonaje(
     [MaxLength(150)] string? ActorVoz,
     Guid? ImagenActorVozId);
 
-public record DatosMiembro([Required, MaxLength(150)] string Nombre, [MaxLength(150)] string? Rol, Guid? ImagenId);
+public record DatosMiembro([Required, MaxLength(150)] string Nombre, [MaxLength(150)] string? Rol, Guid? ImagenId,
+    Guid? ImagenAlternativaId = null, int? SocioId = null);
 
 public record DatosGrupoEquipo([Required, MaxLength(100)] string Categoria, List<DatosMiembro> Miembros);
 
@@ -96,7 +97,11 @@ public record WikiPublica(
 
 public record CreadorPublico(string Nombre, string? Imagen, string Descripcion, Dictionary<string, string> Redes, List<DatosObra> Obras);
 public record PersonajePublico(string Nombre, string? Imagen, string Rol, string Descripcion, string? ActorVoz, string? ImagenActorVoz);
-public record MiembroPublico(string Nombre, string Rol, string? Imagen);
+/// <summary>Socio = identificador del socio (si es socio y está publicado). ImagenAlternativa: la propia o, si es socio, la del socio.</summary>
+public record MiembroPublico(string Nombre, string Rol, string? Imagen, string? ImagenAlternativa, string? Socio);
+
+/// <summary>Socio que se puede elegir al marcar a un miembro del equipo.</summary>
+public record SocioParaElegir(int Id, string Nombre, string? Imagen);
 public record GrupoPublico(string Categoria, List<MiembroPublico> Miembros);
 public record ImagenPublica(string Url, string TextoAlternativo);
 
@@ -118,7 +123,7 @@ public class ServicioSeries(BaseDeDatos bd, ServicioMedios medios, DireccionesMe
         .Include(s => s.ObrasCreador)
         .Include(s => s.Imagenes)
         .Include(s => s.Personajes)
-        .Include(s => s.Equipo).ThenInclude(g => g.Miembros)
+        .Include(s => s.Equipo).ThenInclude(g => g.Miembros).ThenInclude(m => m.Socio)
         .AsSplitQuery();
 
     public static SerieEditable AEditable(Serie s)
@@ -136,7 +141,7 @@ public class ServicioSeries(BaseDeDatos bd, ServicioMedios medios, DireccionesMe
             Imagenes(TipoImagenSerie.Galeria),
             s.Personajes.OrderBy(p => p.Orden).Select(p => new DatosPersonaje(p.Nombre, p.Rol, p.Descripcion, p.ImagenId, p.ActorVoz, p.ImagenActorVozId)).ToList(),
             s.Equipo.OrderBy(g => g.Orden).Select(g => new DatosGrupoEquipo(g.Categoria,
-                g.Miembros.OrderBy(m => m.Orden).Select(m => new DatosMiembro(m.Nombre, m.Rol, m.ImagenId)).ToList())).ToList(),
+                g.Miembros.OrderBy(m => m.Orden).Select(m => new DatosMiembro(m.Nombre, m.Rol, m.ImagenId, m.ImagenAlternativaId, m.SocioId)).ToList())).ToList(),
             s.Orden, s.Publicada, s.ActualizadaEn);
     }
 
@@ -156,8 +161,11 @@ public class ServicioSeries(BaseDeDatos bd, ServicioMedios medios, DireccionesMe
             throw new ErrorDeNegocio("Otra persona modificó esta wiki mientras la editabas. Recarga para ver los cambios.", StatusCodes.Status409Conflict);
         imagenesUsadas.AddRange((datos.Carrusel ?? []).Concat(datos.Galeria ?? []).Select(i => (Guid?)i.MedioId));
         imagenesUsadas.AddRange((datos.Personajes ?? []).SelectMany(p => new[] { p.ImagenId, p.ImagenActorVozId }));
-        imagenesUsadas.AddRange((datos.Equipo ?? []).SelectMany(g => g.Miembros ?? []).Select(m => m.ImagenId));
+        imagenesUsadas.AddRange((datos.Equipo ?? []).SelectMany(g => g.Miembros ?? []).SelectMany(m => new[] { m.ImagenId, m.ImagenAlternativaId }));
         await medios.ComprobarQueExistenAsync(imagenesUsadas);
+        var sociosDelEquipo = (datos.Equipo ?? []).SelectMany(g => g.Miembros ?? []).Where(m => m.SocioId != null).Select(m => m.SocioId!.Value).Distinct().ToList();
+        if (sociosDelEquipo.Count > 0 && await bd.Socios.CountAsync(x => sociosDelEquipo.Contains(x.Id)) != sociosDelEquipo.Count)
+            throw new ErrorDeNegocio("Alguno de los socios marcados en el equipo no existe.");
 
         // 2. Datos simples.
         serie.Identificador = datos.Identificador;
@@ -194,7 +202,10 @@ public class ServicioSeries(BaseDeDatos bd, ServicioMedios medios, DireccionesMe
         {
             Categoria = g.Categoria.Trim(),
             Orden = i,
-            Miembros = (g.Miembros ?? []).Select((m, j) => new MiembroEquipo { Nombre = m.Nombre.Trim(), Rol = m.Rol?.Trim() ?? "", ImagenId = m.ImagenId, Orden = j }).ToList(),
+            Miembros = (g.Miembros ?? []).Select((m, j) => new MiembroEquipo
+            {
+                Nombre = m.Nombre.Trim(), Rol = m.Rol?.Trim() ?? "", ImagenId = m.ImagenId, ImagenAlternativaId = m.ImagenAlternativaId, SocioId = m.SocioId, Orden = j,
+            }).ToList(),
         }).ToList();
     }
 
@@ -217,9 +228,17 @@ public class ServicioSeries(BaseDeDatos bd, ServicioMedios medios, DireccionesMe
             s.Personajes.OrderBy(p => p.Orden).Select(p => new PersonajePublico(
                 p.Nombre, direcciones.De(p.ImagenId), p.Rol, p.Descripcion, p.ActorVoz, direcciones.De(p.ImagenActorVozId))).ToList(),
             s.Equipo.OrderBy(g => g.Orden).Select(g => new GrupoPublico(g.Categoria,
-                g.Miembros.OrderBy(m => m.Orden).Select(m => new MiembroPublico(m.Nombre, m.Rol, direcciones.De(m.ImagenId))).ToList())).ToList(),
+                g.Miembros.OrderBy(m => m.Orden).Select(MiembroAPublico).ToList())).ToList(),
             Imagenes(TipoImagenSerie.Galeria).Select(i => new ImagenPublica(direcciones.De(i.MedioId), i.TextoAlternativo)).ToList(),
             socios.Select(x => new ProyectoDeSocio(x.Nombre, direcciones.De(x.ImagenId), $"/socios/{x.Identificador}")).ToList());
+    }
+
+    /// <summary>Un socio no publicado no se muestra como tal (ni se usa su imagen).</summary>
+    private MiembroPublico MiembroAPublico(MiembroEquipo m)
+    {
+        var socio = m.Socio is { Publicado: true } s ? s : null;
+        return new MiembroPublico(m.Nombre, m.Rol, direcciones.De(m.ImagenId),
+            direcciones.De(m.ImagenAlternativaId ?? socio?.ImagenId), socio?.Identificador);
     }
 
     private static string? Vacio(string? texto) => string.IsNullOrWhiteSpace(texto) ? null : texto.Trim();
@@ -281,6 +300,12 @@ public class RutasSeriesPanel(BaseDeDatos bd, ServicioSeries series, UsuarioActu
     ServicioUsuarios usuarios, DireccionesMedios direcciones) : ControllerBase
 {
     /// <summary>Lista de wikis que la cuenta puede editar.</summary>
+    /// <summary>Socios para marcar a un miembro del equipo. Lo usa quien edita wikis (aunque no tenga el permiso Socios).</summary>
+    [HttpGet("socios-para-elegir")]
+    public async Task<List<SocioParaElegir>> SociosParaElegir() =>
+        (await bd.Socios.AsNoTracking().OrderBy(s => s.Nombre).Select(s => new { s.Id, s.Nombre, s.ImagenId }).ToListAsync())
+            .Select(s => new SocioParaElegir(s.Id, s.Nombre, s.ImagenId is null ? null : $"/api/medios/{s.ImagenId}")).ToList();
+
     [HttpGet]
     public async Task<List<SerieEnLista>> Listar()
     {

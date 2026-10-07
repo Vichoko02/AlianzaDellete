@@ -157,6 +157,20 @@ cd servidor && dotnet run                # → http://localhost:5126/panel
 
 Cada postulación aparece en **Panel → Postulaciones**. El panel revisa cada 30 segundos y avisa con un número en el menú y en la pestaña. Abrir una postulación la marca como leída.
 
+## Equipo de una wiki: miembros que son socios
+
+Cada miembro del equipo (pestaña «Equipo» del editor de la wiki) tiene nombre, rol y foto, y además:
+- **¿Es socio de la Alianza?**: se elige el socio (por ejemplo, Julio López es «Julio di esto»). En la wiki aparece la etiqueta «Socio», y al hacer clic se abre la ficha del socio.
+- **Imagen alternativa** (opcional): aparece al pasar el cursor sobre la foto. Si es socio y no se sube ninguna, se usa la imagen del socio.
+
+Quien edita una wiki puede elegir socios aunque no tenga el permiso «Socios»: solo ve la lista de nombres para elegir. Si un socio se oculta o se elimina, el miembro sigue en el equipo, pero deja de figurar como socio.
+
+### Cuenta para una sola wiki
+
+Para que alguien edite solo su wiki (por ejemplo, el equipo de Metrecalia): **Usuarios y permisos → + Nuevo usuario**, marcando solo esa wiki en «Permisos por wiki» y sin activar «Puede crear wikis». Esa cuenta:
+- **puede** editar todo el contenido de esa wiki (incluido el equipo y quién es socio), sus idiomas y sus traducciones, y subir imágenes;
+- **no puede** ver ni tocar otras wikis, crear o eliminar wikis, ni entrar a socios, textos e idiomas del sitio, usuarios o seguridad.
+
 ## Idiomas
 
 El sitio está en **español**, su idioma principal y original. Al instalarlo se ofrecen además, con traducción automática, los idiomas más hablados de los países que pueden visitarlo: **inglés, portugués (Brasil), francés y alemán**. Se siembran una sola vez: si Yish quita alguno, no vuelve. Cada idioma puede ser de **traducción automática o manual**:

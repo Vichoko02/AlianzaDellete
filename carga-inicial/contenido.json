@@ -781,9 +781,11 @@
               "imagen": "Metrecalia/Camiro1.webp"
             },
             {
-              "nombre": "Julio López (Julio Di Esto)",
+              "nombre": "Julio López",
               "rol": "Loriner Gatherson",
-              "imagen": "Metrecalia/Julio_Lopez.webp"
+              "imagen": "Metrecalia/Julio_Lopez.webp",
+              "socio": "julio-di-esto",
+              "imagenAlternativa": "asociados/Julio-di-esto.webp"
             },
             {
               "nombre": "Okami Sanchokomilk",

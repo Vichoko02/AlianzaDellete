@@ -86,7 +86,7 @@ public class ServicioMedios(BaseDeDatos bd)
         usos.AddRange(await bd.ImagenesSerie.Where(i => i.MedioId == id)
             .Join(bd.Series, i => i.SerieId, s => s.Id, (i, s) => "Galería o carrusel de " + s.Nombre).ToListAsync());
         usos.AddRange(await bd.Personajes.Where(p => p.ImagenId == id || p.ImagenActorVozId == id).Select(p => "Personaje " + p.Nombre).ToListAsync());
-        usos.AddRange(await bd.MiembrosEquipo.Where(m => m.ImagenId == id).Select(m => "Equipo: " + m.Nombre).ToListAsync());
+        usos.AddRange(await bd.MiembrosEquipo.Where(m => m.ImagenId == id || m.ImagenAlternativaId == id).Select(m => "Equipo: " + m.Nombre).ToListAsync());
         usos.AddRange(await bd.Socios.Where(s => s.ImagenId == id).Select(s => "Socio " + s.Nombre).ToListAsync());
         usos.AddRange(await bd.TextosSitio.Where(t => t.Valor.Contains(id.ToString())).Select(t => "Sitio: " + t.Etiqueta).ToListAsync());
         return usos.Distinct().ToList();

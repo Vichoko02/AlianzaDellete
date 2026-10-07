@@ -80,6 +80,7 @@ public class ServicioSitio(BaseDeDatos bd, ServicioMedios medios, DireccionesMed
         new("wiki.galeria", "Wikis", "Enlace «Galería»", TipoTexto.Texto, "Galería"),
         new("wiki.creador", "Wikis", "Sección «Creador»", TipoTexto.Texto, "Creador"),
         new("wiki.equipo", "Wikis", "Sección del equipo", TipoTexto.Texto, "Staff"),
+        new("wiki.socio", "Wikis", "Etiqueta de un miembro del equipo que es socio", TipoTexto.Texto, "Socio"),
         new("wiki.arte", "Wikis", "Enlace «Arte»", TipoTexto.Texto, "Arte"),
         new("wiki.arteTitulo", "Wikis", "Sección «Arte del proyecto»", TipoTexto.Texto, "Arte del Proyecto"),
         new("wiki.personajes", "Wikis", "Sección «Personajes»", TipoTexto.Texto, "Personajes"),

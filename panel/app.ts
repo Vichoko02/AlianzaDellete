@@ -21,7 +21,8 @@ interface Enlace { plataforma: string; url: string }
 interface Obra { titulo: string; url: string | null }
 interface Imagen { medioId: string; textoAlternativo: string | null }
 interface Personaje { nombre: string; rol: string | null; descripcion: string | null; imagenId: string | null; actorVoz: string | null; imagenActorVozId: string | null }
-interface Miembro { nombre: string; rol: string | null; imagenId: string | null }
+interface Miembro { nombre: string; rol: string | null; imagenId: string | null; imagenAlternativaId: string | null; socioId: number | null }
+interface SocioParaElegir { id: number; nombre: string; imagen: string | null }
 interface GrupoEquipo { categoria: string; miembros: Miembro[] }
 interface Creador { nombre: string | null; descripcion: string | null; imagenId: string | null; redes: Enlace[]; obras: Obra[] }
 interface SerieEdicion {
@@ -896,6 +897,7 @@ const wikiVacia = (estadoId: number): SerieEdicion => ({
 
 async function vistaEditorWiki(id: number | null): Promise<HTMLElement> {
   const estados = await api<Estado[]>("GET", "/api/panel/estados");
+  const socios = await api<SocioParaElegir[]>("GET", "/api/panel/series/socios-para-elegir");
   if (id == null && !puedeCrearWikis()) throw new Error("No tienes permiso para crear wikis. Pídeselo a YishAdmin.");
   const d = id == null ? wikiVacia(estados[0]?.id ?? 0) : await api<SerieEdicion>("GET", `/api/panel/series/${id}`);
   d.redes ??= []; d.apoyo ??= []; d.carrusel ??= []; d.galeria ??= []; d.personajes ??= []; d.equipo ??= [];
@@ -977,9 +979,9 @@ async function vistaEditorWiki(id: number | null): Promise<HTMLElement> {
         campo("Categoría", g, "categoria", { requerido: true, ayuda: "Ej: Animatics, Actores de Voz, Guion." }),
         editorLista<Miembro>({
           lista: g.miembros, textoAgregar: "Agregar miembro",
-          nuevo: () => ({ nombre: "", rol: "", imagenId: null }),
+          nuevo: () => ({ nombre: "", rol: "", imagenId: null, imagenAlternativaId: null, socioId: null }),
           titulo: (m) => m.nombre || "Nuevo miembro",
-          renderItem: (m) => h("div", { class: "rejilla" }, campo("Nombre", m, "nombre", { requerido: true }), campo("Rol", m, "rol"), selectorImagen("Foto", m, "imagenId")),
+          renderItem: (m) => editorMiembro(m, socios),
         }));
     },
   }));
@@ -1020,6 +1022,27 @@ async function vistaEditorWiki(id: number | null): Promise<HTMLElement> {
       [publica && h("a", { class: "boton", href: publica, target: "_blank", rel: "noopener" }, "Ver en el sitio ", icono("enlace-externo"))],
       [["Wikis", "#/wikis"], [id == null ? "Nueva" : "Editar"]]),
     form);
+}
+
+/**
+ * Un miembro del equipo: nombre, rol y foto. Además puede ser socio de la Alianza (ej: Julio López es «Julio di esto»):
+ * en el sitio se le marca como socio y al hacer clic se abre la ficha del socio. La imagen alternativa (por ejemplo, el
+ * avatar de su personaje público) aparece al pasar el cursor; si es socio y no se sube una, se usa la imagen del socio.
+ */
+function editorMiembro(m: Miembro, socios: SocioParaElegir[]): HTMLElement {
+  m.socioId ??= null;
+  m.imagenAlternativaId ??= null;
+  const elegirSocio = h("select", {
+    onchange: (e) => { m.socioId = e.target.value ? Number(e.target.value) : null; marcarCambio(); },
+  }, h("option", { value: "" }, "No es socio"),
+    socios.map((s) => h("option", { value: String(s.id), selected: s.id === m.socioId }, s.nombre)));
+  return h("div", {},
+    h("div", { class: "rejilla" }, campo("Nombre", m, "nombre", { requerido: true }), campo("Rol", m, "rol")),
+    h("div", { class: "rejilla" },
+      selectorImagen("Foto", m, "imagenId"),
+      selectorImagen("Imagen alternativa (opcional)", m, "imagenAlternativaId"),
+      h("div", { class: "campo" }, h("label", {}, "¿Es socio de la Alianza?"), elegirSocio,
+        h("p", { class: "ayuda" }, "Si es socio, en la wiki aparece marcado y al hacer clic se abre su ficha. Sin imagen alternativa, se usa la del socio."))));
 }
 
 // ─── Socios ───────────────────────────────────────────────────────────────────

@@ -98,7 +98,7 @@ public class CargaInicial(
 
     private record CreadorArchivo(string? Nombre, string? Imagen, string? Descripcion, Dictionary<string, string>? Redes, List<DatosObra>? Obras);
     private record PersonajeArchivo(string Nombre, string? Imagen, string? Rol, string? Descripcion, string? ActorVoz, string? ImagenActorVoz);
-    private record MiembroArchivo(string Nombre, string? Rol, string? Imagen);
+    private record MiembroArchivo(string Nombre, string? Rol, string? Imagen, string? ImagenAlternativa, string? Socio);
     private record GrupoArchivo(string Categoria, List<MiembroArchivo>? Miembros);
     private record ImagenArchivo(string Imagen, string? TextoAlternativo);
     private record SerieArchivo(
@@ -163,7 +163,7 @@ public class CargaInicial(
             foreach (var g in s.Equipo ?? [])
             {
                 var miembros = new List<DatosMiembro>();
-                foreach (var m in g.Miembros ?? []) miembros.Add(new DatosMiembro(m.Nombre, m.Rol, await Imagen(m.Imagen)));
+                foreach (var m in g.Miembros ?? []) miembros.Add(new DatosMiembro(m.Nombre, m.Rol, await Imagen(m.Imagen), await Imagen(m.ImagenAlternativa)));
                 equipo.Add(new DatosGrupoEquipo(g.Categoria, miembros));
             }
 
@@ -188,6 +188,18 @@ public class CargaInicial(
             bd.Socios.Add(socio);
             await bd.SaveChangesAsync();
         }
+
+        // 3b. Miembros de equipos que también son socios (se vinculan ahora que los socios existen).
+        var idsSocios = await bd.Socios.ToDictionaryAsync(x => x.Identificador, x => x.Id);
+        foreach (var s in contenido.Series)
+            foreach (var m in (s.Equipo ?? []).SelectMany(g => g.Miembros ?? []).Where(m => m.Socio is not null))
+            {
+                if (!idsSocios.TryGetValue(m.Socio!, out var idSocio)) { registro.LogWarning("Socio {Socio} no encontrado para {Miembro}", m.Socio, m.Nombre); continue; }
+                var miembro = await bd.MiembrosEquipo.FirstOrDefaultAsync(x => x.Nombre == m.Nombre
+                    && bd.Set<GrupoEquipo>().Any(g => g.Id == x.GrupoId && bd.Series.Any(z => z.Id == g.SerieId && z.Identificador == s.Identificador)));
+                if (miembro is not null) miembro.SocioId = idSocio;
+            }
+        await bd.SaveChangesAsync();
 
         // 4. Banners del carrusel de la portada.
         var banners = new List<Guid>();

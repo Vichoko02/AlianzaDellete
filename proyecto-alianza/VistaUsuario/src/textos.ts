@@ -51,8 +51,12 @@ export const TEXTOS_POR_DEFECTO: Record<string, string> = {
 
 export const SitioContexto = createContext<Sitio | null>(null);
 
-/** Idioma elegido por el visitante ("es" = español, el original) y cómo cambiarlo. */
-export const IdiomaContexto = createContext<{ idioma: string; cambiar: (codigo: string) => void }>({ idioma: "es", cambiar: () => {} });
+/**
+ * idioma = el que se está mostrando ("es" = español, el principal);
+ * elegido = el que el visitante eligió a mano, o null si se usa el de su navegador (lo detecta el servidor).
+ */
+export const IdiomaContexto = createContext<{ idioma: string; elegido: string | null; cambiar: (codigo: string) => void }>(
+  { idioma: "es", elegido: null, cambiar: () => {} });
 
 export function useIdioma() {
   return useContext(IdiomaContexto);

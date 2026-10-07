@@ -28,12 +28,13 @@ Los ganchos de React empiezan con `use` (`useTextos`, `useVentanaAbierta`) porqu
 
 El sitio está escrito en **español**, su idioma principal y el de su público. Además se ofrece en inglés, portugués (Brasil), francés y alemán; desde el panel se pueden agregar o quitar idiomas.
 
-El idioma se **detecta del navegador** la primera vez:
+**El idioma se detecta solo, del navegador.** El servidor lo lee de la cabecera `Accept-Language` que todo navegador envía, así que la página llega directo en ese idioma, sin pasar antes por el español:
 - un navegador en español ve español;
 - uno en `pt-PT` ve portugués de Brasil;
-- uno en un idioma que el sitio no ofrece (por ejemplo, japonés) ve español.
+- uno en japonés que también acepta inglés ve inglés;
+- uno en un idioma que el sitio no ofrece ve español.
 
-Si el visitante cambia el idioma en el selector, su elección se recuerda y manda sobre la del navegador.
+No hay selector en la barra de navegación. Hay uno discreto en el pie de página para quien quiera cambiar el idioma; esa elección se recuerda y manda sobre la del navegador.
 
 ## Desarrollo
 

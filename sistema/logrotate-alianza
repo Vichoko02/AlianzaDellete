@@ -1,0 +1,14 @@
+# Rotación del registro de bloqueos de nginx. instalar.sh lo copia a /etc/logrotate.d/alianza.
+/var/log/alianza/*.log {
+    weekly
+    rotate 8
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 www-data alianza
+    sharedscripts
+    postrotate
+        [ -s /run/nginx.pid ] && kill -USR1 "$(cat /run/nginx.pid)"
+    endscript
+}

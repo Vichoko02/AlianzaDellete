@@ -285,3 +285,9 @@ dl.respuestas { margin: 0; }
 dl.respuestas dt { font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: var(--suave); margin-top: 1rem; }
 dl.respuestas dd { margin: .25rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--titulo); }
 .error-texto { color: var(--acento); font-weight: 600; }
+
+/* ─── Seguridad ─── */
+.grafico-trafico { display: flex; align-items: flex-end; gap: 2px; height: 120px; padding: .5rem 0; border-bottom: 1px solid var(--borde); }
+.grafico-trafico i { flex: 1; background: var(--acento); border-radius: 2px 2px 0 0; min-height: 2px; opacity: .85; }
+.grafico-trafico i:hover { opacity: 1; }
+.accesos select, .accesos input { width: auto; flex: 1 1 220px; margin: 0; }

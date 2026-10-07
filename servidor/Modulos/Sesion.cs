@@ -19,17 +19,23 @@ public record SesionIniciada(string Token, DateTime Expira, PerfilUsuario Usuari
 [ApiController]
 [Route("api/sesion")]
 public class RutasSesion(BaseDeDatos bd, Sesiones sesiones, DirectorioLdap ldap, UsuarioActual actual, Auditoria auditoria,
-    ILogger<RutasSesion> registro) : ControllerBase
+    ServicioProteccion proteccion, ILogger<RutasSesion> registro) : ControllerBase
 {
     [HttpPost("iniciar")]
     [EnableRateLimiting("inicio-sesion")]
     public async Task<ActionResult<SesionIniciada>> Iniciar(DatosInicioSesion datos)
     {
-        var usuario = await bd.Usuarios.Include(u => u.Permisos).ThenInclude(p => p.Serie)
-            .FirstOrDefaultAsync(u => u.NombreUsuarioNormalizado == ServicioUsuarios.Normalizar(datos.NombreUsuario));
+        var nombre = ServicioUsuarios.Normalizar(datos.NombreUsuario);
+        var ip = ServicioProteccion.IpDe(HttpContext);
         var correcta = false;
+        Usuario? usuario;
         string token;
         DateTime expira;
+
+        // 0. Tras varios intentos fallidos la cuenta queda bloqueada 15 minutos (vale para cualquier nombre, exista o no).
+        if (proteccion.CuentaBloqueada(nombre))
+            return Problem("Demasiados intentos fallidos. Espera 15 minutos e inténtalo de nuevo.", statusCode: StatusCodes.Status429TooManyRequests);
+        usuario = await bd.Usuarios.Include(u => u.Permisos).ThenInclude(p => p.Serie).FirstOrDefaultAsync(u => u.NombreUsuarioNormalizado == nombre);
 
         // 1. Comprobar la contraseña: en LDAP si la cuenta es de ese origen; si no, contra el hash guardado.
         if (usuario is { Activo: true, Origen: OrigenCuenta.Ldap })
@@ -48,11 +54,16 @@ public class RutasSesion(BaseDeDatos bd, Sesiones sesiones, DirectorioLdap ldap,
         }
         if (!correcta || usuario is null)
         {
-            registro.LogWarning("Inicio de sesión fallido para {Usuario} desde {Ip}", datos.NombreUsuario, HttpContext.Connection.RemoteIpAddress);
+            registro.LogWarning("Inicio de sesión fallido para {Usuario} desde {Ip}", datos.NombreUsuario, ip);
+            proteccion.InicioFallido(nombre, ip, Request.Path);
             return Problem("Usuario o contraseña incorrectos.", statusCode: StatusCodes.Status401Unauthorized);
         }
 
-        // 2. Registrar el acceso y entregar la sesión.
+        // 2. Registrar el acceso (avisando si viene de una IP distinta a la anterior) y entregar la sesión.
+        proteccion.InicioExitoso(nombre);
+        if (usuario.UltimaIp is not null && usuario.UltimaIp != ip)
+            proteccion.Registrar(TipoEvento.InicioDesdeIpNueva, ip, Request.Path, $"Entró desde una IP distinta (antes: {usuario.UltimaIp})", usuario.NombreUsuario);
+        usuario.UltimaIp = ip;
         usuario.UltimoAcceso = DateTime.UtcNow;
         await bd.SaveChangesAsync();
         (token, expira) = sesiones.Crear(usuario);
@@ -86,7 +97,11 @@ public class RutasSesion(BaseDeDatos bd, Sesiones sesiones, DirectorioLdap ldap,
         }
         else
         {
-            if (!Contrasenas.Coincide(datos.ContrasenaActual, usuario.HashContrasena)) throw new ErrorDeNegocio("La contraseña actual no es correcta.");
+            if (!Contrasenas.Coincide(datos.ContrasenaActual, usuario.HashContrasena))
+            {
+                proteccion.InicioFallido(usuario.NombreUsuarioNormalizado, ServicioProteccion.IpDe(HttpContext), Request.Path);
+                throw new ErrorDeNegocio("La contraseña actual no es correcta.");
+            }
             usuario.HashContrasena = Contrasenas.Cifrar(datos.ContrasenaNueva);
         }
 

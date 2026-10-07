@@ -52,6 +52,15 @@ type EstadoPostulacion = "Nueva" | "Leida" | "Archivada";
 interface PostulacionEnLista { id: number; recibidaEn: string; nombre: string; correo: string; estado: EstadoPostulacion; resumen: string }
 interface Postulacion { id: number; recibidaEn: string; nombre: string; correo: string; estado: EstadoPostulacion; respuestas: { pregunta: string; valor: string }[] }
 interface Pendientes { nuevas: number; ultimaId: number | null; ultimoNombre: string | null; }
+type Gravedad = "Baja" | "Media" | "Alta";
+interface EventoSeguridad { id: number; fecha: string; tipo: string; gravedad: Gravedad; ip: string; ruta: string; usuario: string | null; detalle: string; revisado: boolean }
+interface IpActiva { ip: string; eventos: number; ultimoEvento: string; bloqueada: boolean }
+interface ResumenNginx { bloqueadasPorPais: number; limitadasPorNginx: number; sondeos: number; paisesBloqueados: Record<string, number> }
+interface ResumenSeguridad {
+  eventosPorTipo: Record<string, number>; alertasSinRevisar: number; ipsBloqueadas: number; ipsMasActivas: IpActiva[];
+  peticionesPorMinuto: number[]; nginx: ResumenNginx | null;
+}
+interface BloqueoIp { ip: string; hasta: string | null; motivo: string; manual: boolean; veces: number; creadoEn: string }
 
 // ─── Utilidades de DOM ────────────────────────────────────────────────────────
 
@@ -271,6 +280,7 @@ const RUTAS: Ruta[] = [
   { patron: /^\/formulario$/, vista: () => vistaFormulario(), menu: "formulario", permiso: esSA },
   { patron: /^\/usuarios$/, vista: () => vistaUsuarios(), menu: "usuarios", permiso: esSA },
   { patron: /^\/auditoria$/, vista: () => vistaAuditoria(), menu: "auditoria", permiso: esSA },
+  { patron: /^\/seguridad$/, vista: () => vistaSeguridad(), menu: "seguridad", permiso: esSA },
   { patron: /^\/cuenta$/, vista: () => vistaCuenta(), menu: "cuenta" },
 ];
 
@@ -345,6 +355,7 @@ function menuLateral(activo: string): HTMLElement {
     esSA() && h("div", { class: "grupo" }, "Administración"),
     esSA() && enlace("usuarios", "#/usuarios", "Usuarios y permisos"),
     esSA() && enlace("auditoria", "#/auditoria", "Auditoría"),
+    esSA() && h("a", { href: "#/seguridad", class: `nav${activo === "seguridad" ? " activo" : ""}` }, "Seguridad", insigniaSeguridad),
     h("div", { class: "sep" }),
     enlace("cuenta", "#/cuenta", "Mi cuenta"),
     h("div", { class: "quien" }, h("strong", {}, u.nombreVisible), u.nombreUsuario, esSA() ? " · superadmin" : ""),
@@ -1329,6 +1340,7 @@ function iniciarNotificaciones(): void {
     }
     ultimaVista = Math.max(ultimaVista ?? 0, p.ultimaId ?? 0);
     actualizarInsignia(p);
+    await refrescarAlertas(true);
   };
   void revisar();
   temporizadorNotificaciones = window.setInterval(() => void revisar(), 30_000);
@@ -1339,6 +1351,19 @@ function actualizarInsignia(p: Pendientes): void {
   insigniaPostulaciones.textContent = p.nuevas > 99 ? "99+" : String(p.nuevas);
   insigniaPostulaciones.classList.toggle("oculto", p.nuevas === 0);
   document.title = p.nuevas > 0 ? `(${p.nuevas}) ${tituloBase}` : tituloBase;
+}
+
+// Alertas de seguridad (gravedad alta, sin revisar): insignia en el menú y aviso cuando llega una nueva.
+const insigniaSeguridad = h("span", { class: "insignia oculto", "aria-label": "Alertas de seguridad" });
+let ultimasAlertas: number | null = null;
+
+async function refrescarAlertas(avisar = false): Promise<void> {
+  let alertas: number;
+  try { alertas = (await api<{ alertas: number }>("GET", "/api/panel/seguridad/pendientes")).alertas; } catch { return; }
+  if (avisar && ultimasAlertas !== null && alertas > ultimasAlertas) aviso("Nueva alerta de seguridad. Revísala en Seguridad.", "error");
+  ultimasAlertas = alertas;
+  insigniaSeguridad.textContent = alertas > 99 ? "99+" : String(alertas);
+  insigniaSeguridad.classList.toggle("oculto", alertas === 0);
 }
 
 async function refrescarPendientes(): Promise<void> {
@@ -1555,6 +1580,124 @@ async function vistaPostulaciones(): Promise<HTMLElement> {
       h("div", { class: "accesos" }, botonesFiltro),
       h("div", { class: "tabla-envoltura" }, h("table", { class: "tabla-solicitudes" },
         h("thead", {}, h("tr", {}, h("th", {}, "Fecha"), h("th", {}, "Quién"), h("th", {}, "Resumen"), h("th", {}, "Estado"))), cuerpo)),
+      paginador));
+}
+
+// ─── Seguridad (solo superadmin) ─────────────────────────────────────────────
+
+const TIPOS_EVENTO: Record<string, string> = {
+  InicioSesionFallido: "Inicio de sesión fallido", CuentaBloqueada: "Cuenta bloqueada por intentos", InicioDesdeIpNueva: "Inicio desde IP nueva",
+  AccesoDenegado: "Acceso sin permiso", SesionInvalida: "Sesión inválida", LimiteExcedido: "Límite de peticiones superado",
+  PatronDeAtaque: "Intento de ataque", IpBloqueada: "IP bloqueada", IpDesbloqueada: "IP desbloqueada", RutaInexistente: "Ruta inexistente (sondeo)",
+  ErrorServidor: "Error del servidor", SubidaRechazada: "Archivo rechazado", BotDetectado: "Bot en el formulario",
+  TraficoInusual: "Tráfico inusual", AtaqueDeContrasenas: "Ataque de contraseñas",
+};
+const CLASE_GRAVEDAD: Record<Gravedad, string> = { Alta: "sa", Media: "", Baja: "off" };
+
+async function vistaSeguridad(): Promise<HTMLElement> {
+  const r = await api<ResumenSeguridad>("GET", "/api/panel/seguridad/resumen");
+  const bloqueos = await api<BloqueoIp[]>("GET", "/api/panel/seguridad/bloqueos");
+  const est = (n: number, t: string) => h("div", { class: "estadistica" }, h("b", {}, n), h("span", {}, t));
+  const tablaEventos = h("tbody");
+  const paginador = h("div", { class: "paginador" });
+  const filtroIp = h("input", { type: "search", placeholder: "Filtrar por IP" });
+  const filtroTipo = h("select", {}, h("option", { value: "" }, "Todos los tipos"),
+    Object.entries(TIPOS_EVENTO).map(([valor, texto]) => h("option", { value: valor }, texto)));
+  let soloAlertas = r.alertasSinRevisar > 0;
+  let pagina = 1;
+  const nuevo = { ip: "", horas: "", motivo: "" };
+
+  // 1. Gráfico de peticiones por minuto de la última hora.
+  const maximo = Math.max(1, ...r.peticionesPorMinuto);
+  const grafico = h("div", { class: "grafico-trafico", role: "img", "aria-label": `Peticiones por minuto, máximo ${maximo}` },
+    r.peticionesPorMinuto.map((n, i) => {
+      const barra = h("i", { title: `Hace ${59 - i} min: ${n} peticiones` });
+      barra.style.height = `${Math.max(2, (n / maximo) * 100)}%`;
+      return barra;
+    }));
+
+  // 2. Registro de eventos con filtros.
+  const botonAlertas = h("button", { type: "button", class: "mini", onclick: () => { soloAlertas = !soloAlertas; pagina = 1; void cargar(); } });
+  async function cargar(): Promise<void> {
+    const q = new URLSearchParams({ pagina: String(pagina), tamano: "30" });
+    if (filtroIp.value.trim()) q.set("ip", filtroIp.value.trim());
+    if (filtroTipo.value) q.set("tipo", filtroTipo.value);
+    if (soloAlertas) q.set("sinRevisar", "true");
+    botonAlertas.textContent = soloAlertas ? "Ver todo" : "Solo alertas sin revisar";
+    const p = await intentar(() => api<Pagina<EventoSeguridad>>("GET", `/api/panel/seguridad/eventos?${q}`));
+    if (!p) return;
+    vaciar(tablaEventos, p.elementos.length ? p.elementos.map((e) => h("tr", { class: e.gravedad === "Alta" && !e.revisado ? "fila-nueva" : null },
+      h("td", { class: "ayuda" }, fecha(e.fecha)),
+      h("td", {}, h("span", { class: `chip ${CLASE_GRAVEDAD[e.gravedad]}` }, e.gravedad), " ", TIPOS_EVENTO[e.tipo] ?? e.tipo),
+      h("td", {}, e.ip ? h("button", { class: "mini", title: "Filtrar por esta IP", onclick: () => { filtroIp.value = e.ip; pagina = 1; void cargar(); } }, e.ip) : "—"),
+      h("td", { class: "ayuda" }, e.usuario ? `${e.usuario} · ` : "", e.detalle)))
+      : h("tr", {}, h("td", { colspan: 4, class: "vacio" }, soloAlertas ? "No hay alertas sin revisar." : "Sin eventos.")));
+    const paginas = Math.max(1, Math.ceil(p.total / p.tamano));
+    vaciar(paginador,
+      h("button", { class: "mini", disabled: pagina <= 1, onclick: () => { pagina--; void cargar(); } }, "‹ Anterior"),
+      `Página ${pagina} de ${paginas}`,
+      h("button", { class: "mini", disabled: pagina >= paginas, onclick: () => { pagina++; void cargar(); } }, "Siguiente ›"));
+  }
+  filtroIp.addEventListener("change", () => { pagina = 1; void cargar(); });
+  filtroTipo.addEventListener("change", () => { pagina = 1; void cargar(); });
+
+  // 3. Bloqueos: lista, desbloquear y bloqueo manual.
+  const filasBloqueos = bloqueos.length ? bloqueos.map((b) => h("tr", {},
+    h("td", {}, h("strong", {}, b.ip)),
+    h("td", { class: "ayuda" }, b.manual ? "Manual" : `Automático${b.veces > 1 ? ` (${b.veces}.ª vez)` : ""}`, " · ", b.motivo),
+    h("td", { class: "ayuda" }, b.hasta ? fecha(b.hasta) : "Indefinido"),
+    h("td", {}, h("button", {
+      class: "mini", onclick: async () => {
+        if ((await intentar(() => api("DELETE", `/api/panel/seguridad/bloqueos/${encodeURIComponent(b.ip)}`), `IP ${b.ip} desbloqueada`)) !== undefined) render();
+      },
+    }, "Desbloquear"))))
+    : [h("tr", {}, h("td", { colspan: 4, class: "vacio" }, "No hay IPs bloqueadas."))];
+  const formularioBloqueo = h("form", {
+    class: "rejilla", onsubmit: async (e) => {
+      e.preventDefault();
+      const horas = nuevo.horas.trim() ? Number(nuevo.horas) : null;
+      if ((await intentar(() => api("POST", "/api/panel/seguridad/bloqueos", { ip: nuevo.ip.trim(), horas, motivo: nuevo.motivo }), `IP ${nuevo.ip} bloqueada`)) !== undefined) render();
+    },
+  },
+    campo("IP", nuevo, "ip", { requerido: true }),
+    campo("Horas (vacío = indefinido)", nuevo, "horas", { tipo: "number" }),
+    campo("Motivo", nuevo, "motivo"),
+    h("div", {}, h("button", { class: "peligro", type: "submit" }, "Bloquear IP")));
+
+  await cargar();
+  const nginx = r.nginx;
+  return h("div", {},
+    cabecera("Seguridad", [h("button", {
+      onclick: async () => {
+        if ((await intentar(() => api("POST", "/api/panel/seguridad/eventos/revisar", {}), "Alertas marcadas como revisadas")) !== undefined) { await refrescarAlertas(); render(); }
+      },
+    }, "Marcar alertas como revisadas")]),
+    h("div", { class: "estadisticas" },
+      est(r.alertasSinRevisar, "Alertas sin revisar"),
+      est(r.ipsBloqueadas, "IPs bloqueadas ahora"),
+      est(r.eventosPorTipo["PatronDeAtaque"] ?? 0, "Ataques (24 h)"),
+      est(r.eventosPorTipo["InicioSesionFallido"] ?? 0, "Inicios fallidos (24 h)"),
+      nginx && est(nginx.bloqueadasPorPais, "Bloqueadas por país (24 h)"),
+      nginx && est(nginx.limitadasPorNginx + nginx.sondeos, "Frenadas por nginx (24 h)")),
+    h("div", { class: "rejilla" },
+      h("div", { class: "tarjeta" }, h("h2", {}, "Peticiones por minuto (última hora)"), grafico,
+        h("p", { class: "ayuda" }, "Si el tráfico sube más de 5 veces sobre lo normal, se registra una alerta de tráfico inusual.")),
+      h("div", { class: "tarjeta" }, h("h2", {}, "IPs más activas (10 min)"),
+        r.ipsMasActivas.length ? h("ul", {}, r.ipsMasActivas.map((i) => h("li", {}, h("strong", {}, i.ip), ` · ${i.eventos} eventos`, i.bloqueada ? " · bloqueada" : "")))
+          : h("p", { class: "vacio" }, "Nada sospechoso en los últimos 10 minutos."),
+        nginx && Object.keys(nginx.paisesBloqueados).length > 0 && [h("h2", {}, "Países bloqueados (24 h)"),
+          h("p", {}, Object.entries(nginx.paisesBloqueados).map(([pais, n]) => h("span", { class: "chip" }, `${pais || "?"} · ${n}`)))])),
+    h("div", { class: "tarjeta" },
+      h("h2", {}, "IPs bloqueadas"),
+      h("p", { class: "ayuda" }, "Las IPs se bloquean solas al acumular actividad sospechosa: 30 minutos la primera vez, y 4 veces más en cada reincidencia (máximo 7 días)."),
+      h("div", { class: "tabla-envoltura" }, h("table", {},
+        h("thead", {}, h("tr", {}, h("th", {}, "IP"), h("th", {}, "Motivo"), h("th", {}, "Hasta"), h("th", {}, ""))), h("tbody", {}, filasBloqueos))),
+      h("h2", {}, "Bloquear una IP a mano"), formularioBloqueo),
+    h("div", { class: "tarjeta" },
+      h("h2", {}, "Registro de seguridad"),
+      h("div", { class: "accesos" }, botonAlertas, filtroTipo, filtroIp),
+      h("div", { class: "tabla-envoltura" }, h("table", {},
+        h("thead", {}, h("tr", {}, h("th", {}, "Fecha"), h("th", {}, "Evento"), h("th", {}, "IP"), h("th", {}, "Detalle"))), tablaEventos)),
       paginador));
 }
 

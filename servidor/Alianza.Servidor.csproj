@@ -13,6 +13,8 @@
     <SatelliteResourceLanguages>es</SatelliteResourceLanguages>
     <!-- Versiones exactas de cada paquete en packages.lock.json: la misma compilación hoy y en un año. -->
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- Arquitecturas para las que empaquetar.sh arma el paquete (así el archivo de bloqueo es siempre el mismo). -->
+    <RuntimeIdentifiers>linux-x64;linux-arm64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>

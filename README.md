@@ -158,12 +158,66 @@ Cada postulación aparece en **Panel → Postulaciones**. El panel revisa cada 3
 
 ## Seguridad
 
-- **Contraseñas**: BCrypt, mínimo 10 caracteres con letras y números. Iniciar sesión no revela si una cuenta existe. Máximo 10 intentos por minuto por IP.
-- **Sesiones de 8 horas que se cierran al instante** si la cuenta se desactiva o cambia su contraseña.
-- **Permisos leídos en cada petición**: quitar un permiso vale de inmediato.
+Dos barreras. Ninguna depende de servicios externos: la base de países viene del paquete `geoip-database` del sistema y se actualiza con `apt upgrade`.
+
+### 1. nginx (antes de llegar al servidor; es lo más barato)
+
+Configuración en `sistema/nginx-alianza-http.conf` y `sistema/nginx-alianza.conf`.
+
+| Protección | Cómo |
+|---|---|
+| **Bloqueo por país** | Solo entran América (todo el continente y el Caribe), la Unión Europea y Australia, por IPv4 e IPv6. El resto se corta sin responder. Para permitir otro país, agrega su código en el `map` del archivo |
+| **Inundación de peticiones (DDoS)** | 30 peticiones/s por IP al sitio y 10/s a la API (con ráfagas), 30 conexiones simultáneas por IP |
+| **Fuerza bruta** | 10 inicios de sesión por minuto por IP |
+| **Conexiones lentas (slowloris)** | Tiempos máximos para enviar cabeceras y cuerpo, y cuerpo máximo de 1 MB (60 MB solo en la subida de archivos) |
+| **Sondeos de bots** | `.php`, `.env`, `.git`, `wp-admin`, `phpmyadmin`… se cortan sin responder |
+| **Suplantar la IP** | nginx reemplaza `X-Forwarded-For`, y el servidor solo le cree a nginx (127.0.0.1) |
+| **Cabeceras** | CSP, `X-Frame-Options` (clickjacking), `nosniff`, `Referrer-Policy`, `Permissions-Policy`, sin versión de nginx. Activar HSTS al tener HTTPS |
+
+Lo que nginx bloquea queda en `/var/log/alianza/nginx-bloqueos.log` (rotado cada semana). El panel lo resume.
+
+### 2. Servidor (módulo `Modulos/Proteccion.cs`)
+
+- **Inyección SQL**: no es posible. Todas las consultas pasan por EF Core con parámetros; no hay SQL armado con texto. Además, quien lo intenta queda registrado y bloqueado.
+- **Detector de ataques** en la URL y el agente: inyección SQL, XSS, recorrido de carpetas, inyección de comandos, Log4Shell, sondeos y herramientas como sqlmap o nikto. La petición se rechaza y suma puntos a la IP.
+- **Bloqueo automático por puntaje**: cada evento sospechoso suma puntos a la IP. Con 50 puntos en 10 minutos queda bloqueada 30 minutos; cada reincidencia multiplica el tiempo por 4 (máximo 7 días). Por ejemplo, 2 intentos de ataque, o 10 inicios fallidos, o un bot en el formulario.
+- **Bloqueo de cuentas**: 5 intentos fallidos en 15 minutos bloquean la cuenta 15 minutos, aunque vengan de IPs distintas. Se aplica a cualquier nombre, para no revelar qué cuentas existen.
+- **Límite por IP de la API** (600/minuto) y límites de Kestrel (cabeceras, conexiones, cuerpo), por si alguien llega sin pasar por nginx.
+- **Sesiones**: solo se aceptan tokens firmados con HS256; se cierran al desactivar la cuenta o cambiar la contraseña.
+- **Contraseñas**: BCrypt, mínimo 10 caracteres con letras y números. Iniciar sesión no revela si una cuenta existe.
 - **Validaciones**:
-  - los enlaces solo aceptan `http(s)`;
-  - los archivos se validan por su contenido, no solo por la extensión;
-  - si dos personas editan la misma wiki, la segunda recibe un aviso en vez de pisar los cambios.
-- **Panel sin dependencias externas** y con CSP estricta. Todo texto se inserta como texto, nunca como HTML.
-- **Auditoría** de cada creación, edición, eliminación y cambio de permisos.
+  - enlaces solo `http(s)`;
+  - archivos validados por su contenido;
+  - SVG servidos aislados;
+  - comodines escapados en las búsquedas;
+  - si dos personas editan a la vez, la segunda recibe un aviso en vez de pisar los cambios.
+- **XSS y CSRF**: el sitio (React) y el panel insertan todo como texto, nunca como HTML. La sesión va en una cabecera, no en cookies, así que otro sitio no puede usarla.
+
+### Registro y actividad inusual (panel → Seguridad, solo YishAdmin)
+
+Cada evento se guarda en `eventos_seguridad` (90 días), en lotes en segundo plano, sin una escritura por petición. Los de gravedad **Alta** aparecen como alertas, con número en el menú y aviso en pantalla, hasta marcarlas como revisadas.
+
+| Detecta | Gravedad |
+|---|---|
+| Intentos de ataque, IP bloqueada, cuenta bloqueada | Alta |
+| **Tráfico inusual**: más de 5 veces lo normal de la última hora (y más de 600/min) | Alta |
+| **Ataque de contraseñas repartido**: 30 o más inicios fallidos en 10 minutos, de cualquier IP | Alta |
+| **Inicio de sesión desde una IP nueva** para la cuenta (posible robo de contraseña) | Media |
+| Acceso sin permiso, límite superado, archivo rechazado, bot en el formulario, 20+ errores del servidor por minuto | Media |
+| Inicio fallido, sesión inválida, rutas de la API inexistentes (sondeos) | Baja |
+
+API (solo YishAdmin), bajo `/api/panel/seguridad/`:
+- `resumen`: eventos de 24 h por tipo, alertas, IPs bloqueadas, IPs más activas, tráfico por minuto y lo bloqueado por nginx por país;
+- `pendientes`;
+- `eventos?tipo=&gravedad=&ip=&sinRevisar=`;
+- `eventos/revisar`;
+- `bloqueos`: `GET` lista, `POST {ip, horas, motivo}` bloquea a mano, `DELETE bloqueos/{ip}` desbloquea.
+
+### Otras recomendaciones para el servidor
+
+- **Firewall**: solo abrir 22, 80 y 443 (`ufw allow OpenSSH && ufw allow 'Nginx Full' && ufw enable`). PostgreSQL, el servidor y LDAP ya escuchan solo en la propia máquina.
+- **SSH** solo con llave (`PasswordAuthentication no`).
+- **Actualizaciones automáticas** de seguridad: `apt install unattended-upgrades`. También mantienen al día la base de países.
+- **HTTPS** con certbot, y luego activar HSTS en `nginx-alianza.conf`.
+- **Respaldos** de PostgreSQL: `pg_dump alianza` diario a otra máquina.
+- Un DDoS grande (de varios Gb/s) satura la red antes de llegar a nginx. Contra eso solo sirve un servicio externo (Cloudflare, el proveedor del servidor). Estas defensas cubren los ataques comunes de aplicación.

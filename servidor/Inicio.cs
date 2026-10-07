@@ -26,6 +26,7 @@ servicios.Configure<ConfiguracionSuperadmin>(configuracion.GetSection(Configurac
 servicios.Configure<ConfiguracionLdap>(configuracion.GetSection(ConfiguracionLdap.Seccion));
 servicios.Configure<ConfiguracionPublica>(configuracion.GetSection(ConfiguracionPublica.Seccion));
 servicios.Configure<ConfiguracionCargaInicial>(configuracion.GetSection(ConfiguracionCargaInicial.Seccion));
+servicios.Configure<ConfiguracionProteccion>(configuracion.GetSection(ConfiguracionProteccion.Seccion));
 
 // ─── 2. Servicios ─────────────────────────────────────────────────────────────
 
@@ -44,6 +45,8 @@ servicios.AddSingleton<DireccionesMedios>();
 servicios.AddSingleton<Sesiones>();
 servicios.AddSingleton<DirectorioLdap>();
 servicios.AddSingleton<CachePublica>();
+servicios.AddSingleton<ServicioProteccion>();
+servicios.AddHostedService<TrabajadorProteccion>();
 
 // ─── 3. Sesiones del panel (solo cuentas administrativas; el sitio público no tiene inicio de sesión) ───
 
@@ -57,6 +60,7 @@ servicios.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer
         ValidAudience = sesiones.Audiencia,
         IssuerSigningKey = Sesiones.Llave(sesiones),
         ValidateIssuerSigningKey = true,
+        ValidAlgorithms = [SecurityAlgorithms.HmacSha256], // no acepta tokens firmados con otro algoritmo (ni "none")
         ClockSkew = TimeSpan.FromMinutes(1),
         NameClaimType = JwtRegisteredClaimNames.UniqueName,
     };
@@ -81,6 +85,11 @@ servicios.AddAuthorizationBuilder()
 servicios.AddRateLimiter(o =>
 {
     o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    // Última barrera por IP para toda la API (nginx limita antes y más fino).
+    o.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(contexto => contexto.Request.Path.StartsWithSegments("/api")
+        ? RateLimitPartition.GetFixedWindowLimiter(ServicioProteccion.IpDe(contexto),
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = configuracion.GetValue("Proteccion:PeticionesPorMinuto", 600), Window = TimeSpan.FromMinutes(1) })
+        : RateLimitPartition.GetNoLimiter("sin-limite"));
     o.AddPolicy("inicio-sesion", contexto => RateLimitPartition.GetFixedWindowLimiter(contexto.Connection.RemoteIpAddress?.ToString() ?? "?",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = configuracion.GetValue("LimiteInicioSesionPorMinuto", 10), Window = TimeSpan.FromMinutes(1) }));
     o.AddPolicy("postulaciones", contexto => RateLimitPartition.GetFixedWindowLimiter(contexto.Connection.RemoteIpAddress?.ToString() ?? "?",
@@ -96,10 +105,21 @@ servicios.AddProblemDetails();
 servicios.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins(origenesPermitidos).AllowAnyHeader().AllowAnyMethod().WithExposedHeaders("X-Advertencia")));
 servicios.Configure<ForwardedHeadersOptions>(o =>
 {
-    // Detrás de un proxy inverso (Caddy, nginx) que agrega la IP real del visitante.
+    // La IP real del visitante la informa nginx. Solo se cree a la propia máquina (127.0.0.1 / ::1, el valor por omisión):
+    // si alguien llegara directo al servidor, no podría inventar su IP para esquivar límites y bloqueos.
     o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    o.KnownNetworks.Clear();
-    o.KnownProxies.Clear();
+    o.ForwardLimit = 1;
+});
+constructor.WebHost.ConfigureKestrel(o =>
+{
+    // Contra conexiones lentas o abusivas (nginx ya filtra, esto protege si se llega directo).
+    o.Limits.MaxConcurrentConnections = 200;
+    o.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(15);
+    o.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(30);
+    o.Limits.MaxRequestHeaderCount = 50;
+    o.Limits.MaxRequestHeadersTotalSize = 16 * 1024;
+    o.Limits.MaxRequestLineSize = 8 * 1024;
+    o.Limits.MaxRequestBodySize = 1024 * 1024; // las subidas del panel tienen su propio límite (60 MB)
 });
 
 var app = constructor.Build();
@@ -114,6 +134,8 @@ using (var alcance = app.Services.CreateScope())
 // ─── 6. Recorrido de cada petición, en orden ──────────────────────────────────
 
 app.UseForwardedHeaders();
+// Protección: IPs bloqueadas, firmas de ataque en la URL y registro de lo sospechoso (ver Modulos/Proteccion.cs).
+app.UseMiddleware<MiddlewareProteccion>();
 app.UseExceptionHandler();
 // Panel: archivos de la carpeta publico/panel, servidos en /panel.
 app.UseDefaultFiles();

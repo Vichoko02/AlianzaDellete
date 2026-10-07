@@ -132,7 +132,7 @@ public class RutasMedios(BaseDeDatos bd) : ControllerBase
 [ApiController]
 [Authorize]
 [Route("api/panel/medios")]
-public class RutasMediosPanel(BaseDeDatos bd, ServicioMedios medios, Auditoria auditoria, DireccionesMedios direcciones) : ControllerBase
+public class RutasMediosPanel(BaseDeDatos bd, ServicioMedios medios, Auditoria auditoria, DireccionesMedios direcciones, ServicioProteccion proteccion) : ControllerBase
 {
     private MedioEnPanel Formato(Medio m) => new(m.Id, direcciones.De(m.Id), m.NombreArchivo, m.TipoContenido, m.Tamano, m.TextoAlternativo, m.SubidoEn);
 
@@ -147,7 +147,11 @@ public class RutasMediosPanel(BaseDeDatos bd, ServicioMedios medios, Auditoria a
         tamano = Math.Clamp(tamano, 1, 200);
         pagina = Math.Max(pagina, 1);
         if (!string.IsNullOrWhiteSpace(buscar))
-            consulta = consulta.Where(m => EF.Functions.ILike(m.NombreArchivo, $"%{buscar.Trim()}%") || EF.Functions.ILike(m.TextoAlternativo, $"%{buscar.Trim()}%"));
+        {
+            // % y _ son comodines en ILIKE: se escapan para que busquen el carácter literal (el texto ya va como parámetro).
+            var patron = "%" + buscar.Trim().Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_") + "%";
+            consulta = consulta.Where(m => EF.Functions.ILike(m.NombreArchivo, patron, @"\") || EF.Functions.ILike(m.TextoAlternativo, patron, @"\"));
+        }
 
         // 2. Contar y traer solo esa página, de lo más nuevo a lo más antiguo.
         total = await consulta.CountAsync();
@@ -168,7 +172,12 @@ public class RutasMediosPanel(BaseDeDatos bd, ServicioMedios medios, Auditoria a
             // Se lee directo a un arreglo de su tamaño exacto: una sola copia en memoria.
             var bytes = new byte[archivo.Length];
             await using (var lectura = archivo.OpenReadStream()) await lectura.ReadExactlyAsync(bytes);
-            guardados.Add(await medios.GuardarAsync(bytes, archivo.FileName, textoAlternativo));
+            try { guardados.Add(await medios.GuardarAsync(bytes, archivo.FileName, textoAlternativo)); }
+            catch (ErrorDeNegocio e)
+            {
+                proteccion.Registrar(TipoEvento.SubidaRechazada, ServicioProteccion.IpDe(HttpContext), Request.Path, $"{archivo.FileName}: {e.Message}", User.Identity?.Name);
+                throw;
+            }
         }
         await auditoria.RegistrarAsync("subir", "medio", string.Join(", ", archivos.Select(a => a.FileName)));
         await bd.SaveChangesAsync();

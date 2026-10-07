@@ -23,6 +23,41 @@ namespace Alianza.Servidor.Datos.Migraciones
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Alianza.Servidor.Datos.BloqueoIp", b =>
+                {
+                    b.Property<string>("Ip")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("ip");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<DateTime?>("Hasta")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("hasta");
+
+                    b.Property<bool>("Manual")
+                        .HasColumnType("boolean")
+                        .HasColumnName("manual");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("motivo");
+
+                    b.Property<int>("Veces")
+                        .HasColumnType("integer")
+                        .HasColumnName("veces");
+
+                    b.HasKey("Ip")
+                        .HasName("pk_bloqueos_ip");
+
+                    b.ToTable("bloqueos_ip", (string)null);
+                });
+
             modelBuilder.Entity("Alianza.Servidor.Datos.ContenidoMedio", b =>
                 {
                     b.Property<Guid>("MedioId")
@@ -170,6 +205,73 @@ namespace Alianza.Servidor.Datos.Migraciones
                         .HasDatabaseName("ix_estados_codigo");
 
                     b.ToTable("estados", (string)null);
+                });
+
+            modelBuilder.Entity("Alianza.Servidor.Datos.EventoSeguridad", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Detalle")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("detalle");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha");
+
+                    b.Property<string>("Gravedad")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("gravedad");
+
+                    b.Property<string>("Ip")
+                        .IsRequired()
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("ip");
+
+                    b.Property<bool>("Revisado")
+                        .HasColumnType("boolean")
+                        .HasColumnName("revisado");
+
+                    b.Property<string>("Ruta")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("ruta");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("tipo");
+
+                    b.Property<string>("Usuario")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("usuario");
+
+                    b.HasKey("Id")
+                        .HasName("pk_eventos_seguridad");
+
+                    b.HasIndex("Fecha")
+                        .HasDatabaseName("ix_eventos_seguridad_fecha");
+
+                    b.HasIndex("Ip")
+                        .HasDatabaseName("ix_eventos_seguridad_ip");
+
+                    b.HasIndex("Gravedad", "Revisado")
+                        .HasDatabaseName("ix_eventos_seguridad_gravedad_revisado");
+
+                    b.ToTable("eventos_seguridad", (string)null);
                 });
 
             modelBuilder.Entity("Alianza.Servidor.Datos.GrupoEquipo", b =>
@@ -894,6 +996,11 @@ namespace Alianza.Servidor.Datos.Migraciones
                     b.Property<Guid>("SelloSesion")
                         .HasColumnType("uuid")
                         .HasColumnName("sello_sesion");
+
+                    b.Property<string>("UltimaIp")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("ultima_ip");
 
                     b.Property<DateTime?>("UltimoAcceso")
                         .HasColumnType("timestamp with time zone")

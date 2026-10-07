@@ -8,15 +8,18 @@ ENV=/etc/alianza/servidor.env
 
 [ "$(id -u)" = 0 ] || { echo "Ejecuta con sudo." >&2; exit 1; }
 
-# 1. Solo PostgreSQL y nginx, de los repositorios del sistema. El servidor trae su propio .NET.
-if ! command -v psql >/dev/null || ! command -v nginx >/dev/null; then
+# 1. Solo paquetes de los repositorios del sistema (el servidor trae su propio .NET): PostgreSQL, nginx, y la base de
+#    países con su módulo para nginx (bloqueo por país sin consultar servicios externos; se actualiza con apt upgrade).
+if ! command -v psql >/dev/null || ! command -v nginx >/dev/null || [ ! -f /usr/share/GeoIP/GeoIPv6.dat ] \
+   || [ ! -e /usr/lib/nginx/modules/ngx_http_geoip_module.so ]; then
   apt-get update
-  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends postgresql nginx
+  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends postgresql nginx geoip-database libnginx-mod-http-geoip
 fi
 
-# 2. Usuario sin acceso a consola y carpetas.
+# 2. Usuario sin acceso a consola y carpetas (el registro de bloqueos de nginx lo lee el panel, en Seguridad).
 id alianza >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin alianza
 install -d /opt/alianza
+install -d -m 750 -o root -g alianza /var/log/alianza
 
 # 3. PostgreSQL: configuración para poca memoria, y rol + base "alianza" (entra por socket, sin contraseña).
 CONF_PG="$(ls -d /etc/postgresql/*/main | tail -1)/conf.d"
@@ -47,6 +50,9 @@ chown -R root:root /opt/alianza
 
 # 6. Servicios.
 cp sistema/alianza-servidor.service /etc/systemd/system/
+cp sistema/nginx-alianza-http.conf /etc/nginx/conf.d/alianza.conf
+install -d /etc/nginx/snippets && cp sistema/nginx-alianza-proxy.conf /etc/nginx/snippets/alianza-proxy.conf
+cp sistema/logrotate-alianza /etc/logrotate.d/alianza
 cp sistema/nginx-alianza.conf /etc/nginx/sites-available/alianza
 ln -sf /etc/nginx/sites-available/alianza /etc/nginx/sites-enabled/alianza
 rm -f /etc/nginx/sites-enabled/default

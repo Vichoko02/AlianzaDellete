@@ -66,3 +66,23 @@ public static class Politicas
 {
     public const string Superadmin = "Superadmin";
 }
+
+/// <summary>Sección "Proteccion": umbrales de bloqueo automático y registro de nginx.</summary>
+public class ConfiguracionProteccion
+{
+    public const string Seccion = "Proteccion";
+    /// <summary>Puntos de actividad sospechosa (en 10 minutos) para bloquear una IP.</summary>
+    public int PuntosParaBloquear { get; set; } = 50;
+    /// <summary>Minutos del primer bloqueo automático; cada reincidencia lo multiplica por 4 (máximo 7 días).</summary>
+    public int MinutosDeBloqueo { get; set; } = 30;
+    /// <summary>Intentos fallidos de una misma cuenta (en 15 minutos) para bloquearla 15 minutos.</summary>
+    public int FallosParaBloquearCuenta { get; set; } = 5;
+    /// <summary>Peticiones por minuto a la API por IP (última barrera; nginx limita antes).</summary>
+    public int PeticionesPorMinuto { get; set; } = 600;
+    /// <summary>Días que se guardan los eventos de seguridad.</summary>
+    public int DiasDeRegistro { get; set; } = 90;
+    /// <summary>IPs que nunca se bloquean automáticamente (por ejemplo, la de la oficina).</summary>
+    public string[] IpsDeConfianza { get; set; } = [];
+    /// <summary>Registro donde nginx anota lo que bloquea (países, límites, sondeos). Vacío = no se lee.</summary>
+    public string RegistroNginx { get; set; } = "";
+}

@@ -172,7 +172,7 @@ public class ServicioPostulaciones(BaseDeDatos bd)
 
 [ApiController]
 [Route("api/formulario")]
-public class RutasFormulario(ServicioPostulaciones postulaciones, CachePublica cache, ILogger<RutasFormulario> registro) : ControllerBase
+public class RutasFormulario(ServicioPostulaciones postulaciones, CachePublica cache, ServicioProteccion proteccion, ILogger<RutasFormulario> registro) : ControllerBase
 {
     [HttpGet]
     public Task<List<PreguntaPublica>> Preguntas() => cache.ObtenerAsync("formulario", async () =>
@@ -188,6 +188,7 @@ public class RutasFormulario(ServicioPostulaciones postulaciones, CachePublica c
         if (!string.IsNullOrEmpty(datos.Sitio))
         {
             registro.LogInformation("Postulación descartada por el campo trampa desde {Ip}", HttpContext.Connection.RemoteIpAddress);
+            proteccion.Registrar(TipoEvento.BotDetectado, ServicioProteccion.IpDe(HttpContext), Request.Path, "Rellenó el campo trampa del formulario");
             return StatusCode(StatusCodes.Status201Created, new { recibida = true });
         }
         postulacion = await postulaciones.RecibirAsync(datos);

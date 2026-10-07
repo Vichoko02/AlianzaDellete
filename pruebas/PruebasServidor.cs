@@ -66,7 +66,7 @@ public class PruebasServidor(ServidorDePrueba servidor) : IClassFixture<Servidor
     [Fact]
     public async Task IniciarSesion_ConDatosIncorrectos_Devuelve401()
     {
-        var cliente = servidor.CreateClient();
+        var cliente = servidor.Cliente();
         var conClaveMala = await cliente.PostAsJsonAsync("/api/sesion/iniciar", new { nombreUsuario = ServidorDePrueba.Superadmin, contrasena = "mala" });
         var sinCuenta = await cliente.PostAsJsonAsync("/api/sesion/iniciar", new { nombreUsuario = "noexiste", contrasena = "mala" });
 
@@ -86,7 +86,7 @@ public class PruebasServidor(ServidorDePrueba servidor) : IClassFixture<Servidor
     [Fact]
     public async Task Panel_SinSesion_Devuelve401()
     {
-        var respuesta = await servidor.CreateClient().GetAsync("/api/panel/series");
+        var respuesta = await servidor.Cliente().GetAsync("/api/panel/series");
 
         Assert.Equal(HttpStatusCode.Unauthorized, respuesta.StatusCode);
     }
@@ -195,7 +195,7 @@ public class PruebasServidor(ServidorDePrueba servidor) : IClassFixture<Servidor
     public async Task EstadoDeLaSerie_VieneDeLaBaseDeDatos()
     {
         var yish = await servidor.YishAsync();
-        var publico = servidor.CreateClient();
+        var publico = servidor.Cliente();
         var id = await CrearWikiAsync(yish, "estado-bd");
         var cancelado = await IdEstadoAsync(yish, "cancelado");
         JsonObject? wiki;
@@ -265,7 +265,7 @@ public class PruebasServidor(ServidorDePrueba servidor) : IClassFixture<Servidor
         JsonNode socio;
 
         Assert.Equal(HttpStatusCode.Created, respuesta.StatusCode);
-        socios = await servidor.CreateClient().GetFromJsonAsync<JsonArray>("/api/socios");
+        socios = await servidor.Cliente().GetFromJsonAsync<JsonArray>("/api/socios");
         socio = socios!.First(s => s!["identificador"]!.GetValue<string>() == "socio-prueba")!;
         Assert.Equal("/wiki/con-socio", socio["proyectos"]![0]!["enlace"]!.GetValue<string>());
         Assert.Equal("https://twitch.tv/x", socio["redes"]!["twitch"]!.GetValue<string>());
@@ -287,7 +287,7 @@ public class PruebasServidor(ServidorDePrueba servidor) : IClassFixture<Servidor
         respuesta = await yish.PostAsync("/api/panel/medios", imagen);
         Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
         url = (await respuesta.Content.ReadFromJsonAsync<JsonArray>())![0]!["url"]!.GetValue<string>();
-        descarga = await servidor.CreateClient().GetAsync(url);
+        descarga = await servidor.Cliente().GetAsync(url);
         Assert.Equal("image/png", descarga.Content.Headers.ContentType!.MediaType);
         Assert.Equal(PngMinimo, await descarga.Content.ReadAsByteArrayAsync());
 
@@ -300,7 +300,7 @@ public class PruebasServidor(ServidorDePrueba servidor) : IClassFixture<Servidor
     [Fact]
     public async Task Sitio_TextosVienenDeLaBaseDeDatosYSoloLosEditaQuienTienePermiso()
     {
-        var publico = servidor.CreateClient();
+        var publico = servidor.Cliente();
         var yish = await servidor.YishAsync();
         var cambio = new[] { new { clave = "inicio.hero.eslogan", valor = "Nuevo eslogan" } };
         JsonObject? sitio;
@@ -333,7 +333,7 @@ public class PruebasServidor(ServidorDePrueba servidor) : IClassFixture<Servidor
     [Fact]
     public async Task Postulacion_LlegaALaBaseDeDatosYSoloLaVeYish()
     {
-        var publico = servidor.CreateClient();
+        var publico = servidor.Cliente();
         var yish = await servidor.YishAsync();
         var preguntas = await publico.GetFromJsonAsync<JsonArray>("/api/formulario");
         var antes = await NuevasAsync(yish);
@@ -368,7 +368,7 @@ public class PruebasServidor(ServidorDePrueba servidor) : IClassFixture<Servidor
     [Fact]
     public async Task Postulacion_ValidaRespuestasEIgnoraBots()
     {
-        var publico = servidor.CreateClient();
+        var publico = servidor.Cliente();
         var yish = await servidor.YishAsync();
         var conCorreoMalo = await RespuestasValidasAsync(publico, "X", "no-es-correo");
         var incompleta = (await RespuestasValidasAsync(publico, "X", "x@ejemplo.cl")).Take(1).ToList();

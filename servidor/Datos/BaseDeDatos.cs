@@ -24,6 +24,8 @@ public class BaseDeDatos(DbContextOptions<BaseDeDatos> opciones) : DbContext(opc
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Permiso> Permisos => Set<Permiso>();
     public DbSet<RegistroAuditoria> Auditoria => Set<RegistroAuditoria>();
+    public DbSet<EventoSeguridad> EventosSeguridad => Set<EventoSeguridad>();
+    public DbSet<BloqueoIp> BloqueosIp => Set<BloqueoIp>();
 
     protected override void OnModelCreating(ModelBuilder modelo)
     {
@@ -100,6 +102,14 @@ public class BaseDeDatos(DbContextOptions<BaseDeDatos> opciones) : DbContext(opc
             t.HasIndex(x => new { x.UsuarioId, x.Area, x.SerieId }).IsUnique().AreNullsDistinct(false);
         });
         modelo.Entity<RegistroAuditoria>(t => t.HasIndex(x => x.Fecha));
+        modelo.Entity<EventoSeguridad>(t =>
+        {
+            t.Property(x => x.Tipo).HasConversion<string>().HasMaxLength(30);
+            t.Property(x => x.Gravedad).HasConversion<string>().HasMaxLength(10);
+            t.HasIndex(x => x.Fecha);
+            t.HasIndex(x => x.Ip);
+            t.HasIndex(x => new { x.Gravedad, x.Revisado });
+        });
     }
 
     /// <summary>Columna que apunta a un medio; si el medio se borra, queda en null (o lo impide si es obligatoria).</summary>

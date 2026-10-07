@@ -1,5 +1,7 @@
 // Tablas de la base de datos. Cada clase es una tabla; cada propiedad, una columna.
-// Orden: 1) contenido del sitio (series, socios, medios), 2) textos y formulario, 3) cuentas y permisos.
+// Orden: 1) contenido del sitio (series, socios, medios), 2) textos y formulario, 3) cuentas y permisos, 4) seguridad.
+using System.ComponentModel.DataAnnotations;
+
 namespace Alianza.Servidor.Datos;
 
 // ─── 1. Contenido: series (wikis), socios y archivos ──────────────────────────
@@ -301,6 +303,8 @@ public class Usuario
     public Guid SelloSesion { get; set; } = Guid.NewGuid();
     public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
     public DateTime? UltimoAcceso { get; set; }
+    /// <summary>IP del último inicio de sesión: si cambia, se registra un aviso de seguridad.</summary>
+    [MaxLength(45)] public string? UltimaIp { get; set; }
     public List<Permiso> Permisos { get; set; } = [];
 }
 
@@ -334,4 +338,41 @@ public class RegistroAuditoria
     public string Accion { get; set; } = "";
     public string Entidad { get; set; } = "";
     public string? Detalle { get; set; }
+}
+
+// ─── Seguridad ────────────────────────────────────────────────────────────────
+
+public enum TipoEvento
+{
+    InicioSesionFallido, CuentaBloqueada, InicioDesdeIpNueva, AccesoDenegado, SesionInvalida,
+    LimiteExcedido, PatronDeAtaque, IpBloqueada, IpDesbloqueada, RutaInexistente, ErrorServidor,
+    SubidaRechazada, BotDetectado, TraficoInusual, AtaqueDeContrasenas,
+}
+
+public enum Gravedad { Baja, Media, Alta }
+
+/// <summary>Registro de seguridad. Los de gravedad Alta aparecen como alertas en el panel de YishAdmin hasta que los revisa.</summary>
+public class EventoSeguridad
+{
+    public long Id { get; set; }
+    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+    public TipoEvento Tipo { get; set; }
+    public Gravedad Gravedad { get; set; }
+    [MaxLength(45)] public string Ip { get; set; } = "";
+    [MaxLength(300)] public string Ruta { get; set; } = "";
+    [MaxLength(64)] public string? Usuario { get; set; }
+    [MaxLength(500)] public string Detalle { get; set; } = "";
+    public bool Revisado { get; set; }
+}
+
+/// <summary>IP bloqueada: automática (por puntaje de actividad sospechosa) o manual desde el panel.</summary>
+public class BloqueoIp
+{
+    [Key, MaxLength(45)] public string Ip { get; set; } = "";
+    /// <summary>Hasta cuándo dura; null = indefinido (solo bloqueos manuales).</summary>
+    public DateTime? Hasta { get; set; }
+    [MaxLength(300)] public string Motivo { get; set; } = "";
+    public bool Manual { get; set; }
+    public int Veces { get; set; } = 1;
+    public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
 }

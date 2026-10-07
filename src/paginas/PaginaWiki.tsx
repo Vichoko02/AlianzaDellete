@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PlantillaWiki from "../componentes/PlantillaWiki";
 import { ErrorApi, pedirWiki, urlMedio, type Wiki } from "../api";
-import { useTextos } from "../textos";
+import { useIdioma, useTextos } from "../textos";
 
 /** Cambia las direcciones /api/medios/... por direcciones completas cuando el servidor está en otro dominio. */
 function conDirecciones(wiki: Wiki): Wiki {
@@ -23,18 +23,19 @@ function conDirecciones(wiki: Wiki): Wiki {
 /** Ruta /wiki/:identificador. La key reinicia la página (y su estado) al pasar de un proyecto a otro. */
 export default function RutaWiki() {
   const { identificador = "" } = useParams();
-  return <PaginaWiki key={identificador} identificador={identificador} />;
+  const { idioma } = useIdioma();
+  return <PaginaWiki key={`${identificador}:${idioma}`} identificador={identificador} idioma={idioma} />;
 }
 
 /** Wiki de cualquier proyecto. Todo su contenido viene de la base de datos. */
-function PaginaWiki({ identificador }: { identificador: string }) {
+function PaginaWiki({ identificador, idioma }: { identificador: string; idioma: string }) {
   const t = useTextos();
   const [wiki, setWiki] = useState<Wiki | null>(null);
   const [error, setError] = useState<"no-existe" | "sin-conexion" | null>(null);
 
   useEffect(() => {
     let vigente = true;
-    pedirWiki(identificador)
+    pedirWiki(identificador, idioma)
       .then((w) => {
         if (!vigente) return;
         setWiki(conDirecciones(w));
@@ -42,7 +43,7 @@ function PaginaWiki({ identificador }: { identificador: string }) {
       })
       .catch((e: unknown) => { if (vigente) setError(e instanceof ErrorApi && e.estado === 404 ? "no-existe" : "sin-conexion"); });
     return () => { vigente = false; };
-  }, [identificador]);
+  }, [identificador, idioma]);
 
   if (error) {
     return (

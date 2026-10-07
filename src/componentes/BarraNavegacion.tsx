@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
-import { useTextos } from "../textos";
+import { useState, useEffect, useContext } from "react";
+import { SitioContexto, useTextos } from "../textos";
+import SelectorIdioma from "./SelectorIdioma";
 import VentanaApoyanos from "./VentanaApoyanos";
 
 /** Menú de la portada. En pantallas chicas se abre como lista desplegable. */
 export default function BarraNavegacion() {
   const t = useTextos();
+  const idiomas = useContext(SitioContexto)?.idiomas ?? [];
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [apoyanosAbierto, setApoyanosAbierto] = useState(false);
   const enlaces = [
@@ -50,6 +52,7 @@ export default function BarraNavegacion() {
               </li>
             ))}
           </ul>
+          <SelectorIdioma idiomas={idiomas} />
           <button
             className={`hamburger ${menuAbierto ? "open" : ""}`}
             aria-expanded={menuAbierto}

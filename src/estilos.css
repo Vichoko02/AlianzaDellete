@@ -2711,3 +2711,17 @@ body.dark-theme .news-hero-overlay {
     text-align: center;
   }
 }
+/* ─── Selector de idioma ─── */
+/* Va sobre las barras azul marino del sitio y de las wikis (en ambos temas). */
+.selector-idioma { font-family: "Oswald", sans-serif; font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; padding: .35rem .6rem;
+  border: 1px solid rgba(255, 255, 255, .55); border-radius: 6px; background: transparent; color: #fff; cursor: pointer; margin-left: 1rem; }
+.selector-idioma:hover, .selector-idioma:focus { border-color: #E60000; outline: none; }
+.selector-idioma option { color: #1A1A4B; }
+.selector-idioma--wiki { margin-left: .5rem; }
+
+/* ─── Páginas de estado (sitio en preparación) ─── */
+.pagina-estado { background: #1A1A4B; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  padding: 2rem 1rem; gap: .75rem; }
+.pagina-estado-logo { width: min(220px, 50vw); }
+.pagina-estado h1 { font-family: "Black Ops One", sans-serif; letter-spacing: .05em; margin: 1rem 0 0; }
+.pagina-estado-otro { opacity: .7; font-size: .9rem; }

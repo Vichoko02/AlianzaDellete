@@ -38,6 +38,8 @@ export interface Creador {
   obras: { titulo: string; url: string | null }[];
 }
 
+export interface IdiomaPublico { codigo: string; nombre: string }
+
 export interface Wiki {
   identificador: string;
   nombre: string;
@@ -55,6 +57,8 @@ export interface Wiki {
   equipo: GrupoEquipo[];
   galeria: ImagenGaleria[];
   socios: Proyecto[];
+  /** Idiomas en que se puede leer esta wiki (además del español). */
+  idiomas: IdiomaPublico[];
 }
 
 export interface EnlaceSitio { plataforma: string; url: string; etiqueta: string | null; descripcion: string | null }
@@ -65,17 +69,22 @@ export interface Sitio {
   enlaces: Record<string, EnlaceSitio[]>;
   series: TarjetaSerie[];
   socios: Socio[];
+  /** Idiomas del sitio (además del español). */
+  idiomas: IdiomaPublico[];
 }
 
 export type TipoPregunta = "Nombre" | "Correo" | "Texto" | "TextoLargo" | "Opcion" | "VariasOpciones";
-export interface Pregunta { id: number; texto: string; ayuda: string; tipo: TipoPregunta; opciones: string[]; obligatoria: boolean }
+/** opciones = valores que se envían (en español); etiquetas = lo que se muestra (traducido si corresponde). */
+export interface Pregunta { id: number; texto: string; ayuda: string; tipo: TipoPregunta; opciones: string[]; etiquetas: string[]; obligatoria: boolean }
 export interface Respuesta { preguntaId: number; valores: string[] }
 
 // ─── 2. Peticiones ────────────────────────────────────────────────────────────
 
 export class ErrorApi extends Error {
   readonly estado: number;
-  constructor(mensaje: string, estado: number) { super(mensaje); this.estado = estado; }
+  /** El sitio está en modo privado y esta IP no está en la lista. */
+  readonly privado: boolean;
+  constructor(mensaje: string, estado: number, privado = false) { super(mensaje); this.estado = estado; this.privado = privado; }
 }
 
 async function pedir<T>(ruta: string, opciones?: RequestInit): Promise<T> {
@@ -84,14 +93,17 @@ async function pedir<T>(ruta: string, opciones?: RequestInit): Promise<T> {
   if (respuesta.ok) return respuesta.status === 204 ? (null as T) : (respuesta.json() as Promise<T>);
 
   // 2. Si falló, armar un mensaje legible con lo que explica el servidor.
-  const datos: { title?: string; errors?: Record<string, string[]> } | null = await respuesta.json().catch(() => null);
+  const datos: { title?: string; errors?: Record<string, string[]>; privado?: boolean } | null = await respuesta.json().catch(() => null);
   const detalle = datos?.errors ? Object.values(datos.errors).flat().join(" ") : datos?.title;
-  throw new ErrorApi(detalle || `Error ${respuesta.status}`, respuesta.status);
+  throw new ErrorApi(detalle || `Error ${respuesta.status}`, respuesta.status, datos?.privado === true);
 }
 
-export const pedirSitio = () => pedir<Sitio>("/api/sitio");
-export const pedirWiki = (identificador: string) => pedir<Wiki>(`/api/series/${encodeURIComponent(identificador)}`);
-export const pedirFormulario = () => pedir<Pregunta[]>("/api/formulario");
+/** "?idioma=en", o nada para el español (el idioma original). */
+const enIdioma = (idioma: string) => (idioma && idioma !== "es" ? `?idioma=${encodeURIComponent(idioma)}` : "");
+
+export const pedirSitio = (idioma: string) => pedir<Sitio>(`/api/sitio${enIdioma(idioma)}`);
+export const pedirWiki = (identificador: string, idioma: string) => pedir<Wiki>(`/api/series/${encodeURIComponent(identificador)}${enIdioma(idioma)}`);
+export const pedirFormulario = (idioma: string) => pedir<Pregunta[]>(`/api/formulario${enIdioma(idioma)}`);
 export const enviarPostulacion = (respuestas: Respuesta[], trampa: string) =>
   pedir<{ recibida: boolean }>("/api/formulario/postulaciones", {
     method: "POST",

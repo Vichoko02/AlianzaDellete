@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ErrorApi, enviarPostulacion, pedirFormulario, type Pregunta } from "../api";
-import { useTextos } from "../textos";
+import { useIdioma, useTextos } from "../textos";
 import { useVentanaAbierta } from "../ventana";
 
 const PATRON_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -21,6 +21,7 @@ function revisar(pregunta: Pregunta, valores: string[]): string {
  */
 export default function VentanaPostulacion({ alCerrar }: { alCerrar: () => void }) {
   const t = useTextos();
+  const { idioma } = useIdioma();
   const [preguntas, setPreguntas] = useState<Pregunta[] | null>(null);
   const [falloLaCarga, setFalloLaCarga] = useState(false);
   const [paso, setPaso] = useState(0);
@@ -38,8 +39,8 @@ export default function VentanaPostulacion({ alCerrar }: { alCerrar: () => void 
 
   // 1. Pedir las preguntas al abrir.
   useEffect(() => {
-    pedirFormulario().then(setPreguntas).catch(() => setFalloLaCarga(true));
-  }, []);
+    pedirFormulario(idioma).then(setPreguntas).catch(() => setFalloLaCarga(true));
+  }, [idioma]);
 
   // 2. En cada paso, llevar el foco al campo (teclado y lectores de pantalla).
   useEffect(() => {
@@ -79,13 +80,13 @@ export default function VentanaPostulacion({ alCerrar }: { alCerrar: () => void 
     if (pregunta.tipo === "Opcion" || varias) {
       return (
         <div className="quiz-opciones" role={varias ? "group" : "radiogroup"} aria-label={pregunta.texto}>
-          {pregunta.opciones.map((opcion) => {
+          {pregunta.opciones.map((opcion, i) => {
             const marcada = valores.includes(opcion);
             const alElegir = () => responder(varias ? (marcada ? valores.filter((v) => v !== opcion) : [...valores, opcion]) : [opcion]);
             return (
               <button key={opcion} type="button" role={varias ? "checkbox" : "radio"} aria-checked={marcada}
                 className={`quiz-opcion ${marcada ? "activa" : ""}`} onClick={alElegir}>
-                {opcion}
+                {pregunta.etiquetas[i] ?? opcion}
               </button>
             );
           })}

@@ -51,6 +51,13 @@ export const TEXTOS_POR_DEFECTO: Record<string, string> = {
 
 export const SitioContexto = createContext<Sitio | null>(null);
 
+/** Idioma elegido por el visitante ("es" = español, el original) y cómo cambiarlo. */
+export const IdiomaContexto = createContext<{ idioma: string; cambiar: (codigo: string) => void }>({ idioma: "es", cambiar: () => {} });
+
+export function useIdioma() {
+  return useContext(IdiomaContexto);
+}
+
 /** Devuelve una función t(clave) con el texto configurado en el panel. */
 export function useTextos(): (clave: string) => string {
   const sitio = useContext(SitioContexto);

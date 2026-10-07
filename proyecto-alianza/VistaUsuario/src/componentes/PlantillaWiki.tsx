@@ -3,9 +3,10 @@ import logoAlianza from "../assets/ALIANZA_VECTORIZADO.svg";
 import Pie from "./Pie";
 import SelectorIdioma from "./SelectorIdioma";
 import type { Personaje, Wiki } from "../api";
-import { ICONOS } from "../iconos";
+import { PLATAFORMAS } from "../iconos";
 import { useTextos } from "../textos";
 import { useVentanaAbierta } from "../ventana";
+import Icono from "./Icono";
 
 // Página de un proyecto. Se lee en el orden en que aparece en pantalla:
 // menú → cabecera → redes y apoyo → sinopsis y video → creador → carrusel → personajes → equipo → galería → pie.
@@ -20,13 +21,13 @@ const CLASES_ESTADO: Record<string, string> = {
 function BotonesRedes({ redes, tamano = 20, conColor = false, clase = "" }: { redes: [string, string][]; tamano?: number; conColor?: boolean; clase?: string }) {
   return (
     <>
-      {redes.filter(([plataforma]) => ICONOS[plataforma]).map(([plataforma, url]) => {
-        const icono = ICONOS[plataforma];
+      {redes.filter(([plataforma]) => PLATAFORMAS[plataforma]).map(([plataforma, url]) => {
+        const icono = PLATAFORMAS[plataforma];
         return (
           <a key={plataforma} href={url} target="_blank" rel="noopener noreferrer" className={`wiki-social-btn ${clase}`}
             aria-label={icono.nombre} title={conColor ? icono.nombre : undefined}
             style={conColor ? ({ "--plat-color": icono.color } as React.CSSProperties) : undefined}>
-            <svg viewBox="0 0 24 24" width={tamano} height={tamano} fill="currentColor"><path d={icono.ruta} /></svg>
+            <Icono nombre={plataforma} tamano={tamano} />
           </a>
         );
       })}
@@ -42,7 +43,7 @@ function VentanaPersonaje({ personaje, alCerrar }: { personaje: Personaje; alCer
   return (
     <div className="personaje-overlay" onClick={alCerrar}>
       <div className="personaje-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="socio-modal-close" onClick={alCerrar}>✕</button>
+        <button className="socio-modal-close" onClick={alCerrar} aria-label="Cerrar"><Icono nombre="cerrar" tamano={18} /></button>
         <div className="personaje-modal-main">
           <div className="personaje-modal-img">
             {personaje.imagen ? <img src={personaje.imagen} alt={personaje.nombre} /> : <span>{personaje.nombre.charAt(0)}</span>}
@@ -84,7 +85,7 @@ function Video({ wiki, modoOscuro }: { wiki: Wiki; modoOscuro: boolean }) {
     );
   }
   if (url) return <video src={url} title={titulo} controls style={{ width: "100%", height: "100%" }} />;
-  return <div className="wiki-video-placeholder"><span>▶ {t("wiki.trailer")}</span></div>;
+  return <div className="wiki-video-placeholder"><span><Icono nombre="reproducir" tamano={18} /> {t("wiki.trailer")}</span></div>;
 }
 
 export default function PlantillaWiki({ wiki }: { wiki: Wiki }) {
@@ -169,7 +170,7 @@ export default function PlantillaWiki({ wiki }: { wiki: Wiki }) {
 
       {imagenAmpliada && (
         <div className="wiki-lightbox" onClick={() => setImagenAmpliada(null)}>
-          <button className="wiki-lightbox-close" onClick={() => setImagenAmpliada(null)}>✕</button>
+          <button className="wiki-lightbox-close" onClick={() => setImagenAmpliada(null)} aria-label="Cerrar"><Icono nombre="cerrar" tamano={22} /></button>
           <img src={imagenAmpliada} alt="Vista completa" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
@@ -200,7 +201,7 @@ export default function PlantillaWiki({ wiki }: { wiki: Wiki }) {
           <ul>
             {enlacesMenu.map((enlace, i) => (
               <li key={enlace.destino} style={{ "--i": i } as React.CSSProperties}>
-                <a href={enlace.destino} onClick={() => setMenuAbierto(false)}>{enlace.texto}<span className="nav-arrow">→</span></a>
+                <a href={enlace.destino} onClick={() => setMenuAbierto(false)}>{enlace.texto}<span className="nav-arrow"><Icono nombre="flecha-derecha" tamano={16} /></span></a>
               </li>
             ))}
           </ul>
@@ -282,7 +283,7 @@ export default function PlantillaWiki({ wiki }: { wiki: Wiki }) {
             <div className="wiki-carrusel-track">
               <div className="wiki-carrusel-slide wiki-carrusel-slide--side" onClick={anterior}>
                 <img src={wiki.carrusel[(indiceCarrusel - 1 + totalCarrusel) % totalCarrusel]} alt="Anterior" />
-                <div className="wiki-carrusel-side-hint">‹</div>
+                <div className="wiki-carrusel-side-hint"><Icono nombre="anterior" tamano={28} /></div>
               </div>
               <div className={`wiki-carrusel-slide wiki-carrusel-slide--center ${animando ? `wiki-carrusel-exit-${direccionCarrusel}` : "wiki-carrusel-enter"}`}>
                 <img src={wiki.carrusel[indiceCarrusel]} alt={`Imagen ${indiceCarrusel + 1}`} />
@@ -292,7 +293,7 @@ export default function PlantillaWiki({ wiki }: { wiki: Wiki }) {
               </div>
               <div className="wiki-carrusel-slide wiki-carrusel-slide--side" onClick={siguiente}>
                 <img src={wiki.carrusel[(indiceCarrusel + 1) % totalCarrusel]} alt="Siguiente" />
-                <div className="wiki-carrusel-side-hint">›</div>
+                <div className="wiki-carrusel-side-hint"><Icono nombre="siguiente" tamano={28} /></div>
               </div>
             </div>
             <div className="wiki-carrusel-dots">
@@ -338,7 +339,7 @@ export default function PlantillaWiki({ wiki }: { wiki: Wiki }) {
       <section className="wiki-staff-section" id="staff">
         <button className={`wiki-staff-toggle ${equipoAbierto ? "abierto" : ""}`} onClick={() => setEquipoAbierto(!equipoAbierto)}>
           <span>{t("wiki.equipo").toUpperCase()}</span>
-          <svg viewBox="0 0 24 24" width="22" height="22" className="wiki-staff-arrow"><path fill="currentColor" d="M7 10l5 5 5-5z" /></svg>
+          <Icono nombre="desplegar" tamano={22} clase="wiki-staff-arrow" />
         </button>
         <div className={`wiki-staff-content ${equipoAbierto ? "visible" : ""}`}>
           {wiki.equipo.map((grupo, indiceGrupo) => (
@@ -373,10 +374,7 @@ export default function PlantillaWiki({ wiki }: { wiki: Wiki }) {
                 <div key={i} className="wiki-arte-item wiki-clickable" onClick={() => setImagenAmpliada(imagen.url)}>
                   <img src={imagen.url} alt={imagen.textoAlternativo} />
                   <div className="wiki-arte-hover">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-                      <line x1="11" y1="8" x2="11" y2="14" /><line x1="8" y1="11" x2="14" y2="11" />
-                    </svg>
+                    <Icono nombre="ampliar" tamano={32} />
                   </div>
                 </div>
               ))}

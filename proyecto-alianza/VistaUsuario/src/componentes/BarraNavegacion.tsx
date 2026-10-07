@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { SitioContexto, useTextos } from "../textos";
 import SelectorIdioma from "./SelectorIdioma";
 import VentanaApoyanos from "./VentanaApoyanos";
+import Icono from "./Icono";
 
 /** Menú de la portada. En pantallas chicas se abre como lista desplegable. */
 export default function BarraNavegacion() {
@@ -69,7 +70,7 @@ export default function BarraNavegacion() {
               <li key={enlace.texto} style={{ "--i": i } as React.CSSProperties}>
                 <a href={enlace.destino} onClick={(e) => { alElegir(enlace, e); setMenuAbierto(false); }}>
                   {enlace.texto}
-                  <span className="nav-arrow">→</span>
+                  <span className="nav-arrow"><Icono nombre="flecha-derecha" tamano={16} /></span>
                 </a>
               </li>
             ))}

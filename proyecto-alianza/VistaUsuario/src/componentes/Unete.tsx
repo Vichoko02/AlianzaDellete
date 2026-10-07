@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTextos } from "../textos";
 import VentanaPostulacion from "./VentanaPostulacion";
+import Icono from "./Icono";
 
 /** Sección «Únete»: explica los pasos y abre el formulario de postulación. */
 export default function Unete() {
@@ -23,9 +24,7 @@ export default function Unete() {
           </div>
           <div className="join-header-right">
             <span className="join-cta">{abierto ? "Cerrar" : "Ver más"}</span>
-            <svg className="join-chevron" viewBox="0 0 24 24" width="28" height="28">
-              <path fill="currentColor" d="M7 10l5 5 5-5z" />
-            </svg>
+            <Icono nombre="desplegar" tamano={28} clase="join-chevron" />
           </div>
         </button>
 

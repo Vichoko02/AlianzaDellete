@@ -37,6 +37,7 @@ export const TEXTOS_POR_DEFECTO: Record<string, string> = {
   "wiki.galeria": "Galería",
   "wiki.creador": "Creador",
   "wiki.equipo": "Staff",
+  "wiki.socio": "Socio",
   "wiki.arte": "Arte",
   "wiki.arteTitulo": "Arte del Proyecto",
   "wiki.personajes": "Personajes",

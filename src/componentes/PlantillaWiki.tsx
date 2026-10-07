@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import logoAlianza from "../assets/ALIANZA_VECTORIZADO.svg";
 import Pie from "./Pie";
-import type { Personaje, Wiki } from "../api";
+import type { MiembroEquipo, Personaje, Socio, Wiki } from "../api";
 import { PLATAFORMAS } from "../iconos";
-import { useTextos } from "../textos";
+import { SitioContexto, useTextos } from "../textos";
+import VentanaSocio from "./VentanaSocio";
 import { useVentanaAbierta } from "../ventana";
 import Icono from "./Icono";
 
@@ -67,6 +68,32 @@ function VentanaPersonaje({ personaje, alCerrar }: { personaje: Personaje; alCer
   );
 }
 
+/**
+ * Miembro del equipo. Si tiene imagen alternativa, aparece al pasar el cursor (o al enfocar con el teclado).
+ * Si también es socio de la Alianza, lleva la etiqueta y al hacer clic se abre su ficha; si no, se amplía su foto.
+ */
+function TarjetaMiembro({ miembro, director, socio, alAmpliar, alAbrirSocio }: {
+  miembro: MiembroEquipo; director: boolean; socio: Socio | null; alAmpliar: (url: string) => void; alAbrirSocio: (s: Socio) => void;
+}) {
+  const t = useTextos();
+  const clicable = socio !== null || miembro.imagen !== null;
+  const alHacerClic = () => { if (socio) alAbrirSocio(socio); else if (miembro.imagen) alAmpliar(miembro.imagen); };
+
+  return (
+    <div className={`wiki-staff-avatar ${director ? "wiki-staff-avatar--director" : ""} ${clicable ? "wiki-clickable" : ""} ${socio ? "wiki-staff-avatar--socio" : ""}`}
+      onClick={alHacerClic} role={clicable ? "button" : undefined} tabIndex={clicable ? 0 : undefined}
+      onKeyDown={(e) => { if (clicable && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); alHacerClic(); } }}>
+      <div className={`wiki-avatar-img ${miembro.imagenAlternativa ? "wiki-avatar-img--doble" : ""}`}>
+        {miembro.imagen ? <img src={miembro.imagen} alt={miembro.nombre} /> : <span>{miembro.nombre.charAt(0)}</span>}
+        {miembro.imagenAlternativa && <img className="wiki-avatar-alternativa" src={miembro.imagenAlternativa} alt="" aria-hidden="true" />}
+      </div>
+      <p className="wiki-avatar-name">{miembro.nombre}</p>
+      <p className="wiki-avatar-rol">{miembro.rol}</p>
+      {socio && <p className="wiki-avatar-socio" title={socio.nombre}>{t("wiki.socio")}</p>}
+    </div>
+  );
+}
+
 /** Video del proyecto: archivo propio, YouTube, TikTok o un enlace directo a un video. */
 function Video({ wiki, modoOscuro }: { wiki: Wiki; modoOscuro: boolean }) {
   const t = useTextos();
@@ -97,6 +124,8 @@ export default function PlantillaWiki({ wiki }: { wiki: Wiki }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [imagenAmpliada, setImagenAmpliada] = useState<string | null>(null);
   const [personajeAbierto, setPersonajeAbierto] = useState<Personaje | null>(null);
+  const [socioAbierto, setSocioAbierto] = useState<Socio | null>(null);
+  const socios = useContext(SitioContexto)?.socios ?? [];
   const [modoOscuro, setModoOscuro] = useState(() => document.body.classList.contains("dark-theme"));
   const refCabecera = useRef<HTMLImageElement>(null);
   const totalCarrusel = wiki.carrusel.length;
@@ -174,6 +203,7 @@ export default function PlantillaWiki({ wiki }: { wiki: Wiki }) {
         </div>
       )}
       {personajeAbierto && <VentanaPersonaje personaje={personajeAbierto} alCerrar={() => setPersonajeAbierto(null)} />}
+      {socioAbierto && <VentanaSocio socio={socioAbierto} alCerrar={() => setSocioAbierto(null)} />}
 
       {/* MENÚ */}
       <header className="wiki-header">
@@ -346,15 +376,9 @@ export default function PlantillaWiki({ wiki }: { wiki: Wiki }) {
               {/* El primer grupo (dirección) se muestra más grande. */}
               <div className={`wiki-staff-grid ${indiceGrupo === 0 ? "wiki-staff-grid--directores" : ""}`}>
                 {grupo.miembros.map((miembro, i) => (
-                  <div key={`${grupo.categoria}-${i}`}
-                    className={`wiki-staff-avatar ${indiceGrupo === 0 ? "wiki-staff-avatar--director" : ""} ${miembro.imagen ? "wiki-clickable" : ""}`}
-                    onClick={() => miembro.imagen && setImagenAmpliada(miembro.imagen)}>
-                    <div className="wiki-avatar-img">
-                      {miembro.imagen ? <img src={miembro.imagen} alt={miembro.nombre} /> : <span>{miembro.nombre.charAt(0)}</span>}
-                    </div>
-                    <p className="wiki-avatar-name">{miembro.nombre}</p>
-                    <p className="wiki-avatar-rol">{miembro.rol}</p>
-                  </div>
+                  <TarjetaMiembro key={`${grupo.categoria}-${i}`} miembro={miembro} director={indiceGrupo === 0}
+                    socio={socios.find((s) => s.identificador === miembro.socio) ?? null}
+                    alAmpliar={setImagenAmpliada} alAbrirSocio={setSocioAbierto} />
                 ))}
               </div>
             </div>

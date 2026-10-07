@@ -27,7 +27,8 @@ export interface Personaje {
   actorVoz: string | null;
   imagenActorVoz: string | null;
 }
-export interface MiembroEquipo { nombre: string; rol: string; imagen: string | null }
+/** socio = identificador del socio, si también es socio de la Alianza. imagenAlternativa se muestra al pasar el cursor. */
+export interface MiembroEquipo { nombre: string; rol: string; imagen: string | null; imagenAlternativa: string | null; socio: string | null }
 export interface GrupoEquipo { categoria: string; miembros: MiembroEquipo[] }
 export interface ImagenGaleria { url: string; textoAlternativo: string }
 export interface Creador {

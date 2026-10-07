@@ -26,8 +26,6 @@ export class UsersService {
       createdAt: userData?.createdAt,
       profile: userData?.profile,
       preferences: userData?.preferences,
-      purchaseHistory: userData?.purchaseHistory || [],
-      wishlist: userData?.wishlist || [],
     };
   }
 
@@ -129,25 +127,4 @@ export class UsersService {
     };
   }
 
-  async addToWishlist(uid: string, productId: string) {
-    const db = this.firebaseAdmin.firestore();
-    
-    await db.collection('users').doc(uid).update({
-      wishlist: admin.firestore.FieldValue.arrayUnion(productId),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    return { success: true, message: 'Producto añadido a favoritos' };
-  }
-
-  async removeFromWishlist(uid: string, productId: string) {
-    const db = this.firebaseAdmin.firestore();
-    
-    await db.collection('users').doc(uid).update({
-      wishlist: admin.firestore.FieldValue.arrayRemove(productId),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    return { success: true, message: 'Producto eliminado de favoritos' };
-  }
 }

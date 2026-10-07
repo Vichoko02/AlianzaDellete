@@ -157,9 +157,7 @@ export class AuthService {
         notifications: true,
         newsletter: true,
       },
-      purchaseHistory: [],
       assignedWikis: [],
-      wishlist: [],
     });
   }
 }

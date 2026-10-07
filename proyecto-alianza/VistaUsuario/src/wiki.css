@@ -1323,3 +1323,11 @@ a.wiki-obra-tag:hover {
   .personaje-modal-va { justify-content: center; }
   .wiki-personajes-grid { grid-template-columns: repeat(2, 1fr); }
 }
+/* ─── Equipo: imagen alternativa (al pasar el cursor) y miembros que son socios ─── */
+.wiki-avatar-img--doble { position: relative; }
+.wiki-avatar-img .wiki-avatar-alternativa { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .35s ease; }
+.wiki-staff-avatar:hover .wiki-avatar-alternativa,
+.wiki-staff-avatar:focus-visible .wiki-avatar-alternativa { opacity: 1; }
+.wiki-avatar-socio { margin: .35rem 0 0; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: #E60000; font-weight: 600; }
+.wiki-staff-avatar--socio .wiki-avatar-img { box-shadow: 0 0 0 3px #E60000; }
+@media (prefers-reduced-motion: reduce) { .wiki-avatar-img .wiki-avatar-alternativa { transition: none; } }

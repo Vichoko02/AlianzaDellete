@@ -11,27 +11,18 @@ export const PERMISSIONS = {
   WIKI_READ: 'wiki:read',
   WIKI_UPDATE: 'wiki:update',
   WIKI_DELETE: 'wiki:delete',
-  PRODUCT_CREATE: 'product:create',
-  PRODUCT_READ: 'product:read',
-  PRODUCT_UPDATE: 'product:update',
-  PRODUCT_DELETE: 'product:delete',
-  ORDER_READ: 'order:read',
-  ORDER_UPDATE: 'order:update',
   USER_READ: 'user:read',
   USER_UPDATE: 'user:update',
   USER_DELETE: 'user:delete',
   METRICS_READ: 'metrics:read',
-  LOGISTICS_READ: 'logistics:read',
-  LOGISTICS_UPDATE: 'logistics:update',
 };
 
 export const ROLE_PERMISSIONS = {
-  user: [PERMISSIONS.NEWS_READ, PERMISSIONS.PRODUCT_READ, PERMISSIONS.WIKI_READ],
+  user: [PERMISSIONS.NEWS_READ, PERMISSIONS.WIKI_READ],
   staff: [
     PERMISSIONS.NEWS_READ,
     PERMISSIONS.WIKI_READ,
     PERMISSIONS.WIKI_UPDATE,
-    PERMISSIONS.PRODUCT_READ,
   ],
   jefe_proyecto: [
     PERMISSIONS.NEWS_READ,
@@ -40,10 +31,7 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.WIKI_READ,
     PERMISSIONS.WIKI_CREATE,
     PERMISSIONS.WIKI_UPDATE,
-    PERMISSIONS.PRODUCT_READ,
-    PERMISSIONS.PRODUCT_UPDATE,
     PERMISSIONS.METRICS_READ,
-    PERMISSIONS.LOGISTICS_READ,
   ],
   alianza: Object.values(PERMISSIONS),
 };

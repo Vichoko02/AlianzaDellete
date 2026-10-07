@@ -3,8 +3,6 @@ import { AuthProvider } from './hooks/useAuth';
 import AdminLayout, { ProtectedRoute } from './shared/components/AdminLayout';
 import LoginPage from './admin/pages/LoginPage';
 import Dashboard from './admin/pages/Dashboard';
-import ProductsPage from './admin/pages/ProductsPage';
-import OrdersPage from './admin/pages/OrdersPage';
 import NewsPage from './admin/pages/NewsPage';
 import WikiPage from './admin/pages/WikiPage';
 import UsersPage from './admin/pages/UsersPage';
@@ -24,8 +22,6 @@ export default function App() {
                 <AdminLayout>
                   <Routes>
                     <Route path="/" element={<Dashboard />} />
-                    <Route path="/orders" element={<OrdersPage />} />
-                    <Route path="/products" element={<ProductsPage />} />
                     <Route path="/news" element={<NewsPage />} />
                     <Route path="/wiki" element={<WikiPage />} />
                     <Route path="/users" element={

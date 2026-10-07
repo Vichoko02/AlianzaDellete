@@ -27,15 +27,6 @@ export class UsersController {
     return this.usersService.updatePreferences(user.uid, dto);
   }
 
-  @Post('me/wishlist/:productId')
-  async addToMyWishlist(@CurrentUser() user: any, @Param('productId') productId: string) {
-    return this.usersService.addToWishlist(user.uid, productId);
-  }
-
-  @Post('me/wishlist/:productId/remove')
-  async removeFromMyWishlist(@CurrentUser() user: any, @Param('productId') productId: string) {
-    return this.usersService.removeFromWishlist(user.uid, productId);
-  }
 
   @Get()
   @UseGuards(RolesGuard)

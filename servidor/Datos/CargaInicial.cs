@@ -8,7 +8,7 @@ namespace Alianza.Servidor.Datos;
 
 /// <summary>
 /// Prepara la base de datos al arrancar, en este orden:
-/// 1) migraciones  2) estados  3) superadmin  4) textos del sitio  5) formulario  6) contenido actual (opcional).
+/// 1) migraciones  2) estados  3) superadmin  4) textos del sitio  5) formulario  6) idiomas iniciales  7) contenido actual (opcional).
 /// Cada paso solo agrega lo que falta: arrancar dos veces no duplica nada.
 /// </summary>
 public class CargaInicial(
@@ -44,13 +44,31 @@ public class CargaInicial(
         await sitio.SembrarAsync();
         await postulaciones.SembrarAsync();
 
-        // 6. Contenido que tenía el sitio escrito a mano, solo si la base de datos aún no tiene series.
+        // 6. Idiomas iniciales (una sola vez: si después se quita alguno, no vuelve).
+        await SembrarIdiomasAsync();
+
+        // 7. Contenido que tenía el sitio escrito a mano, solo si la base de datos aún no tiene series.
         if (configuracion.Value.ImportarContenido && !await bd.Series.AnyAsync())
         {
             await using var transaccion = await bd.Database.BeginTransactionAsync(); // todo o nada
             await ImportarContenidoAsync();
             await transaccion.CommitAsync();
         }
+    }
+
+    /// <summary>
+    /// El sitio está en español (el idioma principal y original). Además se ofrece, con traducción automática,
+    /// en los idiomas más hablados de los países que pueden visitarlo: inglés, portugués (Brasil), francés y alemán.
+    /// </summary>
+    public static readonly string[] IdiomasIniciales = ["en", "pt-BR", "fr", "de"];
+
+    private async Task SembrarIdiomasAsync()
+    {
+        if (await bd.Ajustes.AnyAsync(a => a.Clave == "idiomas-iniciales")) return;
+        if (!await bd.IdiomasOfrecidos.AnyAsync(i => i.SerieId == null))
+            bd.IdiomasOfrecidos.AddRange(IdiomasIniciales.Select(c => new IdiomaOfrecido { Codigo = c, Automatica = true }));
+        bd.Ajustes.Add(new Ajuste { Clave = "idiomas-iniciales", Valor = string.Join(",", IdiomasIniciales) });
+        await bd.SaveChangesAsync();
     }
 
     private async Task CrearSuperadminAsync()

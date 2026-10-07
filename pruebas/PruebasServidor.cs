@@ -302,6 +302,16 @@ public class PruebasServidor(ServidorDePrueba servidor) : IClassFixture<Servidor
         Assert.Equal(HttpStatusCode.BadRequest, (await yish.PostAsync("/api/panel/medios", falsa)).StatusCode);
     }
 
+    [Fact]
+    public async Task Sitio_EnEspanolConCuatroIdiomasDeArranque()
+    {
+        var sitio = await servidor.Cliente().GetFromJsonAsync<JsonObject>("/api/sitio");
+        var codigos = sitio!["idiomas"]!.AsArray().Select(i => i!["codigo"]!.GetValue<string>()).ToList();
+
+        Assert.Equal(["en", "pt-BR", "fr", "de"], codigos);
+        Assert.Equal("Únete", sitio["textos"]!["nav.unete"]!.GetValue<string>()); // sin ?idioma, en español
+    }
+
     // ─── Textos del sitio ─────────────────────────────────────────────────────
 
     [Fact]

@@ -103,6 +103,17 @@ function agregar(el: Element, hijos: Hijo[]): void {
     el.append(c instanceof Node ? c : document.createTextNode(String(c)));
   }
 }
+/** Ícono local (archivo iconos.svg del panel), del color del texto. */
+function icono(nombre: string): SVGSVGElement {
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  const uso = document.createElementNS(ns, "use");
+  svg.setAttribute("class", "icono");
+  svg.setAttribute("aria-hidden", "true");
+  uso.setAttribute("href", `iconos.svg#${nombre}`);
+  svg.append(uso);
+  return svg;
+}
 function vaciar<T extends Element>(el: T, ...hijos: Hijo[]): T { el.replaceChildren(); agregar(el, hijos); return el; }
 function $(sel: string): HTMLElement {
   const el = document.querySelector<HTMLElement>(sel);
@@ -248,12 +259,14 @@ function temaActual(): "claro" | "oscuro" {
   if (t === "claro" || t === "oscuro") return t;
   return matchMedia("(prefers-color-scheme: dark)").matches ? "oscuro" : "claro";
 }
+const botonTema = (tema: "claro" | "oscuro"): Hijo[] => (tema === "oscuro" ? [icono("sol"), " Claro"] : [icono("luna"), " Oscuro"]);
+
 function alternarTema(): void {
   const nuevo = temaActual() === "oscuro" ? "claro" : "oscuro";
   document.documentElement.setAttribute("data-tema", nuevo);
   try { localStorage.setItem("alianza-tema", nuevo); } catch { /* sin almacenamiento */ }
   const boton = document.querySelector<HTMLButtonElement>(".boton-tema");
-  if (boton) boton.textContent = nuevo === "oscuro" ? "☀ Claro" : "☾ Oscuro";
+  if (boton) vaciar(boton, ...botonTema(nuevo));
 }
 
 // ─── Configuración del panel ─────────────────────────────────────────────────
@@ -329,7 +342,7 @@ function render(): void {
   function alternarMenu(abrir: boolean): void { lateral.classList.toggle("abierto", abrir); velo.classList.toggle("oculto", !abrir); }
   const barraMovil = h("div", { class: "barra-movil" },
     h("img", { src: "img/logo-blanco.svg", alt: "La Alianza" }),
-    h("button", { class: "mini", onclick: () => alternarMenu(true), "aria-label": "Abrir menú" }, "☰ Menú"));
+    h("button", { class: "mini", onclick: () => alternarMenu(true), "aria-label": "Abrir menú" }, icono("menu"), " Menú"));
   lateral.addEventListener("click", (e) => { if (e.target instanceof Element && e.target.closest("a")) alternarMenu(false); });
   vaciar(app, barraMovil, h("div", { class: "shell" }, lateral, contenido), velo);
 
@@ -365,7 +378,7 @@ function menuLateral(activo: string): HTMLElement {
     enlace("cuenta", "#/cuenta", "Mi cuenta"),
     h("div", { class: "quien" }, h("strong", {}, u.nombreVisible), u.nombreUsuario, esSA() ? " · superadmin" : ""),
     h("div", { class: "pie-lateral" },
-      h("button", { class: "boton-tema", onclick: alternarTema, title: "Cambiar tema" }, temaActual() === "oscuro" ? "☀ Claro" : "☾ Oscuro"),
+      h("button", { class: "boton-tema", onclick: alternarTema, title: "Cambiar tema" }, botonTema(temaActual())),
       h("button", { onclick: () => cerrarSesion() }, "Salir")),
   );
 }
@@ -386,7 +399,7 @@ function cabecera(titulo: string, acciones: Hijo[] = [], migas: Miga[] = []): HT
 function modal(titulo: string, cuerpo: Hijo, botones: Hijo[] = [], { estrecho = false } = {}): HTMLDialogElement {
   const dlg = h("dialog", { class: estrecho ? "estrecho" : null });
   agregar(dlg, [
-    h("div", { class: "modal-cab" }, h("h2", {}, titulo), h("button", { class: "mini fantasma", onclick: () => dlg.close(), "aria-label": "Cerrar" }, "✕")),
+    h("div", { class: "modal-cab" }, h("h2", {}, titulo), h("button", { class: "mini fantasma", onclick: () => dlg.close(), "aria-label": "Cerrar" }, icono("cerrar"))),
     h("div", { class: "modal-cuerpo" }, cuerpo),
     botones.length ? h("div", { class: "modal-pie" }, botones) : null,
   ]);
@@ -515,9 +528,9 @@ function panelBiblioteca({ alElegir, alSubir, conDetalle = false }: OpcionesBibl
     const paginas = Math.max(1, Math.ceil(r.total / r.tamano));
     info.textContent = `${r.total} archivo(s)`;
     vaciar(paginador,
-      h("button", { class: "mini", disabled: pagina <= 1, onclick: () => { pagina--; void cargar(); } }, "‹ Anterior"),
+      h("button", { class: "mini", disabled: pagina <= 1, onclick: () => { pagina--; void cargar(); } }, icono("anterior"), " Anterior"),
       `Página ${pagina} de ${paginas}`,
-      h("button", { class: "mini", disabled: pagina >= paginas, onclick: () => { pagina++; void cargar(); } }, "Siguiente ›"));
+      h("button", { class: "mini", disabled: pagina >= paginas, onclick: () => { pagina++; void cargar(); } }, "Siguiente ", icono("siguiente")));
   }
 
   function tarjetaMedio(m: Medio): HTMLElement {
@@ -683,8 +696,8 @@ function editorLista<T>({ lista, nuevo, titulo, renderItem, textoAgregar = "Agre
         h("div", { class: "lista-item-cab" },
           h("strong", {}, titulo(item, i)),
           h("div", { class: "acciones" },
-            h("button", { type: "button", class: "mini", disabled: i === 0, title: "Subir", "aria-label": "Subir", onclick: () => mover(i, -1) }, "↑"),
-            h("button", { type: "button", class: "mini", disabled: i === lista.length - 1, title: "Bajar", "aria-label": "Bajar", onclick: () => mover(i, 1) }, "↓"),
+            h("button", { type: "button", class: "mini", disabled: i === 0, title: "Subir", "aria-label": "Subir", onclick: () => mover(i, -1) }, icono("flecha-arriba")),
+            h("button", { type: "button", class: "mini", disabled: i === lista.length - 1, title: "Bajar", "aria-label": "Bajar", onclick: () => mover(i, 1) }, icono("flecha-abajo")),
             h("button", { type: "button", class: "mini peligro", onclick: () => { lista.splice(i, 1); marcarCambio(); pintar(); } }, "Eliminar"))),
         renderItem(item, i))),
       h("button", { type: "button", onclick: () => { lista.push(nuevo()); marcarCambio(); pintar(); } }, `+ ${textoAgregar}`));
@@ -706,7 +719,7 @@ function editorEnlaces(lista: Enlace[], plataformas: string[] = PLATAFORMAS): HT
         h("select", { "aria-label": "Plataforma", onchange: (ev) => { e.plataforma = ev.target.value; marcarCambio(); } },
           plataformas.map((p) => h("option", { value: p, selected: p === e.plataforma }, p))),
         h("input", { type: "url", placeholder: "https://…", value: e.url, "aria-label": "URL", oninput: (ev) => { e.url = ev.target.value; marcarCambio(); } }),
-        h("button", { type: "button", class: "mini peligro", "aria-label": "Quitar enlace", onclick: () => { lista.splice(i, 1); marcarCambio(); pintar(); } }, "✕"))),
+        h("button", { type: "button", class: "mini peligro", "aria-label": "Quitar enlace", onclick: () => { lista.splice(i, 1); marcarCambio(); pintar(); } }, icono("cerrar")))),
       lista.length ? null : h("p", { class: "vacio" }, "Sin enlaces."),
       h("button", { type: "button", class: "mini", onclick: () => { lista.push({ plataforma: plataformas[0] ?? "web", url: "" }); marcarCambio(); pintar(); } }, "+ Agregar enlace"));
   }
@@ -723,9 +736,9 @@ function editorGaleria(lista: Imagen[]): HTMLElement {
         h("div", { class: "pie" },
           h("input", { type: "text", placeholder: "Texto alternativo", value: img.textoAlternativo || "", oninput: (e) => { img.textoAlternativo = e.target.value; marcarCambio(); } }),
           h("div", { class: "acciones" },
-            h("button", { type: "button", class: "mini", disabled: i === 0, "aria-label": "Mover antes", onclick: () => mover(i, -1) }, "←"),
-            h("button", { type: "button", class: "mini", disabled: i === lista.length - 1, "aria-label": "Mover después", onclick: () => mover(i, 1) }, "→"),
-            h("button", { type: "button", class: "mini peligro", "aria-label": "Quitar imagen", onclick: () => { lista.splice(i, 1); marcarCambio(); pintar(); } }, "✕")))))),
+            h("button", { type: "button", class: "mini", disabled: i === 0, "aria-label": "Mover antes", onclick: () => mover(i, -1) }, icono("flecha-izquierda")),
+            h("button", { type: "button", class: "mini", disabled: i === lista.length - 1, "aria-label": "Mover después", onclick: () => mover(i, 1) }, icono("flecha-derecha")),
+            h("button", { type: "button", class: "mini peligro", "aria-label": "Quitar imagen", onclick: () => { lista.splice(i, 1); marcarCambio(); pintar(); } }, icono("cerrar"))))))),
       lista.length ? null : h("p", { class: "vacio" }, "Sin imágenes."),
       h("p", {}, h("button", {
         type: "button",
@@ -763,10 +776,13 @@ function urlYoutubeEmbed(url: string | null | undefined): string | null {
 /** Texto "Sin cambios / Cambios sin guardar" que se actualiza solo mientras está en pantalla. */
 function indicadorGuardado(): HTMLElement {
   const el = h("span", { class: "estado-guardado", "aria-live": "polite" }, "Sin cambios");
+  let anterior = false;
   const t = window.setInterval(() => {
     if (!el.isConnected) { clearInterval(t); return; }
-    el.textContent = hayCambiosSinGuardar ? "● Cambios sin guardar · Ctrl+S" : "Sin cambios";
-    el.classList.toggle("sucio", hayCambiosSinGuardar);
+    if (hayCambiosSinGuardar === anterior) return;
+    anterior = hayCambiosSinGuardar;
+    if (anterior) vaciar(el, icono("punto"), " Cambios sin guardar · Ctrl+S"); else vaciar(el, "Sin cambios");
+    el.classList.toggle("sucio", anterior);
   }, 400);
   return el;
 }
@@ -837,7 +853,7 @@ async function vistaWikis(): Promise<HTMLElement> {
       h("td", { class: "ayuda" }, fecha(s.actualizadaEn)),
       h("td", {}, h("div", { class: "acciones" },
         h("a", { class: "boton mini primario", href: `#/wikis/${s.id}` }, "Editar"),
-        publica && h("a", { class: "boton mini", href: publica, target: "_blank", rel: "noopener" }, "Ver ↗"),
+        publica && h("a", { class: "boton mini", href: publica, target: "_blank", rel: "noopener" }, "Ver ", icono("enlace-externo")),
         esSA() && h("button", {
           class: "mini peligro",
           onclick: async () => {
@@ -1001,7 +1017,7 @@ async function vistaEditorWiki(id: number | null): Promise<HTMLElement> {
   const publica = id != null ? urlWikiPublica(d.identificador) : null;
   return h("div", {},
     cabecera(id == null ? "Nueva wiki" : d.nombre,
-      [publica && h("a", { class: "boton", href: publica, target: "_blank", rel: "noopener" }, "Ver en el sitio ↗")],
+      [publica && h("a", { class: "boton", href: publica, target: "_blank", rel: "noopener" }, "Ver en el sitio ", icono("enlace-externo"))],
       [["Wikis", "#/wikis"], [id == null ? "Nueva" : "Editar"]]),
     form);
 }
@@ -1286,9 +1302,9 @@ async function vistaAuditoria(): Promise<HTMLElement> {
       : h("tr", {}, h("td", { colspan: 5, class: "vacio" }, "Sin registros.")));
     const paginas = Math.max(1, Math.ceil(r.total / r.tamano));
     vaciar(paginador,
-      h("button", { class: "mini", disabled: pagina <= 1, onclick: () => { pagina--; void cargar(); } }, "‹ Anterior"),
+      h("button", { class: "mini", disabled: pagina <= 1, onclick: () => { pagina--; void cargar(); } }, icono("anterior"), " Anterior"),
       `Página ${pagina} de ${paginas}`,
-      h("button", { class: "mini", disabled: pagina >= paginas, onclick: () => { pagina++; void cargar(); } }, "Siguiente ›"));
+      h("button", { class: "mini", disabled: pagina >= paginas, onclick: () => { pagina++; void cargar(); } }, "Siguiente ", icono("siguiente")));
   }
   await cargar();
   return h("div", {}, cabecera("Auditoría"), h("div", { class: "tarjeta" },
@@ -1431,7 +1447,7 @@ async function vistaSitio(): Promise<HTMLElement> {
 
   const guardar = h("button", { class: "primario", type: "submit" }, "Guardar cambios");
   return h("div", {},
-    cabecera("Textos del sitio", [config.urlSitio && h("a", { class: "boton", href: config.urlSitio, target: "_blank", rel: "noopener" }, "Ver el sitio ↗")]),
+    cabecera("Textos del sitio", [config.urlSitio && h("a", { class: "boton", href: config.urlSitio, target: "_blank", rel: "noopener" }, "Ver el sitio ", icono("enlace-externo"))]),
     h("p", { class: "ayuda" }, "Todo lo que el sitio público muestra fuera de las wikis y los socios: portada, menú, sección Únete, formulario, Apóyanos y pie. Solo el logo, los colores y las tipografías son fijos."),
     h("form", {
       onsubmit: async (e) => {
@@ -1546,9 +1562,9 @@ async function vistaPostulaciones(): Promise<HTMLElement> {
       : h("tr", {}, h("td", { colspan: 4, class: "vacio" }, filtro === "" ? "No hay postulaciones pendientes." : "No hay postulaciones con este estado.")));
     const paginas = Math.max(1, Math.ceil(r.total / r.tamano));
     vaciar(paginador,
-      h("button", { class: "mini", disabled: pagina <= 1, onclick: () => { pagina--; void cargar(); } }, "‹ Anterior"),
+      h("button", { class: "mini", disabled: pagina <= 1, onclick: () => { pagina--; void cargar(); } }, icono("anterior"), " Anterior"),
       `Página ${pagina} de ${paginas}`,
-      h("button", { class: "mini", disabled: pagina >= paginas, onclick: () => { pagina++; void cargar(); } }, "Siguiente ›"));
+      h("button", { class: "mini", disabled: pagina >= paginas, onclick: () => { pagina++; void cargar(); } }, "Siguiente ", icono("siguiente")));
     void refrescarPendientes();
   }
 
@@ -1818,9 +1834,9 @@ async function vistaSeguridad(): Promise<HTMLElement> {
       : h("tr", {}, h("td", { colspan: 4, class: "vacio" }, soloAlertas ? "No hay alertas sin revisar." : "Sin eventos.")));
     const paginas = Math.max(1, Math.ceil(p.total / p.tamano));
     vaciar(paginador,
-      h("button", { class: "mini", disabled: pagina <= 1, onclick: () => { pagina--; void cargar(); } }, "‹ Anterior"),
+      h("button", { class: "mini", disabled: pagina <= 1, onclick: () => { pagina--; void cargar(); } }, icono("anterior"), " Anterior"),
       `Página ${pagina} de ${paginas}`,
-      h("button", { class: "mini", disabled: pagina >= paginas, onclick: () => { pagina++; void cargar(); } }, "Siguiente ›"));
+      h("button", { class: "mini", disabled: pagina >= paginas, onclick: () => { pagina++; void cargar(); } }, "Siguiente ", icono("siguiente")));
   }
   filtroIp.addEventListener("change", () => { pagina = 1; void cargar(); });
   filtroTipo.addEventListener("change", () => { pagina = 1; void cargar(); });

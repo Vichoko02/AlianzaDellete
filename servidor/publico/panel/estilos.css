@@ -300,3 +300,7 @@ dl.respuestas dd { margin: .25rem 0 0; white-space: pre-wrap; overflow-wrap: any
 .fila-traduccion .original { color: var(--suave); white-space: pre-wrap; font-size: .92rem; }
 .fila-traduccion textarea { width: 100%; margin-bottom: .3rem; }
 @media (max-width: 720px) { .fila-traduccion { grid-template-columns: 1fr; } }
+
+/* ─── Íconos (archivo iconos.svg) ─── */
+.icono { width: 1.1em; height: 1.1em; vertical-align: -.18em; flex-shrink: 0; }
+.estado-guardado .icono { width: .7em; height: .7em; vertical-align: .05em; }

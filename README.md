@@ -100,6 +100,7 @@ servidor/
 panel/             Código del panel en TypeScript estricto, sin dependencias
 carga-inicial/     Contenido que tenía el sitio escrito a mano
 pruebas/           Pruebas de integración (xUnit + PostgreSQL real)
+servidor/publico/panel/iconos.svg   Íconos del panel (los mismos dibujos que el sitio)
 sistema/           Servicio systemd, nginx, PostgreSQL para poca memoria y ejemplo de configuración
 empaquetar.sh      Arma el paquete con todo incluido
 instalar.sh        Instala o actualiza en el servidor
@@ -158,7 +159,7 @@ Cada postulación aparece en **Panel → Postulaciones**. El panel revisa cada 3
 
 ## Idiomas
 
-El sitio está en español y se puede ofrecer en otros idiomas, cada uno con **traducción automática o manual**:
+El sitio está en **español**, su idioma principal y original. Al instalarlo se ofrecen además, con traducción automática, los idiomas más hablados de los países que pueden visitarlo: **inglés, portugués (Brasil), francés y alemán**. Se siembran una sola vez: si Yish quita alguno, no vuelve. Cada idioma puede ser de **traducción automática o manual**:
 
 | Dónde | Quién | Qué decide |
 |---|---|---|

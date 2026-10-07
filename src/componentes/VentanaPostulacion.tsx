@@ -22,7 +22,7 @@ function revisar(pregunta: Pregunta, valores: string[]): string {
  */
 export default function VentanaPostulacion({ alCerrar }: { alCerrar: () => void }) {
   const t = useTextos();
-  const { idioma } = useIdioma();
+  const { elegido: idioma } = useIdioma();
   const [preguntas, setPreguntas] = useState<Pregunta[] | null>(null);
   const [falloLaCarga, setFalloLaCarga] = useState(false);
   const [paso, setPaso] = useState(0);

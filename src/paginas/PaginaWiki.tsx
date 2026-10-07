@@ -24,12 +24,12 @@ function conDirecciones(wiki: Wiki): Wiki {
 /** Ruta /wiki/:identificador. La key reinicia la página (y su estado) al pasar de un proyecto a otro. */
 export default function RutaWiki() {
   const { identificador = "" } = useParams();
-  const { idioma } = useIdioma();
-  return <PaginaWiki key={`${identificador}:${idioma}`} identificador={identificador} idioma={idioma} />;
+  const { elegido } = useIdioma();
+  return <PaginaWiki key={`${identificador}:${elegido}`} identificador={identificador} idioma={elegido} />;
 }
 
 /** Wiki de cualquier proyecto. Todo su contenido viene de la base de datos. */
-function PaginaWiki({ identificador, idioma }: { identificador: string; idioma: string }) {
+function PaginaWiki({ identificador, idioma }: { identificador: string; idioma: string | null }) {
   const t = useTextos();
   const [wiki, setWiki] = useState<Wiki | null>(null);
   const [error, setError] = useState<"no-existe" | "sin-conexion" | null>(null);

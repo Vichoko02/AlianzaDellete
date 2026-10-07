@@ -57,8 +57,9 @@ export interface Wiki {
   equipo: GrupoEquipo[];
   galeria: ImagenGaleria[];
   socios: Proyecto[];
-  /** Idiomas en que se puede leer esta wiki (además del español). */
+  /** Idiomas en que se puede leer esta wiki (además del español) y el idioma en que vino. */
   idiomas: IdiomaPublico[];
+  idioma: string;
 }
 
 export interface EnlaceSitio { plataforma: string; url: string; etiqueta: string | null; descripcion: string | null }
@@ -69,8 +70,9 @@ export interface Sitio {
   enlaces: Record<string, EnlaceSitio[]>;
   series: TarjetaSerie[];
   socios: Socio[];
-  /** Idiomas del sitio (además del español). */
+  /** Idiomas del sitio (además del español) y el idioma en que vino ("es" si es el original). */
   idiomas: IdiomaPublico[];
+  idioma: string;
 }
 
 export type TipoPregunta = "Nombre" | "Correo" | "Texto" | "TextoLargo" | "Opcion" | "VariasOpciones";
@@ -98,12 +100,15 @@ async function pedir<T>(ruta: string, opciones?: RequestInit): Promise<T> {
   throw new ErrorApi(detalle || `Error ${respuesta.status}`, respuesta.status, datos?.privado === true);
 }
 
-/** "?idioma=en", o nada para el español (el idioma original). */
-const enIdioma = (idioma: string) => (idioma && idioma !== "es" ? `?idioma=${encodeURIComponent(idioma)}` : "");
+/**
+ * "?idioma=xx" solo si el visitante eligió un idioma a mano. Si no, no se envía nada y el servidor lo detecta
+ * del navegador (cabecera Accept-Language): así la página llega directo en su idioma, sin pasar antes por el español.
+ */
+const enIdioma = (elegido: string | null) => (elegido ? `?idioma=${encodeURIComponent(elegido)}` : "");
 
-export const pedirSitio = (idioma: string) => pedir<Sitio>(`/api/sitio${enIdioma(idioma)}`);
-export const pedirWiki = (identificador: string, idioma: string) => pedir<Wiki>(`/api/series/${encodeURIComponent(identificador)}${enIdioma(idioma)}`);
-export const pedirFormulario = (idioma: string) => pedir<Pregunta[]>(`/api/formulario${enIdioma(idioma)}`);
+export const pedirSitio = (idioma: string | null) => pedir<Sitio>(`/api/sitio${enIdioma(idioma)}`);
+export const pedirWiki = (identificador: string, idioma: string | null) => pedir<Wiki>(`/api/series/${encodeURIComponent(identificador)}${enIdioma(idioma)}`);
+export const pedirFormulario = (idioma: string | null) => pedir<Pregunta[]>(`/api/formulario${enIdioma(idioma)}`);
 export const enviarPostulacion = (respuestas: Respuesta[], trampa: string) =>
   pedir<{ recibida: boolean }>("/api/formulario/postulaciones", {
     method: "POST",

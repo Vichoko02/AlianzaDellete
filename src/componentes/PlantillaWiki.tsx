@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import logoAlianza from "../assets/ALIANZA_VECTORIZADO.svg";
 import Pie from "./Pie";
-import SelectorIdioma from "./SelectorIdioma";
 import type { Personaje, Wiki } from "../api";
 import { PLATAFORMAS } from "../iconos";
 import { useTextos } from "../textos";
@@ -191,7 +190,6 @@ export default function PlantillaWiki({ wiki }: { wiki: Wiki }) {
             <a href="#staff">{t("wiki.equipo")}</a>
             <a href="#arte">{t("wiki.arte")}</a>
           </nav>
-          <SelectorIdioma idiomas={wiki.idiomas} clase="selector-idioma--wiki" />
           <button className={`hamburger wiki-hamburger ${menuAbierto ? "open" : ""}`} onClick={() => setMenuAbierto(!menuAbierto)}
             aria-expanded={menuAbierto} aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}>
             <span /><span /><span />
@@ -387,7 +385,7 @@ export default function PlantillaWiki({ wiki }: { wiki: Wiki }) {
         </div>
       </section>
 
-      <Pie />
+      <Pie idiomas={wiki.idiomas} idioma={wiki.idioma} />
     </div>
   );
 }

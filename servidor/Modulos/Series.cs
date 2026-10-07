@@ -235,7 +235,7 @@ public class ServicioSeries(BaseDeDatos bd, ServicioMedios medios, DireccionesMe
 
 [ApiController]
 [Route("api/series")]
-public class RutasSeries(ServicioSeries series, ServicioIdiomas idiomas, ServicioTraduccion traduccion, CachePublica cache) : ControllerBase
+public class RutasSeries(BaseDeDatos bd, ServicioSeries series, ServicioIdiomas idiomas, ServicioTraduccion traduccion, CachePublica cache) : ControllerBase
 {
     /// <summary>Tarjetas de la portada, solo series publicadas. Filtro opcional por código de estado.</summary>
     [HttpGet]
@@ -243,19 +243,29 @@ public class RutasSeries(ServicioSeries series, ServicioIdiomas idiomas, Servici
         // Solo la lista completa se guarda en memoria; con filtro se consulta directo.
         string.IsNullOrEmpty(estado) ? cache.ObtenerAsync("series", () => series.TarjetasAsync()) : series.TarjetasAsync(estado);
 
-    /// <summary>Wiki completa, en el idioma pedido (?idioma=en) si la wiki o el sitio lo ofrecen; si no, en español.</summary>
+    /// <summary>Wiki completa, en el idioma elegido (?idioma=) o el del navegador, si la wiki o el sitio lo ofrecen; si no, en español.</summary>
     [HttpGet("{identificador}")]
     public async Task<ActionResult<JsonNode>> Wiki(string identificador, [FromQuery] string? idioma)
     {
-        var wiki = await cache.ObtenerAsync<JsonNode?>($"wiki:{identificador}:{idioma}", async () =>
+        // 1. Idiomas que ofrece la wiki (los suyos y los del sitio) y el que corresponde a este visitante.
+        var ofrecidos = await cache.ObtenerAsync<List<IdiomaConfigurado>?>($"idiomas-wiki:{identificador}", async () =>
+        {
+            var id = await bd.Series.Where(x => x.Identificador == identificador && x.Publicada).Select(x => (int?)x.Id).FirstOrDefaultAsync();
+            return id is null ? null : await idiomas.EfectivosDeLaWikiAsync(id.Value);
+        });
+        if (ofrecidos is null) return NotFound();
+        var elegido = ServicioIdiomas.Elegir(ofrecidos, idioma, Request);
+        Response.Headers.Vary = "Accept-Language";
+
+        // 2. La wiki en ese idioma (guardada en memoria por idioma).
+        var wiki = await cache.ObtenerAsync<JsonNode?>($"wiki:{identificador}:{elegido?.Codigo}", async () =>
         {
             var serie = await series.ConTodo().AsNoTracking().FirstOrDefaultAsync(x => x.Identificador == identificador && x.Publicada);
             if (serie is null) return null;
-            var ofrecidos = await idiomas.EfectivosDeLaWikiAsync(serie.Id);
-            var elegido = ofrecidos.FirstOrDefault(i => i.Codigo == idioma);
             var json = ServicioTraduccion.AJson(await series.APublicaAsync(serie));
             if (elegido is not null) json = traduccion.Traducir(json, elegido.Codigo, elegido.Automatica);
             json["idiomas"] = ServicioTraduccion.AJson(ofrecidos.Select(i => new IdiomaPublico(i.Codigo, i.Nombre)).ToList());
+            json["idioma"] = elegido?.Codigo ?? "es";
             return json;
         });
         return wiki is null ? NotFound() : wiki;

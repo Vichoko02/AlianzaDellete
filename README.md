@@ -172,10 +172,10 @@ El sitio está en **español**, su idioma principal y original. Al instalarlo se
 - **Correcciones**: cualquier traducción se corrige en el panel. La corregida queda como «Manual» y la automática ya no la reemplaza; si se deja vacía, vuelve la automática o el español.
 - **Qué se traduce**: textos, descripciones, roles, categorías y textos alternativos de imágenes. No se traducen nombres propios ni enlaces.
 - **Formulario**: muestra las opciones traducidas pero envía las originales, así que las postulaciones llegan en español.
-- **Lo que ve el visitante**: el selector aparece en la barra del sitio y en la de cada wiki. La primera vez se elige el idioma del navegador si el sitio lo ofrece, y la elección se recuerda.
+- **Lo que ve el visitante**: el idioma se **detecta del navegador** en el propio servidor (cabecera `Accept-Language`, por orden de preferencia). Se usa el primero que se ofrece; si el navegador prefiere español o nada coincide, español. No hay selector en la barra, solo uno discreto en el pie, y si el visitante elige ahí, eso manda.
 - **Configuración**: `Traduccion__ClaveDeepL` en `/etc/alianza/servidor.env`. Sin clave, solo hay traducción manual.
 
-API pública: `?idioma=en` en `/api/sitio`, `/api/series/{identificador}` y `/api/formulario`. Un idioma no ofrecido devuelve español.
+API pública: `/api/sitio`, `/api/series/{identificador}` y `/api/formulario` detectan el idioma del navegador; `?idioma=xx` lo fuerza (`?idioma=es` = español). La respuesta indica en qué idioma vino (`idioma`) y lleva `Vary: Accept-Language`.
 
 ## Modo privado
 

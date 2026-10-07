@@ -206,20 +206,22 @@ public class ServicioSitio(BaseDeDatos bd, ServicioMedios medios, DireccionesMed
 public class RutasSitio(ServicioSitio sitio, ServicioSeries series, ServicioSocios socios, ServicioIdiomas idiomas, ServicioTraduccion traduccion,
     CachePublica cache) : ControllerBase
 {
-    /// <summary>Todo lo de la portada, en el idioma pedido (?idioma=en) si el sitio lo ofrece; si no, en español.</summary>
+    /// <summary>Todo lo de la portada, en el idioma elegido (?idioma=) o, si no se eligió, el del navegador; si no se ofrece, en español.</summary>
     [HttpGet("api/sitio")]
     public async Task<JsonNode> Obtener([FromQuery] string? idioma)
     {
         var ofrecidos = await cache.ObtenerAsync("idiomas-sitio", idiomas.DelSitioAsync);
-        var elegido = ofrecidos.FirstOrDefault(i => i.Codigo == idioma);
+        var elegido = ServicioIdiomas.Elegir(ofrecidos, idioma, Request);
 
         // El navegador no lo guarda (lo editado en el panel se ve al recargar); el servidor sí, en CachePublica.
         Response.Headers.CacheControl = "no-cache";
+        Response.Headers.Vary = "Accept-Language";
         return await cache.ObtenerAsync($"sitio:{elegido?.Codigo}", async () =>
         {
             var json = ServicioTraduccion.AJson(await sitio.PublicoAsync(series, socios));
             if (elegido is not null) json = traduccion.Traducir(json, elegido.Codigo, elegido.Automatica);
             json["idiomas"] = ServicioTraduccion.AJson(ofrecidos.Select(i => new IdiomaPublico(i.Codigo, i.Nombre)).ToList());
+            json["idioma"] = elegido?.Codigo ?? "es";
             return json;
         });
     }

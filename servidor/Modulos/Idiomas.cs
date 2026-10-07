@@ -254,6 +254,26 @@ public class TrabajadorTraduccion(ServicioTraduccion traduccion, CachePublica ca
 
 public class ServicioIdiomas(BaseDeDatos bd, ServicioTraduccion traduccion)
 {
+    /// <summary>
+    /// Elige el idioma de una respuesta pública. Si el visitante eligió uno (?idioma=), se usa ese ("es" = español).
+    /// Si no, se detecta del navegador (cabecera Accept-Language, por orden de preferencia): el primero que el sitio ofrece.
+    /// Español si el navegador prefiere español o ninguno de sus idiomas se ofrece. Null = español (el original).
+    /// </summary>
+    public static IdiomaConfigurado? Elegir(List<IdiomaConfigurado> ofrecidos, string? pedido, HttpRequest peticion)
+    {
+        if (pedido is not null) return ofrecidos.FirstOrDefault(i => i.Codigo == pedido);
+        foreach (var preferido in peticion.GetTypedHeaders().AcceptLanguage.OrderByDescending(a => a.Quality ?? 1))
+        {
+            var codigo = preferido.Value.Value;
+            if (string.IsNullOrEmpty(codigo) || codigo == "*") continue;
+            if (codigo.StartsWith("es", StringComparison.OrdinalIgnoreCase)) return null;
+            var elegido = ofrecidos.FirstOrDefault(i => string.Equals(i.Codigo, codigo, StringComparison.OrdinalIgnoreCase))
+                          ?? ofrecidos.FirstOrDefault(i => string.Equals(i.Codigo.Split('-')[0], codigo.Split('-')[0], StringComparison.OrdinalIgnoreCase));
+            if (elegido is not null) return elegido;
+        }
+        return null;
+    }
+
     public async Task<List<IdiomaConfigurado>> DelSitioAsync() =>
         (await bd.IdiomasOfrecidos.AsNoTracking().Where(i => i.SerieId == null).OrderBy(i => i.Id).ToListAsync())
             .Select(i => new IdiomaConfigurado(i.Codigo, CatalogoDeIdiomas.Nombre(i.Codigo), i.Automatica)).ToList();

@@ -175,3 +175,46 @@ public class PruebasIdiomas(ServidorDePrueba servidor) : IClassFixture<ServidorD
         Assert.Equal(HttpStatusCode.Created, (await visitante.PostAsJsonAsync("/api/formulario/postulaciones", new { respuestas })).StatusCode);
     }
 }
+
+public class PruebasDeteccionDeIdioma(ServidorDePrueba servidor) : IClassFixture<ServidorDePrueba>
+{
+    /// <summary>Idioma con que responde el servidor a un navegador con esa cabecera Accept-Language.</summary>
+    private async Task<string> IdiomaParaAsync(string? navegador, string ruta = "/api/sitio")
+    {
+        var cliente = servidor.Cliente();
+        if (navegador is not null) cliente.DefaultRequestHeaders.Add("Accept-Language", navegador);
+        return (await cliente.GetFromJsonAsync<JsonNode>(ruta))!["idioma"]!.GetValue<string>();
+    }
+
+    [Theory]
+    [InlineData(null, "es")]                     // sin preferencia: español, el idioma principal
+    [InlineData("es-CL,es;q=0.9,en;q=0.8", "es")] // prefiere español aunque también hable inglés
+    [InlineData("en-US,en;q=0.9", "en")]
+    [InlineData("pt-PT,pt;q=0.9", "pt-BR")]      // portugués de Portugal → el portugués que se ofrece
+    [InlineData("fr-CA", "fr")]
+    [InlineData("de-DE,de;q=0.9", "de")]
+    [InlineData("ja-JP,ja;q=0.9,en;q=0.5", "en")] // japonés no se ofrece: su siguiente preferencia
+    [InlineData("ja-JP,zh;q=0.8", "es")]         // ninguno se ofrece: español
+    public async Task DetectaElIdiomaDelNavegador(string? navegador, string esperado) =>
+        Assert.Equal(esperado, await IdiomaParaAsync(navegador));
+
+    [Fact]
+    public async Task LaEleccionDelVisitanteMandaSobreElNavegador()
+    {
+        Assert.Equal("es", await IdiomaParaAsync("en-US", "/api/sitio?idioma=es"));
+        Assert.Equal("de", await IdiomaParaAsync("en-US", "/api/sitio?idioma=de"));
+    }
+
+    [Fact]
+    public async Task LaWikiTambienDetecta()
+    {
+        var yish = await servidor.YishAsync();
+        var estados = await yish.GetFromJsonAsync<JsonArray>("/api/panel/estados");
+        (await yish.PostAsJsonAsync("/api/panel/series", new { identificador = "deteccion", nombre = "Detección", sinopsis = "Hola",
+            estadoId = estados![0]!["id"]!.GetValue<int>(), orden = 1, publicada = true })).EnsureSuccessStatusCode();
+
+        Assert.Equal("de", await IdiomaParaAsync("de-AT", "/api/series/deteccion"));
+        var respuesta = await servidor.Cliente().GetAsync("/api/series/deteccion");
+        Assert.Contains("Accept-Language", respuesta.Headers.Vary);
+    }
+}

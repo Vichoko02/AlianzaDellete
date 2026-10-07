@@ -183,7 +183,8 @@ public class RutasFormulario(ServicioPostulaciones postulaciones, CachePublica c
     [HttpGet]
     public async Task<JsonNode> Preguntas([FromQuery] string? idioma)
     {
-        var elegido = (await cache.ObtenerAsync("idiomas-sitio", idiomas.DelSitioAsync)).FirstOrDefault(i => i.Codigo == idioma);
+        var elegido = ServicioIdiomas.Elegir(await cache.ObtenerAsync("idiomas-sitio", idiomas.DelSitioAsync), idioma, Request);
+        Response.Headers.Vary = "Accept-Language";
         return await cache.ObtenerAsync($"formulario:{elegido?.Codigo}", async () =>
         {
             var json = ServicioTraduccion.AJson(await postulaciones.PublicasAsync());

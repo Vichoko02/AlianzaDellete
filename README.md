@@ -156,6 +156,34 @@ cd servidor && dotnet run                # → http://localhost:5126/panel
 
 Cada postulación aparece en **Panel → Postulaciones**. El panel revisa cada 30 segundos y avisa con un número en el menú y en la pestaña. Abrir una postulación la marca como leída.
 
+## Idiomas
+
+El sitio está en español y se puede ofrecer en otros idiomas, cada uno con **traducción automática o manual**:
+
+| Dónde | Quién | Qué decide |
+|---|---|---|
+| **Panel → Textos del sitio → Idiomas del sitio** | Permiso «Sitio» (Yish) | Idiomas de todo el sitio: portada, menú, socios, estados y formulario |
+| **Pestaña «Idiomas» de cada wiki** | Quien puede editar esa wiki | Idiomas extra solo para su wiki. También puede cambiar si un idioma del sitio es automático o manual en su wiki |
+
+- **Automática**: DeepL traduce en segundo plano, en lotes, lo que falte. Mientras tanto se muestra el español.
+- **Manual**: lo que no se haya traducido se muestra en español.
+- **Memoria común**: cada texto se traduce **una vez por idioma** y se reutiliza en todo el sitio, así que el plan gratuito de DeepL rinde mucho. Lo traducido queda guardado: si DeepL se cae, el sitio sigue mostrando lo que ya tenía.
+- **Correcciones**: cualquier traducción se corrige en el panel. La corregida queda como «Manual» y la automática ya no la reemplaza; si se deja vacía, vuelve la automática o el español.
+- **Qué se traduce**: textos, descripciones, roles, categorías y textos alternativos de imágenes. No se traducen nombres propios ni enlaces.
+- **Formulario**: muestra las opciones traducidas pero envía las originales, así que las postulaciones llegan en español.
+- **Lo que ve el visitante**: el selector aparece en la barra del sitio y en la de cada wiki. La primera vez se elige el idioma del navegador si el sitio lo ofrece, y la elección se recuerda.
+- **Configuración**: `Traduccion__ClaveDeepL` en `/etc/alianza/servidor.env`. Sin clave, solo hay traducción manual.
+
+API pública: `?idioma=en` en `/api/sitio`, `/api/series/{identificador}` y `/api/formulario`. Un idioma no ofrecido devuelve español.
+
+## Modo privado
+
+**Panel → Seguridad → Modo privado** (solo Yish): con el modo activo, solo las IPs o redes de la lista (por ejemplo `190.5.1.1` o `190.5.0.0/16`) ven e interactúan con el sitio. Los demás ven «Sitio en preparación».
+- El panel y el inicio de sesión siguen accesibles desde cualquier lugar, para poder apagarlo.
+- No se puede activar con la lista vacía, ni quitar la última IP mientras está activo.
+- La revisión es en memoria: no consulta la base de datos en cada visita.
+- Las imágenes que nginx ya tenía copiadas se siguen entregando a quien tenga su dirección. Esas direcciones son identificadores al azar que solo se conocen a través de la API, que sí queda cerrada.
+
 ## Seguridad
 
 Dos barreras. Ninguna depende de servicios externos: la base de países viene del paquete `geoip-database` del sistema y se actualiza con `apt upgrade`.

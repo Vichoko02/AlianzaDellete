@@ -34,6 +34,14 @@ public record DatosBloqueo(string Ip, int? Horas, string? Motivo);
 
 public record BloqueoEnLista(string Ip, DateTime? Hasta, string Motivo, bool Manual, int Veces, DateTime CreadoEn);
 
+public record IpPermitidaEnLista(int Id, string Red, string Nota, DateTime CreadaEn);
+
+public record EstadoModoPrivado(bool Activo, List<IpPermitidaEnLista> Ips, string TuIp);
+
+public record DatosModoPrivado(bool Activo);
+
+public record DatosIpPermitida(string Red, string? Nota);
+
 // ─── 2. Detector de ataques en la URL ─────────────────────────────────────────
 
 /// <summary>
@@ -128,7 +136,8 @@ public class ServicioProteccion(IServiceScopeFactory alcances, IOptions<Configur
 
     // 3.1 Bloqueos de IP
 
-    public async Task CargarBloqueosAsync()
+    /// <summary>Al arrancar: bloqueos vigentes y modo privado (se cargan antes de atender la primera petición).</summary>
+    public async Task CargarAsync()
     {
         using var alcance = alcances.CreateScope();
         var bd = alcance.ServiceProvider.GetRequiredService<BaseDeDatos>();
@@ -138,6 +147,33 @@ public class ServicioProteccion(IServiceScopeFactory alcances, IOptions<Configur
             vecesBloqueada[b.Ip] = b.Veces;
             if (b.Hasta is null || b.Hasta > ahora) bloqueadas[b.Ip] = b.Hasta ?? DateTime.MaxValue;
         }
+        await CargarModoPrivadoAsync(bd);
+    }
+
+    // 3.0 Modo privado: solo las IPs o redes de la lista ven el sitio (el panel sigue accesible para poder apagarlo)
+
+    private volatile bool modoPrivado;
+    private volatile IPNetwork[] redesPermitidas = [];
+
+    public bool ModoPrivado => modoPrivado;
+
+    public async Task CargarModoPrivadoAsync(BaseDeDatos bd)
+    {
+        var redes = await bd.IpsPermitidas.AsNoTracking().Select(i => i.Red).ToListAsync();
+        redesPermitidas = redes.Select(r => IPNetwork.Parse(r)).ToArray();
+        modoPrivado = (await bd.Ajustes.FindAsync("modo-privado"))?.Valor == "true";
+    }
+
+    public bool PuedeVerSitio(string ip) =>
+        !modoPrivado || EsDeConfianza(ip) || (IPAddress.TryParse(ip, out var direccion) && redesPermitidas.Any(r => r.Contains(direccion)));
+
+    /// <summary>"190.5.1.1" → "190.5.1.1/32"; "190.5.0.0/16" queda igual. Null si no es válida.</summary>
+    public static string? NormalizarRed(string texto)
+    {
+        texto = texto.Trim();
+        if (IPAddress.TryParse(texto, out var direccion))
+            return new IPNetwork(direccion.IsIPv4MappedToIPv6 ? direccion.MapToIPv4() : direccion, direccion.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? 32 : 128).ToString();
+        return IPNetwork.TryParse(texto, out var red) ? red.ToString() : null;
     }
 
     public bool EstaBloqueada(string ip)
@@ -328,7 +364,6 @@ public class TrabajadorProteccion(ServicioProteccion proteccion, IServiceScopeFa
         var proximaLimpieza = DateTime.UtcNow.AddMinutes(5);
         var pendientes = new List<object>();
 
-        await proteccion.CargarBloqueosAsync();
         while (!detener.IsCancellationRequested)
         {
             // 1. Esperar eventos (o un segundo) y juntar los que haya.
@@ -410,7 +445,17 @@ public class MiddlewareProteccion(RequestDelegate siguiente, ServicioProteccion 
             return;
         }
 
-        // 2. Firma de ataque en la URL o en el agente: se registra (suma puntos) y no se atiende.
+        // 2. Modo privado: el contenido público solo lo ven las IPs de la lista (el panel y el inicio de sesión siguen abiertos).
+        if (esApi && !ruta.StartsWith("/api/panel/", StringComparison.Ordinal) && !ruta.StartsWith("/api/sesion/", StringComparison.Ordinal)
+            && !proteccion.PuedeVerSitio(ip))
+        {
+            proteccion.ContarPeticion(StatusCodes.Status403Forbidden);
+            contexto.Response.StatusCode = StatusCodes.Status403Forbidden;
+            await contexto.Response.WriteAsJsonAsync(new { privado = true, mensaje = "El sitio está en preparación." });
+            return;
+        }
+
+        // 3. Firma de ataque en la URL o en el agente: se registra (suma puntos) y no se atiende.
         ataque = DetectorDeAtaques.Revisar(ruta + contexto.Request.QueryString.Value, contexto.Request.Headers.UserAgent.ToString());
         if (ataque is not null)
         {
@@ -420,7 +465,7 @@ public class MiddlewareProteccion(RequestDelegate siguiente, ServicioProteccion 
             return;
         }
 
-        // 3. Atender la petición y, según cómo terminó, registrar lo sospechoso.
+        // 4. Atender la petición y, según cómo terminó, registrar lo sospechoso.
         contexto.Response.Headers.XContentTypeOptions = "nosniff";
         await siguiente(contexto);
         var estado = contexto.Response.StatusCode;
@@ -531,6 +576,52 @@ public class RutasSeguridad(BaseDeDatos bd, ServicioProteccion proteccion, Audit
         await auditoria.RegistrarAsync("desbloquear", "ip", ip);
         await bd.SaveChangesAsync();
         return NoContent();
+    }
+
+    // Modo privado
+
+    [HttpGet("privado")]
+    public async Task<EstadoModoPrivado> Privado() => new(proteccion.ModoPrivado,
+        await bd.IpsPermitidas.AsNoTracking().OrderBy(i => i.Id).Select(i => new IpPermitidaEnLista(i.Id, i.Red, i.Nota, i.CreadaEn)).ToListAsync(),
+        ServicioProteccion.IpDe(HttpContext));
+
+    [HttpPut("privado")]
+    public async Task<EstadoModoPrivado> CambiarPrivado(DatosModoPrivado datos)
+    {
+        var ajuste = await bd.Ajustes.FindAsync("modo-privado");
+        if (datos.Activo && !await bd.IpsPermitidas.AnyAsync())
+            throw new ErrorDeNegocio("Agrega al menos una IP permitida antes de activar el modo privado (por ejemplo, la tuya).");
+        if (ajuste is null) bd.Ajustes.Add(ajuste = new Ajuste { Clave = "modo-privado" });
+        ajuste.Valor = datos.Activo ? "true" : "false";
+        await auditoria.RegistrarAsync(datos.Activo ? "activar" : "desactivar", "modo privado", "");
+        await bd.SaveChangesAsync();
+        await proteccion.CargarModoPrivadoAsync(bd);
+        return await Privado();
+    }
+
+    [HttpPost("privado/ips")]
+    public async Task<EstadoModoPrivado> AgregarIpPermitida(DatosIpPermitida datos)
+    {
+        var red = ServicioProteccion.NormalizarRed(datos.Red ?? "") ?? throw new ErrorDeNegocio("Escribe una IP (190.5.1.1) o una red (190.5.0.0/16).");
+        if (await bd.IpsPermitidas.AnyAsync(i => i.Red == red)) throw new ErrorDeNegocio("Esa IP o red ya está en la lista.");
+        bd.IpsPermitidas.Add(new IpPermitida { Red = red, Nota = (datos.Nota ?? "").Trim() });
+        await auditoria.RegistrarAsync("permitir", "ip", red);
+        await bd.SaveChangesAsync();
+        await proteccion.CargarModoPrivadoAsync(bd);
+        return await Privado();
+    }
+
+    [HttpDelete("privado/ips/{id:int}")]
+    public async Task<EstadoModoPrivado> QuitarIpPermitida(int id)
+    {
+        var ip = await bd.IpsPermitidas.FindAsync(id) ?? throw new ErrorDeNegocio("No existe.", StatusCodes.Status404NotFound);
+        if (proteccion.ModoPrivado && await bd.IpsPermitidas.CountAsync() == 1)
+            throw new ErrorDeNegocio("Es la última IP de la lista: desactiva el modo privado antes de quitarla.");
+        bd.IpsPermitidas.Remove(ip);
+        await auditoria.RegistrarAsync("quitar", "ip permitida", ip.Red);
+        await bd.SaveChangesAsync();
+        await proteccion.CargarModoPrivadoAsync(bd);
+        return await Privado();
     }
 
     /// <summary>

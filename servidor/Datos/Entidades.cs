@@ -1,5 +1,5 @@
 // Tablas de la base de datos. Cada clase es una tabla; cada propiedad, una columna.
-// Orden: 1) contenido del sitio (series, socios, medios), 2) textos y formulario, 3) cuentas y permisos, 4) seguridad.
+// Orden: 1) contenido del sitio (series, socios, medios), 2) textos y formulario, 3) cuentas y permisos, 4) seguridad, 5) idiomas.
 using System.ComponentModel.DataAnnotations;
 
 namespace Alianza.Servidor.Datos;
@@ -375,4 +375,50 @@ public class BloqueoIp
     public bool Manual { get; set; }
     public int Veces { get; set; } = 1;
     public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>IP o red (CIDR, ej: 190.5.0.0/16) que puede ver el sitio cuando el modo privado está activo.</summary>
+public class IpPermitida
+{
+    public int Id { get; set; }
+    [MaxLength(50)] public string Red { get; set; } = "";
+    [MaxLength(150)] public string Nota { get; set; } = "";
+    public DateTime CreadaEn { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Ajustes generales con un solo valor (por ejemplo, "modo-privado" = "true").</summary>
+public class Ajuste
+{
+    [Key, MaxLength(50)] public string Clave { get; set; } = "";
+    [MaxLength(500)] public string Valor { get; set; } = "";
+}
+
+// ─── 5. Idiomas ───────────────────────────────────────────────────────────────
+
+/// <summary>
+/// Idioma ofrecido en el sitio completo (SerieId = null, lo decide quien tiene el permiso Sitio)
+/// o en una wiki en particular (lo decide quien puede editarla). Cada uno elige si la traducción es automática o manual.
+/// </summary>
+public class IdiomaOfrecido
+{
+    public int Id { get; set; }
+    public int? SerieId { get; set; }
+    public Serie? Serie { get; set; }
+    [MaxLength(10)] public string Codigo { get; set; } = "";
+    public bool Automatica { get; set; }
+}
+
+/// <summary>
+/// Memoria de traducciones: cada texto original se traduce una vez por idioma y se reutiliza en todo el sitio.
+/// La clave es la huella (SHA-256) del texto original, así un cambio en el original pide una traducción nueva.
+/// Manual = la escribió o corrigió una persona: la traducción automática nunca la reemplaza.
+/// </summary>
+public class Traduccion
+{
+    [MaxLength(10)] public string Idioma { get; set; } = "";
+    [MaxLength(64)] public string Huella { get; set; } = "";
+    public string Original { get; set; } = "";
+    public string Texto { get; set; } = "";
+    public bool Manual { get; set; }
+    public DateTime ActualizadaEn { get; set; } = DateTime.UtcNow;
 }

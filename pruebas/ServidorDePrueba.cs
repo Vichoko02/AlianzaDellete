@@ -40,6 +40,23 @@ public class ServidorDePrueba : WebApplicationFactory<Program>, IAsyncLifetime
         constructor.UseSetting("LimitePostulacionesPor10Minutos", "1000");
         // El servidor de pruebas no tiene IP de origen: se toma de la cabecera X-Ip-Prueba (solo existe en las pruebas).
         constructor.ConfigureServices(s => s.AddSingleton<IStartupFilter, IpDePrueba>());
+        // DeepL de mentira: devuelve "[IDIOMA] texto" sin salir a internet.
+        constructor.UseSetting("Traduccion:ClaveDeepL", "clave-de-prueba:fx");
+        constructor.ConfigureServices(s => s.AddHttpClient("deepl").ConfigurePrimaryHttpMessageHandler(() => new DeepLDePrueba()));
+    }
+
+    public static int LlamadasADeepL;
+
+    private sealed class DeepLDePrueba : HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage pedido, CancellationToken cancelar)
+        {
+            var datos = System.Text.Json.Nodes.JsonNode.Parse(await pedido.Content!.ReadAsStringAsync(cancelar))!;
+            var idioma = datos["target_lang"]!.GetValue<string>();
+            var traducciones = datos["text"]!.AsArray().Select(t => new { text = $"[{idioma}] {t!.GetValue<string>()}" });
+            Interlocked.Increment(ref LlamadasADeepL);
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = System.Net.Http.Json.JsonContent.Create(new { translations = traducciones }) };
+        }
     }
 
     private sealed class IpDePrueba : IStartupFilter

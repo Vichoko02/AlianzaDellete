@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Mail;
 using Alianza.Servidor.Datos;
@@ -15,7 +16,8 @@ namespace Alianza.Servidor.Modulos;
 
 // ─── 1. Formatos ──────────────────────────────────────────────────────────────
 
-public record PreguntaPublica(int Id, string Texto, string Ayuda, TipoPregunta Tipo, List<string> Opciones, bool Obligatoria);
+/// <summary>Opciones = valores originales (los que se envían); Etiquetas = lo que se muestra (traducido si corresponde).</summary>
+public record PreguntaPublica(int Id, string Texto, string Ayuda, TipoPregunta Tipo, List<string> Opciones, List<string> Etiquetas, bool Obligatoria);
 
 public record DatosRespuesta(int PreguntaId, List<string>? Valores);
 
@@ -72,6 +74,9 @@ public class ServicioPostulaciones(BaseDeDatos bd)
             { Orden = p.Orden, Tipo = p.Tipo, Texto = p.Texto, Ayuda = p.Ayuda, Opciones = [.. p.Opciones] }));
         await bd.SaveChangesAsync();
     }
+
+    public async Task<List<PreguntaPublica>> PublicasAsync() =>
+        (await ActivasAsync()).Select(p => new PreguntaPublica(p.Id, p.Texto, p.Ayuda, p.Tipo, p.Opciones, [.. p.Opciones], p.Obligatoria)).ToList();
 
     public Task<List<Pregunta>> ActivasAsync() => bd.Preguntas.AsNoTracking().Where(p => p.Activa).OrderBy(p => p.Orden).ToListAsync();
 
@@ -172,11 +177,19 @@ public class ServicioPostulaciones(BaseDeDatos bd)
 
 [ApiController]
 [Route("api/formulario")]
-public class RutasFormulario(ServicioPostulaciones postulaciones, CachePublica cache, ServicioProteccion proteccion, ILogger<RutasFormulario> registro) : ControllerBase
+public class RutasFormulario(ServicioPostulaciones postulaciones, CachePublica cache, ServicioProteccion proteccion, ServicioIdiomas idiomas,
+    ServicioTraduccion traduccion, ILogger<RutasFormulario> registro) : ControllerBase
 {
     [HttpGet]
-    public Task<List<PreguntaPublica>> Preguntas() => cache.ObtenerAsync("formulario", async () =>
-        (await postulaciones.ActivasAsync()).Select(p => new PreguntaPublica(p.Id, p.Texto, p.Ayuda, p.Tipo, p.Opciones, p.Obligatoria)).ToList());
+    public async Task<JsonNode> Preguntas([FromQuery] string? idioma)
+    {
+        var elegido = (await cache.ObtenerAsync("idiomas-sitio", idiomas.DelSitioAsync)).FirstOrDefault(i => i.Codigo == idioma);
+        return await cache.ObtenerAsync($"formulario:{elegido?.Codigo}", async () =>
+        {
+            var json = ServicioTraduccion.AJson(await postulaciones.PublicasAsync());
+            return elegido is null ? json : traduccion.Traducir(json, elegido.Codigo, elegido.Automatica);
+        });
+    }
 
     [HttpPost("postulaciones")]
     [EnableRateLimiting("postulaciones")]

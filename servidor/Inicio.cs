@@ -27,6 +27,7 @@ servicios.Configure<ConfiguracionLdap>(configuracion.GetSection(ConfiguracionLda
 servicios.Configure<ConfiguracionPublica>(configuracion.GetSection(ConfiguracionPublica.Seccion));
 servicios.Configure<ConfiguracionCargaInicial>(configuracion.GetSection(ConfiguracionCargaInicial.Seccion));
 servicios.Configure<ConfiguracionProteccion>(configuracion.GetSection(ConfiguracionProteccion.Seccion));
+servicios.Configure<ConfiguracionTraduccion>(configuracion.GetSection(ConfiguracionTraduccion.Seccion));
 
 // ─── 2. Servicios ─────────────────────────────────────────────────────────────
 
@@ -47,6 +48,10 @@ servicios.AddSingleton<DirectorioLdap>();
 servicios.AddSingleton<CachePublica>();
 servicios.AddSingleton<ServicioProteccion>();
 servicios.AddHostedService<TrabajadorProteccion>();
+servicios.AddScoped<ServicioIdiomas>();
+servicios.AddSingleton<ServicioTraduccion>();
+servicios.AddHostedService<TrabajadorTraduccion>();
+servicios.AddHttpClient("deepl", c => c.Timeout = TimeSpan.FromSeconds(30));
 
 // ─── 3. Sesiones del panel (solo cuentas administrativas; el sitio público no tiene inicio de sesión) ───
 
@@ -129,6 +134,7 @@ var app = constructor.Build();
 using (var alcance = app.Services.CreateScope())
 {
     await alcance.ServiceProvider.GetRequiredService<CargaInicial>().EjecutarAsync();
+    await app.Services.GetRequiredService<ServicioProteccion>().CargarAsync(); // bloqueos y modo privado
 }
 
 // ─── 6. Recorrido de cada petición, en orden ──────────────────────────────────

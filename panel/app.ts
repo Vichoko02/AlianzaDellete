@@ -60,6 +60,11 @@ interface ResumenSeguridad {
   eventosPorTipo: Record<string, number>; alertasSinRevisar: number; ipsBloqueadas: number; ipsMasActivas: IpActiva[];
   peticionesPorMinuto: number[]; nginx: ResumenNginx | null;
 }
+interface IpPermitida { id: number; red: string; nota: string; creadaEn: string }
+interface EstadoModoPrivado { activo: boolean; ips: IpPermitida[]; tuIp: string }
+interface IdiomaCatalogo { codigo: string; nombre: string; automatica: boolean }
+interface IdiomaConfigurado { codigo: string; nombre: string; automatica: boolean }
+interface TextoTraducible { huella: string; original: string; texto: string | null; manual: boolean }
 interface BloqueoIp { ip: string; hasta: string | null; motivo: string; manual: boolean; veces: number; creadoEn: string }
 
 // ─── Utilidades de DOM ────────────────────────────────────────────────────────
@@ -989,7 +994,8 @@ async function vistaEditorWiki(id: number | null): Promise<HTMLElement> {
     pestanas([["General", general], ["Imágenes", imagenes], ["Creador", creador], ["Redes", redes],
       ["Personajes", personajes, () => d.personajes.length],
       ["Equipo", equipo, () => d.equipo.reduce((n, g) => n + g.miembros.length, 0)],
-      ["Carrusel", carrusel, () => d.carrusel.length], ["Galería", galeria, () => d.galeria.length]]),
+      ["Carrusel", carrusel, () => d.carrusel.length], ["Galería", galeria, () => d.galeria.length],
+      ["Idiomas", id == null ? h("div", { class: "tarjeta" }, h("p", { class: "vacio" }, "Guarda la wiki para poder agregarle idiomas.")) : editorIdiomas({ serieId: id })]]),
     h("div", { class: "barra-guardar" }, indicadorGuardado(), h("a", { class: "boton", href: "#/wikis" }, "Volver"), guardar));
 
   const publica = id != null ? urlWikiPublica(d.identificador) : null;
@@ -1442,7 +1448,9 @@ async function vistaSitio(): Promise<HTMLElement> {
       },
     },
       pestanas(secciones),
-      h("div", { class: "barra-guardar" }, indicadorGuardado(), guardar)));
+      h("div", { class: "barra-guardar" }, indicadorGuardado(), guardar)),
+    h("h2", { class: "titulo-seccion" }, "Idiomas del sitio"),
+    editorIdiomas({ serieId: null }));
 }
 
 // ─── Formulario de postulación (quiz) ─────────────────────────────────────────
@@ -1583,6 +1591,181 @@ async function vistaPostulaciones(): Promise<HTMLElement> {
       paginador));
 }
 
+// ─── Idiomas y traducciones ──────────────────────────────────────────────────
+
+/**
+ * Idiomas de un ámbito (el sitio completo, o una wiki) y sus traducciones.
+ * Cada idioma es automático (DeepL, en segundo plano) o manual; cualquier traducción se puede corregir a mano,
+ * y una vez corregida la traducción automática ya no la reemplaza.
+ */
+function editorIdiomas({ serieId }: { serieId: number | null }): HTMLElement {
+  const base = serieId == null ? "/api/panel/idiomas/sitio" : `/api/panel/idiomas/series/${serieId}`;
+  const raiz = h("div", {}, h("div", { class: "cargando" }, "Cargando idiomas…"));
+  let catalogo: IdiomaCatalogo[] = [];
+  let automaticaDisponible = false;
+  let propios: IdiomaConfigurado[] = [];
+  let delSitio: IdiomaConfigurado[] = [];
+
+  // 1. Lista de idiomas: agregar, elegir automática o manual, quitar y guardar.
+  function tarjetaIdiomas(): HTMLElement {
+    const filas = h("tbody");
+    const elegir = h("select", {});
+    const pintar = (): void => {
+      vaciar(filas, propios.length ? propios.map((i, n) => h("tr", {},
+        h("td", {}, h("strong", {}, i.nombre), h("span", { class: "ayuda" }, ` · ${i.codigo}`)),
+        h("td", {}, h("select", {
+          onchange: (e) => { i.automatica = e.target.value === "auto"; },
+          disabled: !catalogo.find((c) => c.codigo === i.codigo)?.automatica || !automaticaDisponible,
+        }, h("option", { value: "manual", selected: !i.automatica }, "Manual"), h("option", { value: "auto", selected: i.automatica }, "Automática (DeepL)"))),
+        h("td", {}, h("button", { type: "button", class: "mini", onclick: () => { propios.splice(n, 1); pintar(); } }, "Quitar"))))
+        : h("tr", {}, h("td", { colspan: 3, class: "vacio" }, serieId == null ? "El sitio solo está en español." : "Esta wiki no agrega idiomas propios.")));
+      vaciar(elegir, h("option", { value: "" }, "Elegir idioma…"),
+        catalogo.filter((c) => !propios.some((p) => p.codigo === c.codigo)).map((c) =>
+          h("option", { value: c.codigo }, `${c.nombre}${c.automatica ? "" : " (solo manual)"}`)));
+    };
+    pintar();
+    return h("div", { class: "tarjeta" },
+      h("h2", {}, serieId == null ? "Idiomas del sitio" : "Idiomas de esta wiki"),
+      h("p", { class: "ayuda" }, serieId == null
+        ? "El sitio está en español. Cada idioma que agregues aparece en el selector del sitio. Automático: se traduce solo con DeepL y puedes corregirlo. Manual: lo traduces tú (lo que falte se muestra en español)."
+        : "Esta wiki se muestra en los idiomas del sitio y en los que agregues aquí. Para un idioma que ya tiene el sitio, aquí puedes cambiar si es automático o manual."),
+      !automaticaDisponible && h("p", { class: "aviso-linea" }, "La traducción automática no está configurada (falta la clave de DeepL en el servidor): por ahora solo manual."),
+      delSitio.length > 0 && serieId != null && h("p", { class: "ayuda" }, "Del sitio: ",
+        delSitio.map((i) => h("span", { class: "chip" }, `${i.nombre} · ${i.automatica ? "automática" : "manual"}`))),
+      h("div", { class: "tabla-envoltura" }, h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Idioma"), h("th", {}, "Traducción"), h("th", {}, ""))), filas)),
+      h("div", { class: "accesos" }, elegir,
+        h("button", {
+          type: "button", onclick: () => {
+            const c = catalogo.find((x) => x.codigo === elegir.value);
+            if (!c) return;
+            propios.push({ codigo: c.codigo, nombre: c.nombre, automatica: c.automatica && automaticaDisponible });
+            pintar();
+          },
+        }, "+ Agregar"),
+        h("button", {
+          type: "button", class: "primario", onclick: async () => {
+            const r = await intentar(() => api<IdiomaConfigurado[] | { propios: IdiomaConfigurado[]; delSitio: IdiomaConfigurado[] }>("PUT", base,
+              propios.map((i) => ({ codigo: i.codigo, automatica: i.automatica }))), "Idiomas guardados");
+            if (r) void cargar();
+          },
+        }, "Guardar idiomas")));
+  }
+
+  // 2. Traducciones de un idioma: original y traducción, lado a lado.
+  function tarjetaTraducciones(): HTMLElement {
+    const idiomas = [...propios, ...delSitio.filter((s) => !propios.some((p) => p.codigo === s.codigo))];
+    const lista = h("div", { class: "traducciones" });
+    const elegir = h("select", {}, idiomas.map((i) => h("option", { value: i.codigo }, i.nombre)));
+    const soloFaltantes = h("input", { type: "checkbox" });
+    const botonAuto = h("button", { type: "button" }, "Traducir automáticamente lo que falta");
+    let textos: TextoTraducible[] = [];
+    let editados = new Map<string, string>();
+
+    async function traer(): Promise<void> {
+      const idioma = idiomas.find((i) => i.codigo === elegir.value);
+      botonAuto.classList.toggle("oculto", !idioma?.automatica);
+      const r = await intentar(() => api<TextoTraducible[]>("GET", `${base}/traducciones?idioma=${encodeURIComponent(elegir.value)}`));
+      if (!r) return;
+      textos = r;
+      editados = new Map();
+      pintar();
+    }
+    function pintar(): void {
+      const visibles = soloFaltantes.checked ? textos.filter((t) => !t.texto) : textos;
+      vaciar(lista, visibles.length ? visibles.map((t) => {
+        const area = h("textarea", { rows: Math.min(6, Math.max(2, Math.ceil(t.original.length / 70))), placeholder: "Sin traducir: se muestra en español" });
+        area.value = editados.get(t.original) ?? t.texto ?? "";
+        area.addEventListener("input", () => { editados.set(t.original, area.value); });
+        return h("div", { class: "fila-traduccion" },
+          h("div", { class: "original" }, t.original),
+          h("div", {}, area, h("span", { class: `chip ${t.manual ? "ok" : t.texto ? "" : "off"}` }, t.manual ? "Manual" : t.texto ? "Automática" : "Falta")));
+      }) : h("p", { class: "vacio" }, soloFaltantes.checked ? "No falta nada por traducir." : "No hay textos para traducir."));
+    }
+    elegir.addEventListener("change", () => void traer());
+    soloFaltantes.addEventListener("change", pintar);
+    botonAuto.addEventListener("click", async () => {
+      const r = await intentar(() => api<{ encolados: number }>("POST", `${base}/traducir?idioma=${encodeURIComponent(elegir.value)}`));
+      if (r) aviso(r.encolados ? `${r.encolados} textos enviados a traducir. Recarga en unos segundos.` : "No falta nada por traducir.", "ok");
+    });
+    if (idiomas.length) void traer();
+
+    return h("div", { class: "tarjeta" },
+      h("h2", {}, "Traducciones"),
+      idiomas.length === 0 ? h("p", { class: "vacio" }, "Agrega un idioma para traducir.") : [
+        h("p", { class: "ayuda" }, "Lo que corrijas a mano queda como «Manual» y la traducción automática ya no lo cambia. Deja una traducción vacía para volver a la automática (o al español)."),
+        h("div", { class: "accesos" }, elegir, h("label", { class: "check" }, soloFaltantes, " Solo lo que falta"), botonAuto),
+        lista,
+        h("div", { class: "accesos" }, h("button", {
+          type: "button", class: "primario", onclick: async () => {
+            const cambios = [...editados].map(([original, texto]) => ({ original, texto }));
+            if (!cambios.length) { aviso("No hay cambios que guardar."); return; }
+            if ((await intentar(() => api("PUT", `${base}/traducciones?idioma=${encodeURIComponent(elegir.value)}`, cambios), "Traducciones guardadas")) !== undefined) void traer();
+          },
+        }, "Guardar traducciones"))],
+    );
+  }
+
+  async function cargar(): Promise<void> {
+    const [c, configurados] = await Promise.all([
+      api<{ idiomas: IdiomaCatalogo[]; automaticaDisponible: boolean }>("GET", "/api/panel/idiomas/catalogo"),
+      api<IdiomaConfigurado[] | { propios: IdiomaConfigurado[]; delSitio: IdiomaConfigurado[] }>("GET", base),
+    ]);
+    catalogo = c.idiomas;
+    automaticaDisponible = c.automaticaDisponible;
+    if (Array.isArray(configurados)) { propios = configurados; delSitio = []; } else { propios = configurados.propios; delSitio = configurados.delSitio; }
+    vaciar(raiz, tarjetaIdiomas(), tarjetaTraducciones());
+  }
+  cargar().catch((e: unknown) => vaciar(raiz, h("div", { class: "tarjeta" }, h("p", {}, e instanceof Error ? e.message : "No se pudieron cargar los idiomas."))));
+  return raiz;
+}
+
+// ─── Modo privado (solo superadmin) ──────────────────────────────────────────
+
+function tarjetaModoPrivado(inicial: EstadoModoPrivado): HTMLElement {
+  const raiz = h("div", { class: "tarjeta" });
+  const pintar = (estado: EstadoModoPrivado): void => {
+    const nueva = { red: "", nota: "" };
+    vaciar(raiz,
+      h("h2", {}, "Modo privado", estado.activo && h("span", { class: "chip sa" }, "Activo")),
+      h("p", { class: "ayuda" }, "Con el modo privado activo, solo las IPs o redes de la lista ven e interactúan con el sitio; el resto ve «Sitio en preparación». El panel sigue accesible desde cualquier lugar para que puedas apagarlo. Tu IP ahora: ", h("strong", {}, estado.tuIp), "."),
+      h("div", { class: "campo" }, interruptor("Modo privado activo", estado.activo, async (valor, entrada) => {
+        const r = await intentar(() => api<EstadoModoPrivado>("PUT", "/api/panel/seguridad/privado", { activo: valor }),
+          valor ? "Modo privado activado: solo la lista ve el sitio" : "Modo privado desactivado: el sitio es público");
+        if (r) pintar(r); else entrada.checked = !valor;
+      })),
+      h("div", { class: "tabla-envoltura" }, h("table", {},
+        h("thead", {}, h("tr", {}, h("th", {}, "IP o red"), h("th", {}, "Nota"), h("th", {}, "Agregada"), h("th", {}, ""))),
+        h("tbody", {}, estado.ips.length ? estado.ips.map((i) => h("tr", {},
+          h("td", {}, h("strong", {}, i.red)), h("td", {}, i.nota), h("td", { class: "ayuda" }, fecha(i.creadaEn)),
+          h("td", {}, h("button", {
+            class: "mini", onclick: async () => {
+              const r = await intentar(() => api<EstadoModoPrivado>("DELETE", `/api/panel/seguridad/privado/ips/${i.id}`), "Quitada de la lista");
+              if (r) pintar(r);
+            },
+          }, "Quitar"))))
+          : h("tr", {}, h("td", { colspan: 4, class: "vacio" }, "La lista está vacía."))))),
+      h("form", {
+        class: "rejilla", onsubmit: async (e) => {
+          e.preventDefault();
+          const r = await intentar(() => api<EstadoModoPrivado>("POST", "/api/panel/seguridad/privado/ips", nueva), "Agregada a la lista");
+          if (r) pintar(r);
+        },
+      },
+        campo("IP o red (ej: 190.5.1.1 o 190.5.0.0/16)", nueva, "red", { requerido: true }),
+        campo("Nota (ej: oficina, casa de Yish)", nueva, "nota"),
+        h("div", {},
+          h("button", { class: "primario", type: "submit" }, "Agregar"), " ",
+          h("button", {
+            type: "button", onclick: async () => {
+              const r = await intentar(() => api<EstadoModoPrivado>("POST", "/api/panel/seguridad/privado/ips", { red: estado.tuIp, nota: "Mi IP" }), "Tu IP quedó en la lista");
+              if (r) pintar(r);
+            },
+          }, `Agregar mi IP (${estado.tuIp})`))));
+  };
+  pintar(inicial);
+  return raiz;
+}
+
 // ─── Seguridad (solo superadmin) ─────────────────────────────────────────────
 
 const TIPOS_EVENTO: Record<string, string> = {
@@ -1597,6 +1780,7 @@ const CLASE_GRAVEDAD: Record<Gravedad, string> = { Alta: "sa", Media: "", Baja: 
 async function vistaSeguridad(): Promise<HTMLElement> {
   const r = await api<ResumenSeguridad>("GET", "/api/panel/seguridad/resumen");
   const bloqueos = await api<BloqueoIp[]>("GET", "/api/panel/seguridad/bloqueos");
+  const privado = await api<EstadoModoPrivado>("GET", "/api/panel/seguridad/privado");
   const est = (n: number, t: string) => h("div", { class: "estadistica" }, h("b", {}, n), h("span", {}, t));
   const tablaEventos = h("tbody");
   const paginador = h("div", { class: "paginador" });
@@ -1687,6 +1871,7 @@ async function vistaSeguridad(): Promise<HTMLElement> {
           : h("p", { class: "vacio" }, "Nada sospechoso en los últimos 10 minutos."),
         nginx && Object.keys(nginx.paisesBloqueados).length > 0 && [h("h2", {}, "Países bloqueados (24 h)"),
           h("p", {}, Object.entries(nginx.paisesBloqueados).map(([pais, n]) => h("span", { class: "chip" }, `${pais || "?"} · ${n}`)))])),
+    tarjetaModoPrivado(privado),
     h("div", { class: "tarjeta" },
       h("h2", {}, "IPs bloqueadas"),
       h("p", { class: "ayuda" }, "Las IPs se bloquean solas al acumular actividad sospechosa: 30 minutos la primera vez, y 4 veces más en cada reincidencia (máximo 7 días)."),

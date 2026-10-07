@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using System.ComponentModel.DataAnnotations;
 using Alianza.Servidor.Datos;
 using Alianza.Servidor.Seguridad;
@@ -202,14 +203,25 @@ public class ServicioSitio(BaseDeDatos bd, ServicioMedios medios, DireccionesMed
 }
 
 [ApiController]
-public class RutasSitio(ServicioSitio sitio, ServicioSeries series, ServicioSocios socios, CachePublica cache) : ControllerBase
+public class RutasSitio(ServicioSitio sitio, ServicioSeries series, ServicioSocios socios, ServicioIdiomas idiomas, ServicioTraduccion traduccion,
+    CachePublica cache) : ControllerBase
 {
+    /// <summary>Todo lo de la portada, en el idioma pedido (?idioma=en) si el sitio lo ofrece; si no, en español.</summary>
     [HttpGet("api/sitio")]
-    public Task<SitioPublico> Obtener()
+    public async Task<JsonNode> Obtener([FromQuery] string? idioma)
     {
+        var ofrecidos = await cache.ObtenerAsync("idiomas-sitio", idiomas.DelSitioAsync);
+        var elegido = ofrecidos.FirstOrDefault(i => i.Codigo == idioma);
+
         // El navegador no lo guarda (lo editado en el panel se ve al recargar); el servidor sí, en CachePublica.
         Response.Headers.CacheControl = "no-cache";
-        return cache.ObtenerAsync("sitio", () => sitio.PublicoAsync(series, socios));
+        return await cache.ObtenerAsync($"sitio:{elegido?.Codigo}", async () =>
+        {
+            var json = ServicioTraduccion.AJson(await sitio.PublicoAsync(series, socios));
+            if (elegido is not null) json = traduccion.Traducir(json, elegido.Codigo, elegido.Automatica);
+            json["idiomas"] = ServicioTraduccion.AJson(ofrecidos.Select(i => new IdiomaPublico(i.Codigo, i.Nombre)).ToList());
+            return json;
+        });
     }
 }
 

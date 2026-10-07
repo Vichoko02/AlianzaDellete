@@ -291,3 +291,12 @@ dl.respuestas dd { margin: .25rem 0 0; white-space: pre-wrap; overflow-wrap: any
 .grafico-trafico i { flex: 1; background: var(--acento); border-radius: 2px 2px 0 0; min-height: 2px; opacity: .85; }
 .grafico-trafico i:hover { opacity: 1; }
 .accesos select, .accesos input { width: auto; flex: 1 1 220px; margin: 0; }
+
+/* ─── Idiomas ─── */
+.titulo-seccion { margin: 2rem 0 1rem; }
+.aviso-linea { padding: .6rem .9rem; border-left: 4px solid var(--acento); background: var(--panel-alt); border-radius: 6px; }
+.traducciones { display: grid; gap: .75rem; margin: 1rem 0; }
+.fila-traduccion { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding-bottom: .75rem; border-bottom: 1px solid var(--borde); }
+.fila-traduccion .original { color: var(--suave); white-space: pre-wrap; font-size: .92rem; }
+.fila-traduccion textarea { width: 100%; margin-bottom: .3rem; }
+@media (max-width: 720px) { .fila-traduccion { grid-template-columns: 1fr; } }

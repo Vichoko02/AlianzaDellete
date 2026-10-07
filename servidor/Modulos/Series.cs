@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using System.ComponentModel.DataAnnotations;
 using Alianza.Servidor.Datos;
 using Alianza.Servidor.Seguridad;
@@ -234,7 +235,7 @@ public class ServicioSeries(BaseDeDatos bd, ServicioMedios medios, DireccionesMe
 
 [ApiController]
 [Route("api/series")]
-public class RutasSeries(ServicioSeries series, CachePublica cache) : ControllerBase
+public class RutasSeries(ServicioSeries series, ServicioIdiomas idiomas, ServicioTraduccion traduccion, CachePublica cache) : ControllerBase
 {
     /// <summary>Tarjetas de la portada, solo series publicadas. Filtro opcional por código de estado.</summary>
     [HttpGet]
@@ -242,13 +243,20 @@ public class RutasSeries(ServicioSeries series, CachePublica cache) : Controller
         // Solo la lista completa se guarda en memoria; con filtro se consulta directo.
         string.IsNullOrEmpty(estado) ? cache.ObtenerAsync("series", () => series.TarjetasAsync()) : series.TarjetasAsync(estado);
 
+    /// <summary>Wiki completa, en el idioma pedido (?idioma=en) si la wiki o el sitio lo ofrecen; si no, en español.</summary>
     [HttpGet("{identificador}")]
-    public async Task<ActionResult<WikiPublica>> Wiki(string identificador)
+    public async Task<ActionResult<JsonNode>> Wiki(string identificador, [FromQuery] string? idioma)
     {
-        var wiki = await cache.ObtenerAsync<WikiPublica?>($"wiki:{identificador}", async () =>
+        var wiki = await cache.ObtenerAsync<JsonNode?>($"wiki:{identificador}:{idioma}", async () =>
         {
             var serie = await series.ConTodo().AsNoTracking().FirstOrDefaultAsync(x => x.Identificador == identificador && x.Publicada);
-            return serie is null ? null : await series.APublicaAsync(serie);
+            if (serie is null) return null;
+            var ofrecidos = await idiomas.EfectivosDeLaWikiAsync(serie.Id);
+            var elegido = ofrecidos.FirstOrDefault(i => i.Codigo == idioma);
+            var json = ServicioTraduccion.AJson(await series.APublicaAsync(serie));
+            if (elegido is not null) json = traduccion.Traducir(json, elegido.Codigo, elegido.Automatica);
+            json["idiomas"] = ServicioTraduccion.AJson(ofrecidos.Select(i => new IdiomaPublico(i.Codigo, i.Nombre)).ToList());
+            return json;
         });
         return wiki is null ? NotFound() : wiki;
     }

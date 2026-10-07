@@ -26,6 +26,10 @@ public class BaseDeDatos(DbContextOptions<BaseDeDatos> opciones) : DbContext(opc
     public DbSet<RegistroAuditoria> Auditoria => Set<RegistroAuditoria>();
     public DbSet<EventoSeguridad> EventosSeguridad => Set<EventoSeguridad>();
     public DbSet<BloqueoIp> BloqueosIp => Set<BloqueoIp>();
+    public DbSet<IpPermitida> IpsPermitidas => Set<IpPermitida>();
+    public DbSet<Ajuste> Ajustes => Set<Ajuste>();
+    public DbSet<IdiomaOfrecido> IdiomasOfrecidos => Set<IdiomaOfrecido>();
+    public DbSet<Traduccion> Traducciones => Set<Traduccion>();
 
     protected override void OnModelCreating(ModelBuilder modelo)
     {
@@ -102,6 +106,12 @@ public class BaseDeDatos(DbContextOptions<BaseDeDatos> opciones) : DbContext(opc
             t.HasIndex(x => new { x.UsuarioId, x.Area, x.SerieId }).IsUnique().AreNullsDistinct(false);
         });
         modelo.Entity<RegistroAuditoria>(t => t.HasIndex(x => x.Fecha));
+        modelo.Entity<IdiomaOfrecido>(t =>
+        {
+            t.HasOne(x => x.Serie).WithMany().HasForeignKey(x => x.SerieId).OnDelete(DeleteBehavior.Cascade);
+            t.HasIndex(x => new { x.SerieId, x.Codigo }).IsUnique().AreNullsDistinct(false);
+        });
+        modelo.Entity<Traduccion>(t => t.HasKey(x => new { x.Idioma, x.Huella }));
         modelo.Entity<EventoSeguridad>(t =>
         {
             t.Property(x => x.Tipo).HasConversion<string>().HasMaxLength(30);

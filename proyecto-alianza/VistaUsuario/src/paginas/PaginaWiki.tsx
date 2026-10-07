@@ -16,7 +16,7 @@ function conDirecciones(wiki: Wiki): Wiki {
     creador: { ...wiki.creador, imagen: url(wiki.creador.imagen) },
     carrusel: wiki.carrusel.map((c) => urlMedio(c)!).filter(Boolean),
     personajes: wiki.personajes.map((p) => ({ ...p, imagen: url(p.imagen), imagenActorVoz: url(p.imagenActorVoz) })),
-    equipo: wiki.equipo.map((g) => ({ ...g, miembros: g.miembros.map((m) => ({ ...m, imagen: url(m.imagen) })) })),
+    equipo: wiki.equipo.map((g) => ({ ...g, miembros: g.miembros.map((m) => ({ ...m, imagen: url(m.imagen), imagenAlternativa: url(m.imagenAlternativa) })) })),
     galeria: wiki.galeria.map((g) => ({ ...g, url: urlMedio(g.url)! })),
   };
 }

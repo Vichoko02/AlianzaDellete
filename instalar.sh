@@ -20,6 +20,7 @@ fi
 id alianza >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin alianza
 install -d /opt/alianza
 install -d -m 750 -o root -g alianza /var/log/alianza
+install -d -m 700 -o www-data -g www-data /var/cache/nginx/alianza   # copia en disco de imágenes y videos
 
 # 3. PostgreSQL: configuración para poca memoria, y rol + base "alianza" (entra por socket, sin contraseña).
 CONF_PG="$(ls -d /etc/postgresql/*/main | tail -1)/conf.d"
@@ -54,9 +55,15 @@ cp sistema/nginx-alianza-http.conf /etc/nginx/conf.d/alianza.conf
 install -d /etc/nginx/snippets && cp sistema/nginx-alianza-proxy.conf /etc/nginx/snippets/alianza-proxy.conf
 cp sistema/logrotate-alianza /etc/logrotate.d/alianza
 cp sistema/nginx-alianza.conf /etc/nginx/sites-available/alianza
+# Servidores sin IPv6 (frecuente en VPS pequeños): nginx no arranca si escucha en [::].
+[ -s /proc/net/if_inet6 ] || sed -i '/listen \[::\]/d' /etc/nginx/sites-available/alianza
 ln -sf /etc/nginx/sites-available/alianza /etc/nginx/sites-enabled/alianza
 rm -f /etc/nginx/sites-enabled/default
 systemctl daemon-reload
 systemctl enable --now alianza-servidor
-nginx -t && systemctl reload nginx
+if ! nginx -t; then
+  echo "La configuración de nginx tiene errores (arriba). El servidor quedó funcionando, pero el sitio no se publicó." >&2
+  exit 1
+fi
+systemctl reload nginx 2>/dev/null || systemctl start nginx
 echo "Listo. Panel: http://<este-servidor>/panel  ·  Estado: systemctl status alianza-servidor"

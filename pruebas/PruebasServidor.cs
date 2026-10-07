@@ -291,7 +291,14 @@ public class PruebasServidor(ServidorDePrueba servidor) : IClassFixture<Servidor
         Assert.Equal("image/png", descarga.Content.Headers.ContentType!.MediaType);
         Assert.Equal(PngMinimo, await descarga.Content.ReadAsByteArrayAsync());
 
-        // 2. Un archivo que dice ser PNG pero no lo es se rechaza.
+        // 2. Se puede pedir por tramos (los videos lo hacen): solo llega el tramo pedido.
+        var tramo = new HttpRequestMessage(HttpMethod.Get, url);
+        tramo.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(10, 19);
+        descarga = await servidor.Cliente().SendAsync(tramo);
+        Assert.Equal(HttpStatusCode.PartialContent, descarga.StatusCode);
+        Assert.Equal(PngMinimo[10..20], await descarga.Content.ReadAsByteArrayAsync());
+
+        // 3. Un archivo que dice ser PNG pero no lo es se rechaza.
         Assert.Equal(HttpStatusCode.BadRequest, (await yish.PostAsync("/api/panel/medios", falsa)).StatusCode);
     }
 

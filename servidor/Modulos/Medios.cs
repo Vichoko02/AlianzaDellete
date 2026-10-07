@@ -106,25 +106,66 @@ public class ServicioMedios(BaseDeDatos bd)
     };
 }
 
-/// <summary>GET /api/medios/{id}: sirve el archivo. El contenido de un id nunca cambia, así que se guarda en caché para siempre.</summary>
+/// <summary>
+/// GET /api/medios/{id}: sirve el archivo. El contenido de un id nunca cambia, así que se guarda en caché para siempre
+/// (en el navegador y en nginx). El archivo se transmite por partes desde PostgreSQL, sin cargarlo entero en memoria:
+/// un video o GIF grande pedido por muchos visitantes a la vez no agota la memoria del servidor.
+/// </summary>
 [ApiController]
 public class RutasMedios(BaseDeDatos bd) : ControllerBase
 {
     [HttpGet("api/medios/{id:guid}"), HttpHead("api/medios/{id:guid}")]
-    public async Task<IActionResult> Servir(Guid id)
+    public async Task Servir(Guid id)
     {
-        var datos = await bd.Medios.AsNoTracking().Where(m => m.Id == id).Select(m => new { m.TipoContenido, m.Huella }).FirstOrDefaultAsync();
-        byte[] bytes;
-        if (datos is null) return NotFound();
+        var datos = await bd.Medios.AsNoTracking().Where(m => m.Id == id).Select(m => new { m.TipoContenido, m.Huella, m.Tamano }).FirstOrDefaultAsync();
+        var cabeceras = Response.Headers;
+        long desde = 0, largo;
 
-        Response.Headers.CacheControl = "public, max-age=31536000, immutable";
-        Response.Headers.XContentTypeOptions = "nosniff";
+        // 1. ¿Existe? ¿El navegador ya lo tiene?
+        if (datos is null) { Response.StatusCode = StatusCodes.Status404NotFound; return; }
+        cabeceras.CacheControl = "public, max-age=31536000, immutable";
+        cabeceras.XContentTypeOptions = "nosniff";
+        cabeceras.ETag = $"\"{datos.Huella}\"";
+        cabeceras.AcceptRanges = "bytes";
         // Un SVG puede traer scripts: se sirve aislado para que no se ejecuten.
-        Response.Headers.ContentSecurityPolicy = "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; media-src 'self'; sandbox";
-        if (Request.Headers.IfNoneMatch.ToString().Contains(datos.Huella)) return StatusCode(StatusCodes.Status304NotModified);
+        cabeceras.ContentSecurityPolicy = "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; media-src 'self'; sandbox";
+        if (Request.Headers.IfNoneMatch.ToString().Contains(datos.Huella)) { Response.StatusCode = StatusCodes.Status304NotModified; return; }
 
-        bytes = await bd.ContenidosMedio.AsNoTracking().Where(c => c.MedioId == id).Select(c => c.Bytes).FirstAsync();
-        return File(bytes, datos.TipoContenido, lastModified: null, entityTag: new EntityTagHeaderValue($"\"{datos.Huella}\""), enableRangeProcessing: true);
+        // 2. Pedido parcial (los videos piden por tramos: "Range: bytes=inicio-fin").
+        largo = datos.Tamano;
+        if (RangoPedido(Request.Headers.Range.ToString(), datos.Tamano) is { } rango)
+        {
+            (desde, largo) = rango;
+            Response.StatusCode = StatusCodes.Status206PartialContent;
+            cabeceras.ContentRange = $"bytes {desde}-{desde + largo - 1}/{datos.Tamano}";
+        }
+        Response.ContentType = datos.TipoContenido;
+        Response.ContentLength = largo;
+        if (HttpMethods.IsHead(Request.Method)) return;
+
+        // 3. Transmitir desde PostgreSQL por partes (substring trae solo el tramo pedido; el lector no guarda todo en memoria).
+        var conexion = (Npgsql.NpgsqlConnection)bd.Database.GetDbConnection();
+        await bd.Database.OpenConnectionAsync(HttpContext.RequestAborted);
+        await using var comando = new Npgsql.NpgsqlCommand("SELECT substring(bytes FROM @desde FOR @largo) FROM contenidos_medio WHERE medio_id = @id", conexion);
+        comando.Parameters.AddWithValue("desde", (int)desde + 1);
+        comando.Parameters.AddWithValue("largo", (int)largo);
+        comando.Parameters.AddWithValue("id", id);
+        await using var lector = await comando.ExecuteReaderAsync(System.Data.CommandBehavior.SequentialAccess, HttpContext.RequestAborted);
+        if (!await lector.ReadAsync(HttpContext.RequestAborted)) return;
+        await using var contenido = await lector.GetStreamAsync(0, HttpContext.RequestAborted);
+        await contenido.CopyToAsync(Response.Body, 64 * 1024, HttpContext.RequestAborted);
+    }
+
+    /// <summary>Lee "bytes=inicio-fin" (un solo tramo). Devuelve (desde, largo) o null si no hay tramo válido.</summary>
+    private static (long Desde, long Largo)? RangoPedido(string rango, long total)
+    {
+        if (!rango.StartsWith("bytes=") || rango.Contains(',')) return null;
+        var partes = rango[6..].Split('-');
+        if (partes.Length != 2) return null;
+        if (partes[0] == "" && long.TryParse(partes[1], out var ultimos) && ultimos > 0) return (Math.Max(0, total - ultimos), Math.Min(ultimos, total));
+        if (!long.TryParse(partes[0], out var desde) || desde >= total) return null;
+        var hasta = partes[1] == "" ? total - 1 : (long.TryParse(partes[1], out var h) ? Math.Min(h, total - 1) : -1);
+        return hasta < desde ? null : (desde, hasta - desde + 1);
     }
 }
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import logoAlianza from "../assets/ALIANZA_VECTORIZADO.svg";
+import Icono from "./Icono";
 
 export default function CabeceraNoticias() {
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -47,14 +48,14 @@ export default function CabeceraNoticias() {
           {leftLinks.map((l, i) => (
             <li key={l.label} style={{ "--i": i } as React.CSSProperties}>
               <a href={l.href} onClick={() => setMenuAbierto(false)}>
-                {l.label}<span className="nav-arrow">→</span>
+                {l.label}<span className="nav-arrow"><Icono nombre="flecha-derecha" tamano={16} /></span>
               </a>
             </li>
           ))}
           {rightLinks.map((l, i) => (
             <li key={l.label} style={{ "--i": i + leftLinks.length } as React.CSSProperties}>
               <a href={l.href} onClick={() => setMenuAbierto(false)}>
-                {l.label}<span className="nav-arrow">→</span>
+                {l.label}<span className="nav-arrow"><Icono nombre="flecha-derecha" tamano={16} /></span>
               </a>
             </li>
           ))}

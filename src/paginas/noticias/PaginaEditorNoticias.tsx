@@ -11,6 +11,7 @@ import imgTecnosis from "../../assets/Tecnosis/Tecnosis.webp";
 import imgEmesis from "../../assets/Emesis/emesisblue.webp";
 import imgTBTF from "../../assets/TheBraveAndTheFuriousAndTheJackass/TBTF.webp";
 import logoAlianza from "../../assets/ALIANZA_VECTORIZADO.svg";
+import Icono from "../../componentes/Icono";
 
 const NOTICIAS_KEY = "alianza_noticias";
 
@@ -105,7 +106,7 @@ export default function PaginaEditorNoticias() {
     <div className="news-editor-page">
       <header className="news-editor-header">
         <Link to="/news/admin" className="news-editor-back">
-          ← Panel de Noticias
+          <Icono nombre="flecha-izquierda" tamano={16} /> Panel de Noticias
         </Link>
         <Link to="/" className="news-editor-logo">
           <img src={logoAlianza} alt="Alianza" />

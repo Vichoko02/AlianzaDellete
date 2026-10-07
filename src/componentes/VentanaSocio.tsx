@@ -1,18 +1,19 @@
 import { urlMedio, type Socio } from "../api";
-import { ICONOS } from "../iconos";
+import { PLATAFORMAS } from "../iconos";
+import Icono from "./Icono";
 import { useTextos } from "../textos";
 import { useVentanaAbierta } from "../ventana";
 
 /** Ficha de un socio: imagen, redes, descripción y los proyectos en los que participa. */
 export default function VentanaSocio({ socio, alCerrar }: { socio: Socio; alCerrar: () => void }) {
   const t = useTextos();
-  const redes = Object.entries(socio.redes).filter(([plataforma, url]) => url && ICONOS[plataforma]);
+  const redes = Object.entries(socio.redes).filter(([plataforma, url]) => url && PLATAFORMAS[plataforma]);
   useVentanaAbierta(alCerrar);
 
   return (
     <div className="socio-modal-overlay" onClick={alCerrar}>
       <div className="socio-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="socio-modal-close" onClick={alCerrar} aria-label="Cerrar">✕</button>
+        <button className="socio-modal-close" onClick={alCerrar} aria-label="Cerrar"><Icono nombre="cerrar" tamano={18} /></button>
 
         <div className="socio-modal-main">
           <div className="socio-modal-img-box">
@@ -24,11 +25,11 @@ export default function VentanaSocio({ socio, alCerrar }: { socio: Socio; alCerr
             {redes.length > 0 && (
               <div className="socio-modal-redes">
                 {redes.map(([plataforma, url]) => {
-                  const icono = ICONOS[plataforma];
+                  const icono = PLATAFORMAS[plataforma];
                   return (
                     <a key={plataforma} href={url} target="_blank" rel="noopener noreferrer" className="socio-modal-red-btn"
                       aria-label={icono.nombre} style={{ "--red-color": icono.color } as React.CSSProperties}>
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d={icono.ruta} /></svg>
+                      <Icono nombre={plataforma} tamano={18} />
                     </a>
                   );
                 })}

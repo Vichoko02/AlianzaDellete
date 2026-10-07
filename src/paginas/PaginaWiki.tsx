@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import PlantillaWiki from "../componentes/PlantillaWiki";
 import { ErrorApi, pedirWiki, urlMedio, type Wiki } from "../api";
 import { useIdioma, useTextos } from "../textos";
+import Icono from "../componentes/Icono";
 
 /** Cambia las direcciones /api/medios/... por direcciones completas cuando el servidor está en otro dominio. */
 function conDirecciones(wiki: Wiki): Wiki {
@@ -50,7 +51,7 @@ function PaginaWiki({ identificador, idioma }: { identificador: string; idioma: 
       <div className="estado-carga">
         <div>
           <p>{error === "no-existe" ? t("wiki.noEncontrada") : "No pudimos cargar este proyecto. Intenta de nuevo."}</p>
-          <p><Link to="/#proyectos">← Volver a los proyectos</Link></p>
+          <p><Link to="/#proyectos"><Icono nombre="flecha-izquierda" tamano={16} /> Volver a los proyectos</Link></p>
         </div>
       </div>
     );

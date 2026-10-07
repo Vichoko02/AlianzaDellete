@@ -2725,3 +2725,7 @@ body.dark-theme .news-hero-overlay {
 .pagina-estado-logo { width: min(220px, 50vw); }
 .pagina-estado h1 { font-family: "Black Ops One", sans-serif; letter-spacing: .05em; margin: 1rem 0 0; }
 .pagina-estado-otro { opacity: .7; font-size: .9rem; }
+
+/* ─── Íconos (archivos de src/assets/iconos) ─── */
+.icono { display: inline-flex; flex-shrink: 0; vertical-align: middle; }
+.icono svg { width: 100%; height: 100%; display: block; }

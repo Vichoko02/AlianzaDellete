@@ -13,7 +13,9 @@ src/
   api.ts                1) formatos que entrega el servidor  2) peticiones  3) direcciones de imágenes
   ProveedorSitio.tsx    Pide una vez los textos del sitio y los comparte con todas las páginas
   textos.ts             useTextos(), useListaImagenes(), useEnlaces() y los textos por defecto
-  iconos.ts             Íconos de redes y plataformas de apoyo
+  iconos.ts             Nombre y color de cada red y plataforma de apoyo
+  assets/iconos/        TODOS los íconos del sitio, un SVG por ícono (redes, cerrar, flechas, sol/luna...).
+                        Para cambiar uno, reemplaza su archivo; se usan con <Icono nombre="cerrar" />
   ventana.ts            Comportamiento común de las ventanas (Escape cierra, el fondo no se desplaza)
   paginas/              PaginaInicio, PaginaWiki y noticias/
   componentes/          Cabecera, BarraNavegacion, Carrusel, Eslogan, SobreNosotros, SeccionTarjetas, Unete,
@@ -21,6 +23,17 @@ src/
 ```
 
 Los ganchos de React empiezan con `use` (`useTextos`, `useVentanaAbierta`) porque React lo exige para reconocerlos.
+
+## Idiomas
+
+El sitio está escrito en **español**, su idioma principal y el de su público. Además se ofrece en inglés, portugués (Brasil), francés y alemán; desde el panel se pueden agregar o quitar idiomas.
+
+El idioma se **detecta del navegador** la primera vez:
+- un navegador en español ve español;
+- uno en `pt-PT` ve portugués de Brasil;
+- uno en un idioma que el sitio no ofrece (por ejemplo, japonés) ve español.
+
+Si el visitante cambia el idioma en el selector, su elección se recuerda y manda sobre la del navegador.
 
 ## Desarrollo
 

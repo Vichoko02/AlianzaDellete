@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { Noticia } from "./PaginaNoticias";
 import logoAlianza from "../../assets/ALIANZA_VECTORIZADO.svg";
+import Icono from "../../componentes/Icono";
 
 const NOTICIAS_KEY = "alianza_noticias";
 
@@ -30,7 +31,7 @@ export default function PaginaAdminNoticias() {
     <div className="news-admin-page">
       <header className="news-admin-header">
         <Link to="/news" className="news-admin-back">
-          ← Volver a Noticias
+          <Icono nombre="flecha-izquierda" tamano={16} /> Volver a Noticias
         </Link>
         <Link to="/" className="news-admin-logo">
           <img src={logoAlianza} alt="Alianza" />

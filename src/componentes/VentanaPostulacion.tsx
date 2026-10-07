@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ErrorApi, enviarPostulacion, pedirFormulario, type Pregunta } from "../api";
 import { useIdioma, useTextos } from "../textos";
 import { useVentanaAbierta } from "../ventana";
+import Icono from "./Icono";
 
 const PATRON_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -114,11 +115,11 @@ export default function VentanaPostulacion({ alCerrar }: { alCerrar: () => void 
   return (
     <div className="quiz-overlay" onClick={alCerrar}>
       <div className="quiz-modal" role="dialog" aria-modal="true" aria-labelledby="quiz-titulo" onClick={(e) => e.stopPropagation()}>
-        <button className="socio-modal-close" onClick={alCerrar} aria-label="Cerrar">✕</button>
+        <button className="socio-modal-close" onClick={alCerrar} aria-label="Cerrar"><Icono nombre="cerrar" tamano={18} /></button>
 
         {enviada ? (
           <div className="quiz-exito">
-            <div className="quiz-exito-icono" aria-hidden="true">✓</div>
+            <div className="quiz-exito-icono" aria-hidden="true"><Icono nombre="check" tamano={36} /></div>
             <h2 id="quiz-titulo" className="quiz-titulo">{t("formulario.exito.titulo")}</h2>
             <p className="quiz-intro">{t("formulario.exito.texto")}</p>
             <button className="btn-primary" onClick={alCerrar}>Cerrar</button>
